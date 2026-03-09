@@ -1,5 +1,6 @@
 import '../../../core/api/mobile_api.dart';
 import '../../../core/session/app_session.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/common_widgets.dart';
@@ -331,22 +332,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: FilledButton(
-                          onPressed: ThemeController.instance.isDark
-                              ? null
-                              : () => ThemeController.instance
-                                  .setThemeMode(ThemeMode.dark),
-                          child: const Text('Qora'),
+                        child: _ThemeModeButton(
+                          label: 'Qora',
+                          active: ThemeController.instance.isDark,
+                          onTap: () => ThemeController.instance
+                              .setThemeMode(ThemeMode.dark),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: !ThemeController.instance.isDark
-                              ? null
-                              : () => ThemeController.instance
-                                  .setThemeMode(ThemeMode.light),
-                          child: const Text('Oq'),
+                        child: _ThemeModeButton(
+                          label: 'Oq',
+                          active: !ThemeController.instance.isDark,
+                          onTap: () => ThemeController.instance
+                              .setThemeMode(ThemeMode.light),
                         ),
                       ),
                     ],
@@ -400,6 +399,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeModeButton extends StatelessWidget {
+  const _ThemeModeButton({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: active ? null : onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        height: 56,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active
+              ? AppTheme.primaryButton(context)
+              : AppTheme.cardBackground(context),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppTheme.cardBorder(context)),
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: active
+                    ? AppTheme.primaryButtonForeground(context)
+                    : Theme.of(context).colorScheme.onSurface,
+              ),
         ),
       ),
     );
