@@ -1,7 +1,7 @@
 API_URL ?= http://127.0.0.1:8081
 JDK_HOME ?= /usr/lib/jvm/java-17-openjdk
 
-.PHONY: run web analyze test deps backend-up backend-stop core-up core-stop remote-up remote-stop remote-url apk-remote run-remote android-sdk-setup
+.PHONY: run web analyze test deps backend-up backend-stop core-up core-stop remote-up remote-stop remote-url apk-remote run-remote android-sdk-setup domain-up domain-url apk-domain run-domain
 
 deps:
 	@flutter pub get
@@ -30,11 +30,22 @@ core-stop:
 remote-up:
 	@BACKEND_ROOT="$$(cd .. && pwd)" ./start_remote_core.sh
 
+domain-up:
+	@BACKEND_ROOT="$$(cd .. && pwd)" ./start_domain_core.sh
+
 remote-url:
 	@if [ -f .core_tunnel_url ]; then \
 		cat .core_tunnel_url; \
 	else \
 		echo "remote URL topilmadi. Avval make remote-up ishlating."; \
+		exit 1; \
+	fi
+
+domain-url:
+	@if [ -f .core_domain_url ]; then \
+		cat .core_domain_url; \
+	else \
+		echo "domain URL topilmadi. Avval make domain-up ishlating."; \
 		exit 1; \
 	fi
 
@@ -51,11 +62,21 @@ run-remote: deps remote-up
 	@REMOTE_URL="$$(cat .core_tunnel_url)" && \
 	flutter run -d linux --dart-define=MOBILE_API_BASE_URL="$$REMOTE_URL"
 
+run-domain: deps domain-up
+	@DOMAIN_URL="$$(cat .core_domain_url)" && \
+	flutter run -d linux --dart-define=MOBILE_API_BASE_URL="$$DOMAIN_URL"
+
 apk-remote: deps remote-up android-sdk-setup
 	@REMOTE_URL="$$(cat .core_tunnel_url)" && \
 	JAVA_HOME="$(JDK_HOME)" PATH="$(JDK_HOME)/bin:$$PATH" flutter build apk --debug --dart-define=MOBILE_API_BASE_URL="$$REMOTE_URL" && \
 	echo "APK tayyor: build/app/outputs/flutter-apk/app-debug.apk" && \
 	echo "Core URL: $$REMOTE_URL"
+
+apk-domain: deps domain-up android-sdk-setup
+	@DOMAIN_URL="$$(cat .core_domain_url)" && \
+	JAVA_HOME="$(JDK_HOME)" PATH="$(JDK_HOME)/bin:$$PATH" flutter build apk --debug --dart-define=MOBILE_API_BASE_URL="$$DOMAIN_URL" && \
+	echo "APK tayyor: build/app/outputs/flutter-apk/app-debug.apk" && \
+	echo "Core URL: $$DOMAIN_URL"
 
 analyze:
 	@flutter analyze

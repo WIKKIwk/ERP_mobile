@@ -37,6 +37,10 @@ migrate_working_dir/
 .core_tunnel.log
 .core_tunnel.pid
 .core_tunnel_url
+.core_domain_tunnel.log
+.core_domain_tunnel.pid
+.core_domain_url
+.core_domain_tunnel.yml
 
 # Symbolication related
 app.*.symbols

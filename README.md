@@ -82,3 +82,30 @@ Ish tugagach tunnel va core'ni to'xtatish:
 ```bash
 make remote-stop
 ```
+
+## Doimiy domen bilan ishlatish
+
+Doimiy hostname:
+
+```bash
+https://core.wspace.sbs
+```
+
+Core'ni shu hostname bilan ko'tarish:
+
+```bash
+cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
+make domain-up
+```
+
+Domain URL'ni ko'rish:
+
+```bash
+make domain-url
+```
+
+APK'ni doimiy URL bilan build qilish:
+
+```bash
+make apk-domain
+```
