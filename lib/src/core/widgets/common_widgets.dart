@@ -152,7 +152,7 @@ class ActionDock extends StatelessWidget {
     ];
 
     return Container(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(top: 3),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
