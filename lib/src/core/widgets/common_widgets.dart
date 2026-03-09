@@ -154,6 +154,8 @@ class ActionDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.sizeOf(context).width;
+    final bool compact = width <= 375;
     final List<Widget> buttons = [
       ...leading,
       center,
@@ -179,7 +181,7 @@ class ActionDock extends StatelessWidget {
             children: buttons
                 .map(
                   (button) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    padding: EdgeInsets.symmetric(horizontal: compact ? 1 : 3),
                     child: button,
                   ),
                 )
@@ -207,6 +209,8 @@ class DockButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.sizeOf(context).width;
+    final bool compact = width <= 375;
     final Color background = primary
         ? AppTheme.primaryButton(context)
         : active
@@ -221,8 +225,12 @@ class DockButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: AppMotion.medium,
         curve: AppMotion.smooth,
-        height: primary ? 60 : 54,
-        width: primary ? 60 : 54,
+        height: primary
+            ? (compact ? 54 : 60)
+            : (compact ? 46 : 54),
+        width: primary
+            ? (compact ? 54 : 60)
+            : (compact ? 46 : 54),
         decoration: BoxDecoration(
           color: background,
           shape: BoxShape.circle,
@@ -240,7 +248,13 @@ class DockButton extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Icon(icon, color: foreground, size: primary ? 27 : 25),
+        child: Icon(
+          icon,
+          color: foreground,
+          size: primary
+              ? (compact ? 24 : 27)
+              : (compact ? 22 : 25),
+        ),
       ),
     );
   }
