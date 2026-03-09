@@ -383,7 +383,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton(
+              child: FilledButton(
                 onPressed: () async {
                   final navigator = Navigator.of(context);
                   await MobileApi.instance.logout();
