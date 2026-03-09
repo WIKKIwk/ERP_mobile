@@ -80,7 +80,7 @@ class AppRouter {
       settings: settings,
       pageBuilder: (context, animation, secondaryAnimation) => child,
       transitionDuration: AppMotion.medium,
-      reverseTransitionDuration: AppMotion.fast,
+      reverseTransitionDuration: AppMotion.medium,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final CurvedAnimation curved = CurvedAnimation(
           parent: animation,
@@ -88,21 +88,45 @@ class AppRouter {
           reverseCurve: AppMotion.emphasized,
         );
         final Animation<Offset> offset = Tween<Offset>(
-          begin: const Offset(0.045, 0),
+          begin: const Offset(0.028, 0),
           end: Offset.zero,
         ).animate(curved);
         final Animation<double> scale = Tween<double>(
-          begin: 0.992,
+          begin: 0.985,
           end: 1,
         ).animate(curved);
+        final Animation<Offset> previousOffset = Tween<Offset>(
+          begin: Offset.zero,
+          end: const Offset(-0.012, 0),
+        ).animate(
+          CurvedAnimation(
+            parent: secondaryAnimation,
+            curve: AppMotion.smooth,
+          ),
+        );
+        final Animation<double> previousFade = Tween<double>(
+          begin: 1,
+          end: 0.985,
+        ).animate(
+          CurvedAnimation(
+            parent: secondaryAnimation,
+            curve: AppMotion.smooth,
+          ),
+        );
 
         return FadeTransition(
           opacity: curved,
           child: SlideTransition(
-            position: offset,
-            child: ScaleTransition(
-              scale: scale,
-              child: child,
+            position: previousOffset,
+            child: FadeTransition(
+              opacity: previousFade,
+              child: SlideTransition(
+                position: offset,
+                child: ScaleTransition(
+                  scale: scale,
+                  child: child,
+                ),
+              ),
             ),
           ),
         );
