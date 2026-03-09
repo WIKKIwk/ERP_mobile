@@ -62,37 +62,15 @@ class AppShell extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0, end: 1),
-                            duration: AppMotion.slow,
-                            curve: AppMotion.settle,
-                            builder: (context, value, child) {
-                              return Opacity(
-                                opacity: value,
-                                child: Transform.translate(
-                                  offset: Offset(0, 12 * (1 - value)),
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: Text(
-                              title,
-                              style: theme.textTheme.headlineMedium,
-                            ),
+                          Text(
+                            title,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           if (subtitle.trim().isNotEmpty) ...[
                             const SizedBox(height: 6),
-                            TweenAnimationBuilder<double>(
-                              tween: Tween(begin: 0, end: 1),
-                              duration: const Duration(milliseconds: 460),
-                              curve: AppMotion.settle,
-                              builder: (context, value, child) {
-                                return Opacity(opacity: value, child: child);
-                              },
-                              child: Text(
-                                subtitle,
-                                style: theme.textTheme.bodyMedium,
-                              ),
+                            Text(
+                              subtitle,
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ],
