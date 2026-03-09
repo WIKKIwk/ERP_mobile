@@ -24,7 +24,11 @@ class SupplierDock extends StatelessWidget {
     return ActionDock(
       leading: [
         DockButton(
-          icon: Icons.home_rounded,
+          iconWidget: const DockSvgIcon(
+            fillAsset: 'assets/icons/home-fill.svg',
+            lineAsset: 'assets/icons/home-line.svg',
+            primary: false,
+          ),
           active: activeTab == SupplierDockTab.home,
           onTap: () {
             if (activeTab == SupplierDockTab.home) {
@@ -37,7 +41,11 @@ class SupplierDock extends StatelessWidget {
           },
         ),
         DockButton(
-          icon: Icons.notifications_none_rounded,
+          iconWidget: const DockSvgIcon(
+            fillAsset: 'assets/icons/mail-ai-fill.svg',
+            lineAsset: 'assets/icons/mail-ai-line.svg',
+            primary: false,
+          ),
           active: activeTab == SupplierDockTab.notifications,
           onTap: () {
             if (activeTab == SupplierDockTab.notifications) {

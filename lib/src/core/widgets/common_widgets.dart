@@ -2,6 +2,7 @@ import '../../features/shared/models/app_models.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 enum _DockDeviceClass {
   small,
@@ -227,13 +228,15 @@ class ActionDock extends StatelessWidget {
 class DockButton extends StatelessWidget {
   const DockButton({
     super.key,
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.onTap,
     this.active = false,
     this.primary = false,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final VoidCallback onTap;
   final bool active;
   final bool primary;
@@ -299,22 +302,54 @@ class DockButton extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Icon(
-          icon,
-          color: foreground,
-          size: primary
-              ? switch (deviceClass) {
-                  _DockDeviceClass.small => 24,
-                  _DockDeviceClass.medium => 25,
-                  _DockDeviceClass.large => 25,
-                }
-              : switch (deviceClass) {
-                  _DockDeviceClass.small => 22,
-                  _DockDeviceClass.medium => 23,
-                  _DockDeviceClass.large => 23,
-                },
+        child: Center(
+          child: iconWidget ??
+              Icon(
+                icon,
+                color: foreground,
+                size: primary
+                    ? switch (deviceClass) {
+                        _DockDeviceClass.small => 24,
+                        _DockDeviceClass.medium => 25,
+                        _DockDeviceClass.large => 25,
+                      }
+                    : switch (deviceClass) {
+                        _DockDeviceClass.small => 22,
+                        _DockDeviceClass.medium => 23,
+                        _DockDeviceClass.large => 23,
+                      },
+              ),
         ),
       ),
+    );
+  }
+}
+
+class DockSvgIcon extends StatelessWidget {
+  const DockSvgIcon({
+    super.key,
+    required this.fillAsset,
+    required this.lineAsset,
+    required this.primary,
+  });
+
+  final String fillAsset;
+  final String lineAsset;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool dark = AppTheme.isDark(context);
+    final String asset = dark ? lineAsset : fillAsset;
+    final Color color = primary
+        ? AppTheme.primaryButtonForeground(context)
+        : Theme.of(context).colorScheme.onSurface;
+
+    return SvgPicture.asset(
+      asset,
+      width: primary ? 22 : 20,
+      height: primary ? 22 : 20,
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
 }
