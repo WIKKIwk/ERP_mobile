@@ -15,20 +15,29 @@ class SoftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.cardBackground(context),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 18,
-            offset: Offset(0, 8),
-          ),
-        ],
+        boxShadow: isDark
+            ? const [
+                BoxShadow(
+                  color: Color(0x18000000),
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                ),
+              ]
+            : const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
         border: Border.all(
           color: AppTheme.cardBorder(context),
-          width: 1.35,
+          width: isDark ? 1.35 : 1,
         ),
       ),
       padding: padding,
