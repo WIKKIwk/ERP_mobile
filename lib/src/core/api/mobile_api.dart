@@ -51,6 +51,66 @@ class MobileApi {
     AppSession.instance.clear();
   }
 
+  Future<SessionProfile> profile() async {
+    final http.Response response = await http.get(
+      Uri.parse('$baseUrl/v1/mobile/profile'),
+      headers: _headers(requireToken()),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Profile fetch failed');
+    }
+    final SessionProfile profile = SessionProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+    AppSession.instance.updateProfile(profile);
+    return profile;
+  }
+
+  Future<SessionProfile> updateNickname(String nickname) async {
+    final http.Response response = await http.put(
+      Uri.parse('$baseUrl/v1/mobile/profile'),
+      headers: _headers(requireToken())..['Content-Type'] = 'application/json',
+      body: jsonEncode({'nickname': nickname}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Nickname update failed');
+    }
+    final SessionProfile profile = SessionProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+    AppSession.instance.updateProfile(profile);
+    return profile;
+  }
+
+  Future<SessionProfile> uploadAvatar({
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/v1/mobile/profile/avatar'),
+    );
+    request.headers.addAll(_headers(requireToken()));
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'avatar',
+        bytes,
+        filename: filename,
+      ),
+    );
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode != 200) {
+      throw Exception('Avatar upload failed');
+    }
+    final SessionProfile profile = SessionProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+    AppSession.instance.updateProfile(profile);
+    return profile;
+  }
+
   Future<List<DispatchRecord>> supplierHistory() async {
     final http.Response response = await http.get(
       Uri.parse('$baseUrl/v1/mobile/supplier/history'),

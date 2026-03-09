@@ -69,15 +69,7 @@ class AppRouter {
         final DispatchRecord record = settings.arguments as DispatchRecord;
         return _buildRoute(settings, WerkaSuccessScreen(record: record));
       case AppRoutes.profile:
-        final ProfileArgs args = settings.arguments as ProfileArgs;
-        return _buildRoute(
-          settings,
-          ProfileScreen(
-            role: args.role,
-            name: args.name,
-            subtitle: args.subtitle,
-          ),
-        );
+        return _buildRoute(settings, const ProfileScreen());
       default:
         return _buildRoute(settings, const LoginScreen());
     }
@@ -126,16 +118,4 @@ class AppRouter {
       },
     );
   }
-}
-
-class ProfileArgs {
-  const ProfileArgs({
-    required this.role,
-    required this.name,
-    required this.subtitle,
-  });
-
-  final UserRole role;
-  final String name;
-  final String subtitle;
 }

@@ -77,14 +77,18 @@ class SessionProfile {
   const SessionProfile({
     required this.role,
     required this.displayName,
+    required this.legalName,
     required this.ref,
     required this.phone,
+    required this.avatarUrl,
   });
 
   final UserRole role;
   final String displayName;
+  final String legalName;
   final String ref;
   final String phone;
+  final String avatarUrl;
 
   factory SessionProfile.fromJson(Map<String, dynamic> json) {
     final String roleValue =
@@ -92,8 +96,28 @@ class SessionProfile {
     return SessionProfile(
       role: roleValue == 'werka' ? UserRole.werka : UserRole.supplier,
       displayName: json['display_name'] as String? ?? '',
+      legalName: json['legal_name'] as String? ?? '',
       ref: json['ref'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
+      avatarUrl: json['avatar_url'] as String? ?? '',
+    );
+  }
+
+  SessionProfile copyWith({
+    UserRole? role,
+    String? displayName,
+    String? legalName,
+    String? ref,
+    String? phone,
+    String? avatarUrl,
+  }) {
+    return SessionProfile(
+      role: role ?? this.role,
+      displayName: displayName ?? this.displayName,
+      legalName: legalName ?? this.legalName,
+      ref: ref ?? this.ref,
+      phone: phone ?? this.phone,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
 }

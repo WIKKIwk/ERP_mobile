@@ -1,7 +1,5 @@
 import '../../../../app/app_router.dart';
-import '../../../../core/session/app_session.dart';
 import '../../../../core/widgets/common_widgets.dart';
-import '../../../shared/models/app_models.dart';
 import 'package:flutter/material.dart';
 
 enum SupplierDockTab {
@@ -21,8 +19,6 @@ class SupplierDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = AppSession.instance.profile;
-
     return ActionDock(
       leading: [
         DockButton(
@@ -61,7 +57,8 @@ class SupplierDock extends StatelessWidget {
             if (activeTab == SupplierDockTab.recent) {
               return;
             }
-            Navigator.of(context).pushReplacementNamed(AppRoutes.supplierRecent);
+            Navigator.of(context)
+                .pushReplacementNamed(AppRoutes.supplierRecent);
           },
         ),
         DockButton(
@@ -71,14 +68,7 @@ class SupplierDock extends StatelessWidget {
             if (activeTab == SupplierDockTab.profile) {
               return;
             }
-            Navigator.of(context).pushReplacementNamed(
-              AppRoutes.profile,
-              arguments: ProfileArgs(
-                role: UserRole.supplier,
-                name: profile?.displayName ?? 'Supplier',
-                subtitle: 'Jo‘natish va statuslarni boshqaradi',
-              ),
-            );
+            Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
           },
         ),
       ],

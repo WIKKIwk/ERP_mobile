@@ -3,7 +3,6 @@ import '../../../core/api/mobile_api.dart';
 import '../../../core/widgets/motion_widgets.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/common_widgets.dart';
-import '../../../core/session/app_session.dart';
 import '../../shared/models/app_models.dart';
 import 'package:flutter/material.dart';
 
@@ -12,22 +11,13 @@ class WerkaHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = AppSession.instance.profile;
-
     return AppShell(
       title: 'Werka',
       subtitle: 'Pending qabul qilish ro‘yxati.',
       actions: [
         AppShellIconAction(
           icon: Icons.person_outline_rounded,
-          onTap: () => Navigator.of(context).pushNamed(
-            AppRoutes.profile,
-            arguments: ProfileArgs(
-              role: UserRole.werka,
-              name: profile?.displayName ?? 'Werka',
-              subtitle: 'Pending qabul qilish va tasdiqlash bilan ishlaydi',
-            ),
-          ),
+          onTap: () => Navigator.of(context).pushNamed('/profile'),
         ),
       ],
       child: Column(

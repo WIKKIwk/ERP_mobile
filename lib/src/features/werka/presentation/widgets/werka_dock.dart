@@ -1,7 +1,5 @@
 import '../../../../app/app_router.dart';
-import '../../../../core/session/app_session.dart';
 import '../../../../core/widgets/common_widgets.dart';
-import '../../../shared/models/app_models.dart';
 import 'package:flutter/material.dart';
 
 enum WerkaDockTab {
@@ -20,8 +18,6 @@ class WerkaDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = AppSession.instance.profile;
-
     return ActionDock(
       leading: [
         DockButton(
@@ -74,14 +70,7 @@ class WerkaDock extends StatelessWidget {
             if (activeTab == WerkaDockTab.profile) {
               return;
             }
-            Navigator.of(context).pushReplacementNamed(
-              AppRoutes.profile,
-              arguments: ProfileArgs(
-                role: UserRole.werka,
-                name: profile?.displayName ?? 'Werka',
-                subtitle: 'Pending qabul qilish va tasdiqlash bilan ishlaydi',
-              ),
-            );
+            Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
           },
         ),
       ],

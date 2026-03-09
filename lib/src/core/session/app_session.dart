@@ -22,4 +22,8 @@ class AppSession {
     token = null;
     profile = null;
   }
+
+  void updateProfile(SessionProfile nextProfile) {
+    profile = nextProfile;
+  }
 }
