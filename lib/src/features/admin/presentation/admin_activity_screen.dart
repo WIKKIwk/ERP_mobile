@@ -138,13 +138,13 @@ class _ActivityStatusBadge extends StatelessWidget {
   IconData get icon {
     switch (status) {
       case DispatchStatus.draft:
-        return Icons.edit_outlined;
+        return Icons.schedule_rounded;
       case DispatchStatus.pending:
         return Icons.schedule_outlined;
       case DispatchStatus.accepted:
-        return Icons.check_rounded;
-      case DispatchStatus.partial:
         return Icons.done_all_rounded;
+      case DispatchStatus.partial:
+        return Icons.check_rounded;
       case DispatchStatus.rejected:
         return Icons.close_rounded;
       case DispatchStatus.cancelled:
