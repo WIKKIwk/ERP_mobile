@@ -67,19 +67,27 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               padding: EdgeInsets.zero,
               children: [
                 if (summary.blockedSuppliers > 0) ...[
-                  SoftCard(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.block_rounded,
-                            color: Color(0xFFC53B30)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Bloklangan supplierlar: ${summary.blockedSuppliers} ta',
-                            style: Theme.of(context).textTheme.titleMedium,
+                  InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRoutes.adminInactiveSuppliers),
+                    child: SoftCard(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.block_rounded,
+                            color: Color(0xFFC53B30),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Bloklangan supplierlar: ${summary.blockedSuppliers} ta',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_rounded),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),

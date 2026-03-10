@@ -1,5 +1,6 @@
 import '../features/auth/presentation/login_screen.dart';
 import '../features/admin/presentation/admin_home_screen.dart';
+import '../features/admin/presentation/admin_inactive_suppliers_screen.dart';
 import '../features/admin/presentation/admin_settings_screen.dart';
 import '../features/admin/presentation/admin_supplier_detail_screen.dart';
 import '../features/admin/presentation/admin_suppliers_screen.dart';
@@ -35,6 +36,7 @@ class AppRoutes {
   static const String adminHome = '/admin-home';
   static const String adminSettings = '/admin-settings';
   static const String adminSuppliers = '/admin-suppliers';
+  static const String adminInactiveSuppliers = '/admin-inactive-suppliers';
   static const String adminSupplierDetail = '/admin-supplier-detail';
   static const String adminWerka = '/admin-werka';
 }
@@ -90,6 +92,8 @@ class AppRouter {
         return _buildRoute(settings, const AdminSettingsScreen());
       case AppRoutes.adminSuppliers:
         return _buildRoute(settings, const AdminSuppliersScreen());
+      case AppRoutes.adminInactiveSuppliers:
+        return _buildRoute(settings, const AdminInactiveSuppliersScreen());
       case AppRoutes.adminSupplierDetail:
         final String supplierRef = settings.arguments as String;
         return _buildRoute(

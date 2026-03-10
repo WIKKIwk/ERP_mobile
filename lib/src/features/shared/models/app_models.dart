@@ -201,6 +201,7 @@ class AdminSupplier {
     required this.phone,
     required this.code,
     required this.blocked,
+    required this.removed,
     required this.assignedItemCodes,
     required this.assignedItemCount,
   });
@@ -210,6 +211,7 @@ class AdminSupplier {
   final String phone;
   final String code;
   final bool blocked;
+  final bool removed;
   final List<String> assignedItemCodes;
   final int assignedItemCount;
 
@@ -220,6 +222,7 @@ class AdminSupplier {
       phone: json['phone'] as String? ?? '',
       code: json['code'] as String? ?? '',
       blocked: json['blocked'] as bool? ?? false,
+      removed: json['removed'] as bool? ?? false,
       assignedItemCodes: (json['assigned_item_codes'] as List<dynamic>? ?? [])
           .map((item) => item as String)
           .toList(),
@@ -255,6 +258,7 @@ class AdminSupplierDetail {
     required this.phone,
     required this.code,
     required this.blocked,
+    required this.removed,
     required this.assignedItems,
   });
 
@@ -263,6 +267,7 @@ class AdminSupplierDetail {
   final String phone;
   final String code;
   final bool blocked;
+  final bool removed;
   final List<SupplierItem> assignedItems;
 
   factory AdminSupplierDetail.fromJson(Map<String, dynamic> json) {
@@ -272,6 +277,7 @@ class AdminSupplierDetail {
       phone: json['phone'] as String? ?? '',
       code: json['code'] as String? ?? '',
       blocked: json['blocked'] as bool? ?? false,
+      removed: json['removed'] as bool? ?? false,
       assignedItems: (json['assigned_items'] as List<dynamic>? ?? [])
           .map((item) => SupplierItem.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -284,6 +290,7 @@ class AdminSupplierDetail {
     String? phone,
     String? code,
     bool? blocked,
+    bool? removed,
     List<SupplierItem>? assignedItems,
   }) {
     return AdminSupplierDetail(
@@ -292,6 +299,7 @@ class AdminSupplierDetail {
       phone: phone ?? this.phone,
       code: code ?? this.code,
       blocked: blocked ?? this.blocked,
+      removed: removed ?? this.removed,
       assignedItems: assignedItems ?? this.assignedItems,
     );
   }

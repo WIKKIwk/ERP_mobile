@@ -289,6 +289,22 @@ class MobileApi {
     );
   }
 
+  Future<List<AdminSupplier>> adminInactiveSuppliers() async {
+    final response = await _sendAuthorized(
+      () => http.get(
+        Uri.parse('$baseUrl/v1/mobile/admin/suppliers/inactive'),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin inactive suppliers failed');
+    }
+    final List<dynamic> json = jsonDecode(response.body) as List<dynamic>;
+    return json
+        .map((item) => AdminSupplier.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<AdminSupplierDetail> adminSupplierDetail(String ref) async {
     final response = await _sendAuthorized(
       () => http.get(
@@ -415,6 +431,22 @@ class MobileApi {
     if (response.statusCode != 200) {
       throw Exception('Admin supplier remove failed');
     }
+  }
+
+  Future<AdminSupplierDetail> adminRestoreSupplier(String ref) async {
+    final response = await _sendAuthorized(
+      () => http.post(
+        Uri.parse('$baseUrl/v1/mobile/admin/suppliers/restore')
+            .replace(queryParameters: {'ref': ref}),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin supplier restore failed');
+    }
+    return AdminSupplierDetail.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   Map<String, String> _headers(String token) {
