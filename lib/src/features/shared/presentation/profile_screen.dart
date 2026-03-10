@@ -425,34 +425,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Row(
                     children: [
                       Expanded(
-                        child: FilledButton(
+                        child: _ProfileActionButton(
+                          primary: true,
                           onPressed: savingNickname ? null : _saveNickname,
-                          child: savingNickname
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.black,
-                                  ),
-                                )
-                              : const Text('Saqlash'),
+                          label: savingNickname ? 'Saqlanmoqda...' : 'Saqlash',
                         ),
                       ),
                       if (pendingAvatarBytes != null) ...[
                         const SizedBox(width: 12),
                         Expanded(
-                          child: OutlinedButton(
+                          child: _ProfileActionButton(
+                            primary: false,
                             onPressed: savingAvatar ? null : _saveAvatar,
-                            child: savingAvatar
-                                ? const SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Rasm saqlash'),
+                            label:
+                                savingAvatar ? 'Saqlanmoqda...' : 'Rasm saqlash',
                           ),
                         ),
                       ],
