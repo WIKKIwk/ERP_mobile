@@ -179,6 +179,21 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  bool get _hasNicknameChanges =>
+      nicknameController.text.trim() != profile.displayName.trim();
+
+  bool get _hasProfileChanges =>
+      _hasNicknameChanges || pendingAvatarBytes != null;
+
+  Future<void> _saveProfileChanges() async {
+    if (_hasNicknameChanges) {
+      await _saveNickname();
+    }
+    if (pendingAvatarBytes != null) {
+      await _saveAvatar();
+    }
+  }
+
   Future<void> _showPinFlow() async {
     final result =
         await Navigator.of(context).pushNamed(AppRoutes.pinSetupEntry);
@@ -319,6 +334,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final bool hasPin = SecurityController.instance.hasPinForCurrentUser;
     final bool biometricEnabled =
         SecurityController.instance.biometricEnabledForCurrentUser;
+    final bool savingProfileChanges = savingNickname || savingAvatar;
 
     return AppShell(
       title: 'Profile',
@@ -416,34 +432,45 @@ class _ProfileScreenState extends State<ProfileScreen>
                   const SizedBox(height: 16),
                   TextField(
                     controller: nicknameController,
+                    onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       labelText: 'Nickname',
                       hintText: 'O‘zingizga ko‘rinadigan ism',
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ProfileActionButton(
-                          primary: true,
-                          onPressed: savingNickname ? null : _saveNickname,
-                          label: savingNickname ? 'Saqlanmoqda...' : 'Saqlash',
+                  if (_hasProfileChanges) ...[
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(999),
+                        onTap: savingProfileChanges ? null : _saveProfileChanges,
+                        child: Container(
+                          height: 42,
+                          width: 42,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryButton(context),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: savingProfileChanges
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.check_rounded,
+                                  color:
+                                      AppTheme.primaryButtonForeground(context),
+                                ),
                         ),
                       ),
-                      if (pendingAvatarBytes != null) ...[
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _ProfileActionButton(
-                            primary: false,
-                            onPressed: savingAvatar ? null : _saveAvatar,
-                            label:
-                                savingAvatar ? 'Saqlanmoqda...' : 'Rasm saqlash',
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                  ],
                   if (pendingAvatarBytes != null) ...[
                     const SizedBox(height: 10),
                     Text(
@@ -516,20 +543,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: Text(errorMessage!),
               ),
             ],
-            const SizedBox(height: 18),
-            _ProfileActionButton(
-              primary: true,
-              onPressed: () async {
-                final navigator = Navigator.of(context);
-                await MobileApi.instance.logout();
-                await SecurityController.instance.clearForLogout();
-                if (!mounted) {
-                  return;
-                }
-                navigator.pushNamedAndRemoveUntil('/', (route) => false);
-              },
-              label: 'Logout',
-            ),
             const SizedBox(height: 12),
           ],
         ),

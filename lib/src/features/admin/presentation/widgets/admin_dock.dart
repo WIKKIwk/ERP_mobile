@@ -1,5 +1,6 @@
 import '../../../../app/app_router.dart';
 import '../../../../core/widgets/common_widgets.dart';
+import '../../../../core/widgets/logout_prompt.dart';
 import 'package:flutter/material.dart';
 
 enum AdminDockTab {
@@ -78,7 +79,10 @@ class AdminDock extends StatelessWidget {
           icon: Icons.person_outline_rounded,
           active: activeTab == AdminDockTab.profile,
           onTap: () {
-            if (activeTab == AdminDockTab.profile) return;
+            if (activeTab == AdminDockTab.profile) {
+              showLogoutPrompt(context);
+              return;
+            }
             Navigator.of(context)
                 .pushNamedAndRemoveUntil(AppRoutes.profile, (route) => false);
           },

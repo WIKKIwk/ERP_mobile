@@ -1,5 +1,6 @@
 import '../../../../app/app_router.dart';
 import '../../../../core/widgets/common_widgets.dart';
+import '../../../../core/widgets/logout_prompt.dart';
 import 'package:flutter/material.dart';
 
 enum SupplierDockTab {
@@ -95,6 +96,7 @@ class SupplierDock extends StatelessWidget {
           active: activeTab == SupplierDockTab.profile,
           onTap: () {
             if (activeTab == SupplierDockTab.profile) {
+              showLogoutPrompt(context);
               return;
             }
             Navigator.of(context).pushNamedAndRemoveUntil(

@@ -1,5 +1,6 @@
 import '../../../../app/app_router.dart';
 import '../../../../core/widgets/common_widgets.dart';
+import '../../../../core/widgets/logout_prompt.dart';
 import 'package:flutter/material.dart';
 
 enum WerkaDockTab {
@@ -68,6 +69,7 @@ class WerkaDock extends StatelessWidget {
           active: activeTab == WerkaDockTab.profile,
           onTap: () {
             if (activeTab == WerkaDockTab.profile) {
+              showLogoutPrompt(context);
               return;
             }
             Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
