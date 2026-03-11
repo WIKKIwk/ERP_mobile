@@ -1,3 +1,4 @@
+import '../notifications/local_notification_service.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,6 +8,7 @@ class DevicePermissionsBootstrap {
   static final DevicePermissionsBootstrap instance =
       DevicePermissionsBootstrap._();
   static const String _biometricPromptedKey = 'device_biometric_prompted';
+  static const String _notificationPromptedKey = 'device_notification_prompted';
 
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool _running = false;
@@ -24,6 +26,12 @@ class DevicePermissionsBootstrap {
       if (!biometricPrompted) {
         await _requestBiometricAccess();
         await prefs.setBool(_biometricPromptedKey, true);
+      }
+      final bool notificationPrompted =
+          prefs.getBool(_notificationPromptedKey) ?? false;
+      if (!notificationPrompted) {
+        await LocalNotificationService.instance.requestPermission();
+        await prefs.setBool(_notificationPromptedKey, true);
       }
     } catch (_) {
       // Best-effort startup permissions bootstrap.

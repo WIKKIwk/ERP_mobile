@@ -1,5 +1,6 @@
 import '../core/theme/app_theme.dart';
 import '../core/app_preview.dart';
+import '../core/notifications/notification_runtime.dart';
 import '../core/security/app_lock_gate.dart';
 import '../core/session/app_session.dart';
 import '../core/theme/theme_controller.dart';
@@ -24,7 +25,9 @@ class ErpnextStockMobileApp extends StatelessWidget {
             if (AppPreview.enabled) {
               current = DevicePreview.appBuilder(context, current);
             }
-            return AppLockGate(child: current);
+            return NotificationRuntime(
+              child: AppLockGate(child: current),
+            );
           },
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
