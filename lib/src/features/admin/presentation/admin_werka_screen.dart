@@ -37,7 +37,6 @@ class _AdminWerkaScreenState extends State<AdminWerkaScreen> {
 
   void _fill(AdminSettings settings) {
     if (hydrated) {
-      werkaCode = settings.werkaCode;
       return;
     }
     phone.text = settings.werkaPhone;
