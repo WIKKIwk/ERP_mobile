@@ -321,7 +321,7 @@ class _AdminSupplierDetailScreenState extends State<AdminSupplierDetailScreen> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: FilledButton(
+                          child: OutlinedButton(
                             onPressed: () => Navigator.of(context).pushNamed(
                               AppRoutes.adminSupplierItemsAdd,
                               arguments: widget.supplierRef,
