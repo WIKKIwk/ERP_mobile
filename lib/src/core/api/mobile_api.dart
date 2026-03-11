@@ -258,6 +258,21 @@ class MobileApi {
     );
   }
 
+  Future<AdminSettings> adminRegenerateWerkaCode() async {
+    final response = await _sendAuthorized(
+      () => http.post(
+        Uri.parse('$baseUrl/v1/mobile/admin/werka/code/regenerate'),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin werka code regenerate failed');
+    }
+    return AdminSettings.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<List<DispatchRecord>> adminActivity() async {
     final response = await _sendAuthorized(
       () => http.get(

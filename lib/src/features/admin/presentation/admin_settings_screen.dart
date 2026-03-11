@@ -64,6 +64,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           defaultUom: uom.text.trim(),
           werkaPhone: werkaPhone.text.trim(),
           werkaName: werkaName.text.trim(),
+          werkaCode: current.werkaCode,
           adminPhone: current.adminPhone,
           adminName: current.adminName,
         ),
@@ -105,19 +106,34 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           return ListView(
             padding: EdgeInsets.zero,
             children: [
-              TextField(controller: erpUrl, decoration: const InputDecoration(labelText: 'ERP URL')),
+              TextField(
+                  controller: erpUrl,
+                  decoration: const InputDecoration(labelText: 'ERP URL')),
               const SizedBox(height: 12),
-              TextField(controller: apiKey, decoration: const InputDecoration(labelText: 'API Key')),
+              TextField(
+                  controller: apiKey,
+                  decoration: const InputDecoration(labelText: 'API Key')),
               const SizedBox(height: 12),
-              TextField(controller: apiSecret, decoration: const InputDecoration(labelText: 'API Secret')),
+              TextField(
+                  controller: apiSecret,
+                  decoration: const InputDecoration(labelText: 'API Secret')),
               const SizedBox(height: 12),
-              TextField(controller: warehouse, decoration: const InputDecoration(labelText: 'Default Warehouse')),
+              TextField(
+                  controller: warehouse,
+                  decoration:
+                      const InputDecoration(labelText: 'Default Warehouse')),
               const SizedBox(height: 12),
-              TextField(controller: uom, decoration: const InputDecoration(labelText: 'Default UOM')),
+              TextField(
+                  controller: uom,
+                  decoration: const InputDecoration(labelText: 'Default UOM')),
               const SizedBox(height: 12),
-              TextField(controller: werkaPhone, decoration: const InputDecoration(labelText: 'Werka Phone')),
+              TextField(
+                  controller: werkaPhone,
+                  decoration: const InputDecoration(labelText: 'Werka Phone')),
               const SizedBox(height: 12),
-              TextField(controller: werkaName, decoration: const InputDecoration(labelText: 'Werka Name')),
+              TextField(
+                  controller: werkaName,
+                  decoration: const InputDecoration(labelText: 'Werka Name')),
               const SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,

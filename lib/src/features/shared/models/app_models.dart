@@ -151,6 +151,7 @@ class AdminSettings {
     required this.defaultUom,
     required this.werkaPhone,
     required this.werkaName,
+    required this.werkaCode,
     required this.adminPhone,
     required this.adminName,
   });
@@ -162,6 +163,7 @@ class AdminSettings {
   final String defaultUom;
   final String werkaPhone;
   final String werkaName;
+  final String werkaCode;
   final String adminPhone;
   final String adminName;
 
@@ -174,6 +176,7 @@ class AdminSettings {
       defaultUom: json['default_uom'] as String? ?? '',
       werkaPhone: json['werka_phone'] as String? ?? '',
       werkaName: json['werka_name'] as String? ?? '',
+      werkaCode: json['werka_code'] as String? ?? '',
       adminPhone: json['admin_phone'] as String? ?? '',
       adminName: json['admin_name'] as String? ?? '',
     );
@@ -188,6 +191,7 @@ class AdminSettings {
       'default_uom': defaultUom,
       'werka_phone': werkaPhone,
       'werka_name': werkaName,
+      'werka_code': werkaCode,
       'admin_phone': adminPhone,
       'admin_name': adminName,
     };
