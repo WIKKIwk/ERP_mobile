@@ -228,44 +228,44 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 20),
-                Text(
-                  'Izohlar',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 12),
-                if (detail.comments.isEmpty)
-                  const SoftCard(
-                    child: Text('Hozircha izoh yo‘q.'),
-                  )
-                else
-                  ...detail.comments.map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: SoftCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.authorLabel,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              item.body,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              item.createdLabel,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
+                if (canComment) ...[
+                  const SizedBox(height: 20),
+                  Text(
+                    'Izohlar',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  if (detail.comments.isEmpty)
+                    const SoftCard(
+                      child: Text('Hozircha izoh yo‘q.'),
+                    )
+                  else
+                    ...detail.comments.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: SoftCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.authorLabel,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                item.body,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                item.createdLabel,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                if (canComment) ...[
                   const SizedBox(height: 8),
                   TextField(
                     controller: _commentController,
