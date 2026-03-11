@@ -77,6 +77,50 @@ class DispatchRecord {
   }
 }
 
+class NotificationComment {
+  const NotificationComment({
+    required this.id,
+    required this.authorLabel,
+    required this.body,
+    required this.createdLabel,
+  });
+
+  final String id;
+  final String authorLabel;
+  final String body;
+  final String createdLabel;
+
+  factory NotificationComment.fromJson(Map<String, dynamic> json) {
+    return NotificationComment(
+      id: json['id'] as String? ?? '',
+      authorLabel: json['author_label'] as String? ?? '',
+      body: json['body'] as String? ?? '',
+      createdLabel: json['created_label'] as String? ?? '',
+    );
+  }
+}
+
+class NotificationDetail {
+  const NotificationDetail({
+    required this.record,
+    required this.comments,
+  });
+
+  final DispatchRecord record;
+  final List<NotificationComment> comments;
+
+  factory NotificationDetail.fromJson(Map<String, dynamic> json) {
+    return NotificationDetail(
+      record: DispatchRecord.fromJson(
+        json['record'] as Map<String, dynamic>? ?? <String, dynamic>{},
+      ),
+      comments: (json['comments'] as List<dynamic>? ?? [])
+          .map((item) => NotificationComment.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
 class SessionProfile {
   const SessionProfile({
     required this.role,

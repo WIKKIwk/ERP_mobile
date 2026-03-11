@@ -147,6 +147,43 @@ class MobileApi {
         .toList();
   }
 
+  Future<NotificationDetail> notificationDetail(String receiptID) async {
+    final http.Response response = await _sendAuthorized(
+      () => http.get(
+        Uri.parse('$baseUrl/v1/mobile/notifications/detail')
+            .replace(queryParameters: {'receipt_id': receiptID}),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Notification detail failed');
+    }
+    return NotificationDetail.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  Future<NotificationDetail> addNotificationComment({
+    required String receiptID,
+    required String message,
+  }) async {
+    final http.Response response = await _sendAuthorized(
+      () => http.post(
+        Uri.parse('$baseUrl/v1/mobile/notifications/comments')
+            .replace(queryParameters: {'receipt_id': receiptID}),
+        headers: _headers(requireToken())
+          ..['Content-Type'] = 'application/json',
+        body: jsonEncode({'message': message}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Notification comment failed');
+    }
+    return NotificationDetail.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<List<SupplierItem>> supplierItems({String query = ''}) async {
     final Uri uri = Uri.parse('$baseUrl/v1/mobile/supplier/items').replace(
       queryParameters: query.trim().isEmpty ? null : {'q': query},

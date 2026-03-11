@@ -14,6 +14,7 @@ import '../features/admin/presentation/admin_werka_screen.dart';
 import '../features/shared/models/app_models.dart';
 import '../features/shared/presentation/pin_setup_confirm_screen.dart';
 import '../features/shared/presentation/pin_setup_entry_screen.dart';
+import '../features/shared/presentation/notification_detail_screen.dart';
 import '../features/shared/presentation/profile_screen.dart';
 import '../features/supplier/presentation/supplier_confirm_screen.dart';
 import '../features/supplier/presentation/supplier_home_screen.dart';
@@ -38,6 +39,7 @@ class AppRoutes {
   static const String supplierSuccess = '/supplier-success';
   static const String supplierNotifications = '/supplier-notifications';
   static const String supplierRecent = '/supplier-recent';
+  static const String notificationDetail = '/notification-detail';
   static const String werkaHome = '/werka-home';
   static const String werkaNotifications = '/werka-notifications';
   static const String werkaDetail = '/werka-detail';
@@ -97,6 +99,12 @@ class AppRouter {
         return _buildRoute(settings, const SupplierNotificationsScreen());
       case AppRoutes.supplierRecent:
         return _buildRoute(settings, const SupplierRecentScreen());
+      case AppRoutes.notificationDetail:
+        final String receiptID = settings.arguments as String;
+        return _buildRoute(
+          settings,
+          NotificationDetailScreen(receiptID: receiptID),
+        );
       case AppRoutes.werkaHome:
         return _buildRoute(settings, const WerkaHomeScreen());
       case AppRoutes.werkaNotifications:
