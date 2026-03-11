@@ -1,7 +1,6 @@
 import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
 import '../../../core/widgets/app_shell.dart';
-import '../../../core/widgets/common_widgets.dart';
 import '../../shared/models/app_models.dart';
 import 'widgets/werka_dock.dart';
 import 'package:flutter/material.dart';
@@ -130,33 +129,58 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return AppShell(
       title: 'Qabul qilish',
       subtitle: '',
       bottom: const WerkaDock(activeTab: null),
-      child: Column(
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
-          SoftCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Text.rich(
+            TextSpan(
+              style: textTheme.bodyLarge,
               children: [
-                _InfoRow(label: 'Supplier', value: widget.record.supplierName),
-                _InfoRow(
-                    label: 'Mahsulot',
-                    value:
-                        '${widget.record.itemCode} • ${widget.record.itemName}'),
-                _InfoRow(
-                    label: 'Jo‘natilgan',
-                    value:
-                        '${widget.record.sentQty.toStringAsFixed(2)} ${widget.record.uom}'),
+                const TextSpan(text: 'Supplier: '),
+                TextSpan(
+                  text: widget.record.supplierName,
+                  style: textTheme.titleMedium,
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 8),
+          Text.rich(
+            TextSpan(
+              style: textTheme.bodyLarge,
+              children: [
+                const TextSpan(text: 'Mahsulot: '),
+                TextSpan(
+                  text: widget.record.itemCode,
+                  style: textTheme.titleMedium,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text.rich(
+            TextSpan(
+              style: textTheme.bodyLarge,
+              children: [
+                const TextSpan(text: 'Jo‘natilgan: '),
+                TextSpan(
+                  text:
+                      '${widget.record.sentQty.toStringAsFixed(2)} ${widget.record.uom}',
+                  style: textTheme.titleMedium,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
           TextField(
             controller: controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: Theme.of(context).textTheme.displaySmall,
+            style: textTheme.displaySmall,
             decoration: InputDecoration(
               hintText: '0',
               suffixText: widget.record.uom,
@@ -168,6 +192,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
               controller: returnedController,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
+              style: textTheme.displaySmall,
               decoration: InputDecoration(
                 labelText: 'Qaytarilayotgan',
                 hintText: '0',
@@ -179,22 +204,37 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Sabab',
-                style: Theme.of(context).textTheme.titleMedium,
+                style: textTheme.titleMedium,
               ),
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _returnReasons.map((reason) {
-                return ChoiceChip(
-                  label: Text(reason),
-                  selected: returnReason == reason,
-                  onSelected: (_) {
-                    setState(() => returnReason = reason);
-                  },
-                );
-              }).toList(),
+            ..._returnReasons.map(
+              (reason) => InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  setState(() => returnReason = reason);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        returnReason == reason
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          reason,
+                          style: textTheme.bodyLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
           const SizedBox(height: 18),
@@ -207,31 +247,6 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.titleMedium),
         ],
       ),
     );
