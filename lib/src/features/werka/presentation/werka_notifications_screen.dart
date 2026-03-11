@@ -118,37 +118,48 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
                     arguments: record.id,
                   ),
                   child: SoftCard(
-                    child: Row(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          height: 44,
-                          width: 44,
-                          decoration: const BoxDecoration(
-                            color: Colors.transparent,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _notificationIcon(record.status),
-                            color: _notificationColor(record.status),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
                                 _notificationTitle(record),
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _notificationBody(record),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
+                            ),
+                            _NotificationStatusBadge(status: record.status),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '${record.itemCode} • ${record.itemName}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Jo‘natildi: ${record.sentQty.toStringAsFixed(0)} ${record.uom}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (record.acceptedQty > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Qabul qilindi: ${record.acceptedQty.toStringAsFixed(0)} ${record.uom}',
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
+                        ],
+                        if (record.note.trim().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            record.note,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Text(
+                          record.createdLabel,
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -176,54 +187,45 @@ String _notificationTitle(DispatchRecord record) {
   }
 }
 
-String _notificationBody(DispatchRecord record) {
-  final suffix = record.note.trim().isEmpty ? '' : '\n${record.note}';
-  switch (record.status) {
-    case DispatchStatus.pending:
-      return '${record.itemCode} • ${record.sentQty.toStringAsFixed(0)} ${record.uom} qabul kutmoqda.$suffix';
-    case DispatchStatus.accepted:
-      return '${record.acceptedQty.toStringAsFixed(0)} ${record.uom} qabul qilindi.$suffix';
-    case DispatchStatus.partial:
-      return 'Qisman qabul qilindi: ${record.acceptedQty.toStringAsFixed(0)} ${record.uom}.$suffix';
-    case DispatchStatus.rejected:
-      return 'Qabul rad etildi.$suffix';
-    case DispatchStatus.cancelled:
-      return 'Jarayon bekor qilindi.$suffix';
-    case DispatchStatus.draft:
-      return 'Draft holatida.$suffix';
-  }
-}
+class _NotificationStatusBadge extends StatelessWidget {
+  const _NotificationStatusBadge({
+    required this.status,
+  });
 
-IconData _notificationIcon(DispatchStatus status) {
-  switch (status) {
-    case DispatchStatus.pending:
-      return Icons.notifications_active_rounded;
-    case DispatchStatus.accepted:
-      return Icons.check_rounded;
-    case DispatchStatus.partial:
-      return Icons.timelapse_rounded;
-    case DispatchStatus.rejected:
-      return Icons.cancel_rounded;
-    case DispatchStatus.cancelled:
-      return Icons.block_rounded;
-    case DispatchStatus.draft:
-      return Icons.edit_note_rounded;
-  }
-}
+  final DispatchStatus status;
 
-Color _notificationColor(DispatchStatus status) {
-  switch (status) {
-    case DispatchStatus.pending:
-      return const Color(0xFFFFD54F);
-    case DispatchStatus.accepted:
-      return const Color(0xFF5BB450);
-    case DispatchStatus.partial:
-      return const Color(0xFF2A6FDB);
-    case DispatchStatus.rejected:
-      return const Color(0xFFC53B30);
-    case DispatchStatus.cancelled:
-      return const Color(0xFF9CA3AF);
-    case DispatchStatus.draft:
-      return const Color(0xFFA78BFA);
+  IconData get icon {
+    switch (status) {
+      case DispatchStatus.draft:
+        return Icons.schedule_rounded;
+      case DispatchStatus.pending:
+        return Icons.schedule_outlined;
+      case DispatchStatus.accepted:
+        return Icons.done_all_rounded;
+      case DispatchStatus.partial:
+        return Icons.check_rounded;
+      case DispatchStatus.rejected:
+        return Icons.close_rounded;
+      case DispatchStatus.cancelled:
+        return Icons.remove_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 36,
+      width: 36,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Icon(
+        icon,
+        size: 18,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+    );
   }
 }

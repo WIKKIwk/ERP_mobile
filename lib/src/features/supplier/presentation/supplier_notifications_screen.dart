@@ -119,37 +119,48 @@ class _SupplierNotificationsScreenState
                     arguments: record.id,
                   ),
                   child: SoftCard(
-                    child: Row(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          height: 44,
-                          width: 44,
-                          decoration: const BoxDecoration(
-                            color: Colors.transparent,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            notificationIcon(record.status),
-                            color: notificationColor(record.status),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
                                 notificationTitle(record),
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                notificationBody(record),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
+                            ),
+                            _NotificationStatusBadge(status: record.status),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '${record.itemCode} • ${record.itemName}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Jo‘natildi: ${record.sentQty.toStringAsFixed(0)} ${record.uom}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (record.acceptedQty > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Qabul qilindi: ${record.acceptedQty.toStringAsFixed(0)} ${record.uom}',
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
+                        ],
+                        if (record.note.trim().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            record.note,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Text(
+                          record.createdLabel,
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -181,21 +192,46 @@ String notificationTitle(DispatchRecord record) {
   }
 }
 
-String notificationBody(DispatchRecord record) {
-  final String suffix = record.note.trim().isEmpty ? '' : '\n${record.note}';
-  switch (record.status) {
-    case DispatchStatus.accepted:
-      return 'Werka ${record.acceptedQty.toStringAsFixed(0)} ${record.uom} oldi.$suffix';
-    case DispatchStatus.partial:
-      return 'Qisman olindi: ${record.acceptedQty.toStringAsFixed(0)} ${record.uom}.$suffix';
-    case DispatchStatus.rejected:
-      return 'Rad etildi.$suffix';
-    case DispatchStatus.cancelled:
-      return 'Bekor qilindi.$suffix';
-    case DispatchStatus.draft:
-      return 'Draft holatda.$suffix';
-    case DispatchStatus.pending:
-      return 'Hali kutilmoqda.$suffix';
+class _NotificationStatusBadge extends StatelessWidget {
+  const _NotificationStatusBadge({
+    required this.status,
+  });
+
+  final DispatchStatus status;
+
+  IconData get icon {
+    switch (status) {
+      case DispatchStatus.draft:
+        return Icons.schedule_rounded;
+      case DispatchStatus.pending:
+        return Icons.schedule_outlined;
+      case DispatchStatus.accepted:
+        return Icons.done_all_rounded;
+      case DispatchStatus.partial:
+        return Icons.check_rounded;
+      case DispatchStatus.rejected:
+        return Icons.close_rounded;
+      case DispatchStatus.cancelled:
+        return Icons.remove_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 36,
+      width: 36,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Icon(
+        icon,
+        size: 18,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+    );
   }
 }
 
