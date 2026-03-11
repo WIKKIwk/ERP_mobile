@@ -83,12 +83,6 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
 
     final difference = widget.record.sentQty - acceptedQty;
     final returnComment = returnCommentController.text.trim();
-    if (fullReturnMode && returnComment.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Hammasini qaytarishda izoh majburiy.')),
-      );
-      return;
-    }
     if (difference > 0.0001 && !showReturnFields) {
       setState(() {
         showReturnFields = true;
@@ -123,7 +117,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
         receiptID: widget.record.id,
         acceptedQty: acceptedQty,
         returnedQty: fullReturnMode ? widget.record.sentQty : returnedQty,
-        returnReason: fullReturnMode ? '' : (returnReason ?? ''),
+        returnReason: returnReason ?? '',
         returnComment: returnComment,
       );
       if (!mounted) {
@@ -214,9 +208,8 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
                   fullReturnMode = !fullReturnMode;
                   if (fullReturnMode) {
                     controller.text = '0';
-                    showReturnFields = false;
+                    showReturnFields = true;
                     returnedController.clear();
-                    returnReason = null;
                   } else {
                     controller.text =
                         widget.record.sentQty.toStringAsFixed(0);
@@ -233,13 +226,50 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
           ),
           if (fullReturnMode) ...[
             const SizedBox(height: 18),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Sabab',
+                style: textTheme.titleMedium,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._returnReasons.map(
+              (reason) => InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  setState(() => returnReason = reason);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        returnReason == reason
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          reason,
+                          style: textTheme.bodyLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: returnCommentController,
               minLines: 3,
               maxLines: 5,
               decoration: const InputDecoration(
                 labelText: 'Izoh',
-                hintText: 'Hammasini qaytarish sababi',
+                hintText: 'Ixtiyoriy izoh',
               ),
             ),
           ] else if (showReturnFields) ...[
