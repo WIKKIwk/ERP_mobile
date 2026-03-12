@@ -39,14 +39,6 @@ class _WerkaUnannouncedItemScreenState extends State<WerkaUnannouncedItemScreen>
     super.dispose();
   }
 
-  Future<void> _reload() async {
-    final future = MobileApi.instance.werkaSupplierItems(
-      supplierRef: widget.supplier.ref,
-    );
-    setState(() => _future = future);
-    await future;
-  }
-
   @override
   Widget build(BuildContext context) {
     return AppShell(
@@ -61,7 +53,7 @@ class _WerkaUnannouncedItemScreenState extends State<WerkaUnannouncedItemScreen>
         children: [
           TextField(
             controller: _controller,
-            onChanged: (_) => _reload(),
+            onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
               hintText: 'Mahsulot qidiring',
               prefixIcon: Icon(Icons.search),
@@ -88,10 +80,19 @@ class _WerkaUnannouncedItemScreenState extends State<WerkaUnannouncedItemScreen>
                     })
                     .toList()
                   ..sort((a, b) {
-                    final aStarts = a.name.toLowerCase().startsWith(query);
-                    final bStarts = b.name.toLowerCase().startsWith(query);
-                    if (aStarts != bStarts) {
-                      return aStarts ? -1 : 1;
+                    int rank(SupplierItem item) {
+                      final name = item.name.toLowerCase();
+                      final code = item.code.toLowerCase();
+                      if (name == query || code == query) return 0;
+                      if (name.startsWith(query) || code.startsWith(query)) {
+                        return 1;
+                      }
+                      return 2;
+                    }
+
+                    final rankCompare = rank(a).compareTo(rank(b));
+                    if (rankCompare != 0) {
+                      return rankCompare;
                     }
                     return a.name.toLowerCase().compareTo(b.name.toLowerCase());
                   });
