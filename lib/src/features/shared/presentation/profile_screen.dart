@@ -344,6 +344,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           : role == UserRole.werka
               ? const WerkaDock(activeTab: WerkaDockTab.profile)
               : const AdminDock(activeTab: AdminDockTab.profile),
+      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
       child: RefreshIndicator.adaptive(
         onRefresh: _refreshProfile,
         child: ListView(
