@@ -13,13 +13,16 @@ class WerkaDock extends StatelessWidget {
   const WerkaDock({
     super.key,
     required this.activeTab,
+    this.compact = false,
   });
 
   final WerkaDockTab? activeTab;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return ActionDock(
+      compact: compact,
       leading: [
         DockButton(
           iconWidget: const DockSvgIcon(
@@ -28,6 +31,7 @@ class WerkaDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == WerkaDockTab.home,
+          compact: compact,
           onTap: () {
             if (activeTab == WerkaDockTab.home) {
               return;
@@ -45,6 +49,7 @@ class WerkaDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == WerkaDockTab.notifications,
+          compact: compact,
           onTap: () {
             if (activeTab == WerkaDockTab.notifications) {
               return;
@@ -59,6 +64,7 @@ class WerkaDock extends StatelessWidget {
       center: DockButton(
         icon: Icons.inventory_2_outlined,
         primary: true,
+        compact: compact,
         onTap: () {
           if (activeTab == WerkaDockTab.home) {
             return;
@@ -72,6 +78,7 @@ class WerkaDock extends StatelessWidget {
       trailing: [
         DockButton(
           icon: Icons.history_rounded,
+          compact: compact,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Werka recent keyingi bosqichda')),
@@ -81,6 +88,7 @@ class WerkaDock extends StatelessWidget {
         DockButton(
           icon: Icons.person_outline_rounded,
           active: activeTab == WerkaDockTab.profile,
+          compact: compact,
           onHoldComplete: activeTab == WerkaDockTab.profile
               ? () => showLogoutPrompt(context)
               : null,

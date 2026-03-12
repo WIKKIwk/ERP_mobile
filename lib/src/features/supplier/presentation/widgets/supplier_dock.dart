@@ -15,14 +15,17 @@ class SupplierDock extends StatelessWidget {
     super.key,
     required this.activeTab,
     this.centerActive = false,
+    this.compact = false,
   });
 
   final SupplierDockTab? activeTab;
   final bool centerActive;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return ActionDock(
+      compact: compact,
       leading: [
         DockButton(
           iconWidget: const DockSvgIcon(
@@ -31,6 +34,7 @@ class SupplierDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == SupplierDockTab.home,
+          compact: compact,
           onTap: () {
             if (activeTab == SupplierDockTab.home && !centerActive) {
               return;
@@ -48,6 +52,7 @@ class SupplierDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == SupplierDockTab.notifications,
+          compact: compact,
           onTap: () {
             if (activeTab == SupplierDockTab.notifications) {
               return;
@@ -62,6 +67,7 @@ class SupplierDock extends StatelessWidget {
       center: DockButton(
         icon: Icons.add_rounded,
         primary: true,
+        compact: compact,
         onTap: () {
           if (centerActive) {
             return;
@@ -77,6 +83,7 @@ class SupplierDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == SupplierDockTab.recent,
+          compact: compact,
           onTap: () {
             if (activeTab == SupplierDockTab.recent) {
               return;
@@ -94,6 +101,7 @@ class SupplierDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == SupplierDockTab.profile,
+          compact: compact,
           onHoldComplete: activeTab == SupplierDockTab.profile
               ? () => showLogoutPrompt(context)
               : null,

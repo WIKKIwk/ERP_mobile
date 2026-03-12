@@ -339,11 +339,21 @@ class _ProfileScreenState extends State<ProfileScreen>
     return AppShell(
       title: 'Profile',
       subtitle: '',
+      bottomPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
       bottom: role == UserRole.supplier
-          ? const SupplierDock(activeTab: SupplierDockTab.profile)
+          ? const SupplierDock(
+              activeTab: SupplierDockTab.profile,
+              compact: true,
+            )
           : role == UserRole.werka
-              ? const WerkaDock(activeTab: WerkaDockTab.profile)
-              : const AdminDock(activeTab: AdminDockTab.profile),
+              ? const WerkaDock(
+                  activeTab: WerkaDockTab.profile,
+                  compact: true,
+                )
+              : const AdminDock(
+                  activeTab: AdminDockTab.profile,
+                  compact: true,
+                ),
       child: RefreshIndicator.adaptive(
         onRefresh: _refreshProfile,
         child: ListView(
@@ -444,7 +454,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                       alignment: Alignment.centerRight,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(999),
-                        onTap: savingProfileChanges ? null : _saveProfileChanges,
+                        onTap:
+                            savingProfileChanges ? null : _saveProfileChanges,
                         child: Container(
                           height: 42,
                           width: 42,

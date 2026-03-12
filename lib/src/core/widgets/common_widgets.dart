@@ -158,18 +158,21 @@ class ActionDock extends StatelessWidget {
     required this.leading,
     required this.trailing,
     required this.center,
+    this.compact = false,
   });
 
   final List<Widget> leading;
   final List<Widget> trailing;
   final Widget center;
+  final bool compact;
 
   double _hostHeightForDevice(_DockDeviceClass deviceClass) {
-    return switch (deviceClass) {
-      _DockDeviceClass.small => 72,
-      _DockDeviceClass.medium => 76,
-      _DockDeviceClass.large => 78,
+    final double base = switch (deviceClass) {
+      _DockDeviceClass.small => 72.0,
+      _DockDeviceClass.medium => 76.0,
+      _DockDeviceClass.large => 78.0,
     };
+    return compact ? base - 6.0 : base;
   }
 
   @override
@@ -240,6 +243,7 @@ class DockButton extends StatefulWidget {
     this.primary = false,
     this.onHoldComplete,
     this.holdDuration = const Duration(seconds: 3),
+    this.compact = false,
   });
 
   final IconData? icon;
@@ -249,6 +253,7 @@ class DockButton extends StatefulWidget {
   final bool primary;
   final VoidCallback? onHoldComplete;
   final Duration holdDuration;
+  final bool compact;
 
   @override
   State<DockButton> createState() => _DockButtonState();
@@ -314,25 +319,25 @@ class _DockButtonState extends State<DockButton> {
         curve: AppMotion.smooth,
         height: widget.primary
             ? switch (deviceClass) {
-                _DockDeviceClass.small => 54,
-                _DockDeviceClass.medium => 57,
-                _DockDeviceClass.large => 56,
+                _DockDeviceClass.small => widget.compact ? 50 : 54,
+                _DockDeviceClass.medium => widget.compact ? 53 : 57,
+                _DockDeviceClass.large => widget.compact ? 52 : 56,
               }
             : switch (deviceClass) {
-                _DockDeviceClass.small => 46,
-                _DockDeviceClass.medium => 50,
-                _DockDeviceClass.large => 50,
+                _DockDeviceClass.small => widget.compact ? 42 : 46,
+                _DockDeviceClass.medium => widget.compact ? 46 : 50,
+                _DockDeviceClass.large => widget.compact ? 46 : 50,
               },
         width: widget.primary
             ? switch (deviceClass) {
-                _DockDeviceClass.small => 54,
-                _DockDeviceClass.medium => 57,
-                _DockDeviceClass.large => 56,
+                _DockDeviceClass.small => widget.compact ? 50 : 54,
+                _DockDeviceClass.medium => widget.compact ? 53 : 57,
+                _DockDeviceClass.large => widget.compact ? 52 : 56,
               }
             : switch (deviceClass) {
-                _DockDeviceClass.small => 46,
-                _DockDeviceClass.medium => 50,
-                _DockDeviceClass.large => 50,
+                _DockDeviceClass.small => widget.compact ? 42 : 46,
+                _DockDeviceClass.medium => widget.compact ? 46 : 50,
+                _DockDeviceClass.large => widget.compact ? 46 : 50,
               },
         decoration: BoxDecoration(
           color: background,

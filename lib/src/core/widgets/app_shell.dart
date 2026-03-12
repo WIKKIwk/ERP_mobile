@@ -12,6 +12,7 @@ class AppShell extends StatelessWidget {
     this.actions,
     this.bottom,
     this.contentPadding = const EdgeInsets.fromLTRB(20, 0, 24, 0),
+    this.bottomPadding = const EdgeInsets.fromLTRB(20, 0, 24, 0),
   });
 
   final String title;
@@ -21,6 +22,7 @@ class AppShell extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? bottom;
   final EdgeInsets contentPadding;
+  final EdgeInsets bottomPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class AppShell extends StatelessWidget {
           : SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 24, 0),
+                padding: bottomPadding,
                 child: bottom!,
               ),
             ),

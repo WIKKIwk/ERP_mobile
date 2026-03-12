@@ -15,17 +15,21 @@ class AdminDock extends StatelessWidget {
   const AdminDock({
     super.key,
     required this.activeTab,
+    this.compact = false,
   });
 
   final AdminDockTab activeTab;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return ActionDock(
+      compact: compact,
       leading: [
         DockButton(
           icon: Icons.home_rounded,
           active: activeTab == AdminDockTab.home,
+          compact: compact,
           onTap: () {
             if (activeTab == AdminDockTab.home) return;
             Navigator.of(context)
@@ -39,6 +43,7 @@ class AdminDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == AdminDockTab.suppliers,
+          compact: compact,
           onTap: () {
             if (activeTab == AdminDockTab.suppliers) return;
             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -51,6 +56,7 @@ class AdminDock extends StatelessWidget {
       center: DockButton(
         icon: Icons.add_rounded,
         primary: true,
+        compact: compact,
         onTap: () {
           if (activeTab == AdminDockTab.settings) return;
           Navigator.of(context).pushNamedAndRemoveUntil(
@@ -67,6 +73,7 @@ class AdminDock extends StatelessWidget {
             primary: false,
           ),
           active: activeTab == AdminDockTab.activity,
+          compact: compact,
           onTap: () {
             if (activeTab == AdminDockTab.activity) return;
             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -78,6 +85,7 @@ class AdminDock extends StatelessWidget {
         DockButton(
           icon: Icons.person_outline_rounded,
           active: activeTab == AdminDockTab.profile,
+          compact: compact,
           onHoldComplete: activeTab == AdminDockTab.profile
               ? () => showLogoutPrompt(context)
               : null,
