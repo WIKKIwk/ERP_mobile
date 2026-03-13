@@ -112,56 +112,120 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
 
           return RefreshIndicator(
             onRefresh: _reload,
-            child: ListView.separated(
+            child: ListView(
               padding: EdgeInsets.zero,
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return SoftCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.supplierName,
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                          ),
-                          _ActivityStatusBadge(status: item.status),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        '${item.itemCode} • ${item.itemName}',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Jo‘natildi: ${item.sentQty.toStringAsFixed(0)} ${item.uom}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      if (item.acceptedQty > 0) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Qabul qilindi: ${item.acceptedQty.toStringAsFixed(0)} ${item.uom}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Text(
-                        item.createdLabel,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                );
-              },
+              children: [
+                _AdminActivitySection(items: items),
+              ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _AdminActivitySection extends StatelessWidget {
+  const _AdminActivitySection({
+    required this.items,
+  });
+
+  final List<DispatchRecord> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      borderWidth: 1.45,
+      borderRadius: 20,
+      child: Column(
+        children: [
+          for (int index = 0; index < items.length; index++) ...[
+            _AdminActivityRow(
+              item: items[index],
+              isFirst: index == 0,
+              isLast: index == items.length - 1,
+            ),
+            if (index != items.length - 1)
+              const Divider(height: 1, thickness: 1),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminActivityRow extends StatelessWidget {
+  const _AdminActivityRow({
+    required this.item,
+    required this.isFirst,
+    required this.isLast,
+  });
+
+  final DispatchRecord item;
+  final bool isFirst;
+  final bool isLast;
+
+  String _metricLine() {
+    final sent = '${item.sentQty.toStringAsFixed(0)} ${item.uom} jo‘natildi';
+    if (item.acceptedQty > 0) {
+      return '$sent • ${item.acceptedQty.toStringAsFixed(0)} ${item.uom} qabul';
+    }
+    return sent;
+  }
+
+  String _secondary() => '${item.supplierName} • ${item.itemName}';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(isFirst ? 20 : 0),
+          topRight: Radius.circular(isFirst ? 20 : 0),
+          bottomLeft: Radius.circular(isLast ? 20 : 0),
+          bottomRight: Radius.circular(isLast ? 20 : 0),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  item.supplierName,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const SizedBox(width: 12),
+              _ActivityStatusBadge(status: item.status),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _secondary(),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _metricLine(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                item.createdLabel,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
