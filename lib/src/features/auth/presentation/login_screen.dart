@@ -192,30 +192,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onChanged: persistRememberedPhone,
                                 onSubmitted: (_) =>
                                     codeFocusNode.requestFocus(),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Telefon raqam',
                                   hintText: 'Masalan: +998901234567',
+                                  suffixIcon: rememberedPhone != null &&
+                                          rememberedPhone!.isNotEmpty
+                                      ? _RememberedFieldAction(
+                                          label: 'Oxirgi',
+                                          onTap: () {
+                                            phoneController.text =
+                                                rememberedPhone!;
+                                            codeFocusNode.requestFocus();
+                                          },
+                                        )
+                                      : null,
                                 ),
                               ),
                             ),
-                            if (rememberedPhone != null &&
-                                rememberedPhone!.isNotEmpty) ...[
-                              const SizedBox(height: 10),
-                              SmoothAppear(
-                                delay: const Duration(milliseconds: 42),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: ActionChip(
-                                    label: Text(
-                                        'Oxirgi telefon: $rememberedPhone'),
-                                    onPressed: () {
-                                      phoneController.text = rememberedPhone!;
-                                      codeFocusNode.requestFocus();
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
                             const SizedBox(height: 14),
                             SmoothAppear(
                               delay: const Duration(milliseconds: 40),
@@ -232,29 +225,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                     submitLogin(context);
                                   }
                                 },
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Code',
                                   hintText: 'Masalan: 10XXXXXXXXXX',
+                                  suffixIcon: rememberedCode != null &&
+                                          rememberedCode!.isNotEmpty
+                                      ? _RememberedFieldAction(
+                                          label: 'Oxirgi',
+                                          onTap: () {
+                                            codeController.text =
+                                                rememberedCode!;
+                                            codeFocusNode.unfocus();
+                                          },
+                                        )
+                                      : null,
                                 ),
                               ),
                             ),
-                            if (rememberedCode != null &&
-                                rememberedCode!.isNotEmpty) ...[
-                              const SizedBox(height: 10),
-                              SmoothAppear(
-                                delay: const Duration(milliseconds: 55),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: ActionChip(
-                                    label: Text('Oxirgi code: $rememberedCode'),
-                                    onPressed: () {
-                                      codeController.text = rememberedCode!;
-                                      codeFocusNode.unfocus();
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
                             const SizedBox(height: 14),
                           ],
                         ),
@@ -295,6 +282,44 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _RememberedFieldAction extends StatelessWidget {
+  const _RememberedFieldAction({
+    required this.label,
+    required this.onTap,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Center(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF2A2A2A)),
+                color: const Color(0x0F888888),
+              ),
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
