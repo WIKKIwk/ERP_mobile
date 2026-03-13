@@ -637,17 +637,26 @@ class AdminCustomerDetail {
     required this.ref,
     required this.name,
     required this.phone,
+    required this.code,
+    required this.codeLocked,
+    required this.codeRetryAfterSec,
   });
 
   final String ref;
   final String name;
   final String phone;
+  final String code;
+  final bool codeLocked;
+  final int codeRetryAfterSec;
 
   factory AdminCustomerDetail.fromJson(Map<String, dynamic> json) {
     return AdminCustomerDetail(
       ref: json['ref'] as String? ?? '',
       name: json['name'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
+      code: json['code'] as String? ?? '',
+      codeLocked: json['code_locked'] as bool? ?? false,
+      codeRetryAfterSec: json['code_retry_after_sec'] as int? ?? 0,
     );
   }
 }

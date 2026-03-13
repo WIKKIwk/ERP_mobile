@@ -750,6 +750,43 @@ class MobileApi {
     );
   }
 
+  Future<AdminCustomerDetail> adminUpdateCustomerPhone({
+    required String ref,
+    required String phone,
+  }) async {
+    final response = await _sendAuthorized(
+      () => http.put(
+        Uri.parse('$baseUrl/v1/mobile/admin/customers/phone')
+            .replace(queryParameters: {'ref': ref}),
+        headers: _headers(requireToken())
+          ..['Content-Type'] = 'application/json',
+        body: jsonEncode({'phone': phone}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin customer phone update failed');
+    }
+    return AdminCustomerDetail.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  Future<AdminCustomerDetail> adminRegenerateCustomerCode(String ref) async {
+    final response = await _sendAuthorized(
+      () => http.post(
+        Uri.parse('$baseUrl/v1/mobile/admin/customers/code/regenerate')
+            .replace(queryParameters: {'ref': ref}),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin customer code regenerate failed');
+    }
+    return AdminCustomerDetail.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<List<SupplierItem>> adminItems({String query = ''}) async {
     final response = await _sendAuthorized(
       () => http.get(
