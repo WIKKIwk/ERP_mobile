@@ -51,6 +51,26 @@ class _SupplierNotificationsScreenState
   }
 
   Future<void> _clearAll() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Tozalash'),
+        content: const Text('Hamma bildirishnomalarni tozalaysizmi?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Yo‘q'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Ha'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) {
+      return;
+    }
     final current = _cachedItems ?? await _itemsFuture;
     await NotificationHiddenStore.instance.hideAll(
       profile: AppSession.instance.profile,
