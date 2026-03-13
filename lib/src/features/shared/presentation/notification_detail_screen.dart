@@ -34,11 +34,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
   void initState() {
     super.initState();
     _accountKey = _currentAccountKey();
-    NotificationUnreadStore.instance.markSeen(
-      profile: AppSession.instance.profile,
-      ids: [widget.receiptID],
-    );
-    _future = _load();
+    _future = _loadAfterMarkSeen();
     _commentController.addListener(_handleCommentChanged);
   }
 
@@ -57,6 +53,18 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
     setState(() => _hasCommentText = hasText);
   }
 
+  Future<void> _markSeen() {
+    return NotificationUnreadStore.instance.markSeen(
+      profile: AppSession.instance.profile,
+      ids: [widget.receiptID],
+    );
+  }
+
+  Future<NotificationDetail> _loadAfterMarkSeen() async {
+    await _markSeen();
+    return _load();
+  }
+
   Future<NotificationDetail> _load() {
     return MobileApi.instance.notificationDetail(widget.receiptID);
   }
@@ -71,7 +79,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
 
   Future<void> _reloadForAccountChange() async {
     _accountKey = _currentAccountKey();
-    final future = _load();
+    final future = _loadAfterMarkSeen();
     if (!mounted) {
       return;
     }
@@ -84,7 +92,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
   }
 
   Future<void> _reload() async {
-    final future = _load();
+    final future = _loadAfterMarkSeen();
     setState(() => _future = future);
     await future;
   }
