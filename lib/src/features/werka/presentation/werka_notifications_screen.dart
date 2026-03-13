@@ -135,6 +135,10 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
 
   Future<List<DispatchRecord>> _loadAndTrack() async {
     final items = await MobileApi.instance.werkaHistory();
+    await NotificationUnreadStore.instance.retainForProfile(
+      profile: AppSession.instance.profile,
+      ids: items.map((item) => item.id),
+    );
     final unread = NotificationUnreadStore.instance.unreadIdsForProfile(
       AppSession.instance.profile,
     );

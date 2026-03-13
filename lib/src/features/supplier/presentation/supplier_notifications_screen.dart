@@ -135,6 +135,10 @@ class _SupplierNotificationsScreenState
 
   Future<List<DispatchRecord>> _loadAndTrack() async {
     final items = await MobileApi.instance.supplierHistory();
+    await NotificationUnreadStore.instance.retainForProfile(
+      profile: AppSession.instance.profile,
+      ids: items.map((item) => item.id),
+    );
     final unread = NotificationUnreadStore.instance.unreadIdsForProfile(
       AppSession.instance.profile,
     );

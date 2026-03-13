@@ -126,6 +126,34 @@ class NotificationUnreadStore extends ChangeNotifier {
     return highlighted;
   }
 
+  Future<void> retainForProfile({
+    required SessionProfile? profile,
+    required Iterable<String> ids,
+  }) async {
+    final key = _userKey(profile);
+    if (key == null) {
+      return;
+    }
+    await load();
+    final set = _unreadByUser[key];
+    if (set == null || set.isEmpty) {
+      return;
+    }
+    final allowed =
+        ids.map((item) => item.trim()).where((item) => item.isNotEmpty).toSet();
+    final filtered = set.intersection(allowed);
+    if (set.length == filtered.length) {
+      return;
+    }
+    if (filtered.isEmpty) {
+      _unreadByUser.remove(key);
+    } else {
+      _unreadByUser[key] = filtered;
+    }
+    await _persist();
+    notifyListeners();
+  }
+
   String? _userKey(SessionProfile? profile) {
     final current = profile ?? AppSession.instance.profile;
     if (current == null) {
