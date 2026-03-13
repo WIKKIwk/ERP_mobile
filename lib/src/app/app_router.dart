@@ -8,6 +8,7 @@ import '../features/admin/presentation/admin_item_create_screen.dart';
 import '../features/admin/presentation/admin_settings_screen.dart';
 import '../features/admin/presentation/admin_supplier_create_screen.dart';
 import '../features/admin/presentation/admin_customer_create_screen.dart';
+import '../features/admin/presentation/admin_customer_detail_screen.dart';
 import '../features/admin/presentation/admin_supplier_detail_screen.dart';
 import '../features/admin/presentation/admin_supplier_items_add_screen.dart';
 import '../features/admin/presentation/admin_supplier_items_view_screen.dart';
@@ -83,6 +84,7 @@ class AppRoutes {
   static const String adminSuppliers = '/admin-suppliers';
   static const String adminSupplierCreate = '/admin-supplier-create';
   static const String adminCustomerCreate = '/admin-customer-create';
+  static const String adminCustomerDetail = '/admin-customer-detail';
   static const String adminInactiveSuppliers = '/admin-inactive-suppliers';
   static const String adminItemCreate = '/admin-item-create';
   static const String adminSupplierDetail = '/admin-supplier-detail';
@@ -249,6 +251,12 @@ class AppRouter {
         return _buildRoute(settings, const AdminSupplierCreateScreen());
       case AppRoutes.adminCustomerCreate:
         return _buildRoute(settings, const AdminCustomerCreateScreen());
+      case AppRoutes.adminCustomerDetail:
+        final String customerRef = settings.arguments as String;
+        return _buildRoute(
+          settings,
+          AdminCustomerDetailScreen(customerRef: customerRef),
+        );
       case AppRoutes.adminInactiveSuppliers:
         return _buildRoute(settings, const AdminInactiveSuppliersScreen());
       case AppRoutes.adminItemCreate:

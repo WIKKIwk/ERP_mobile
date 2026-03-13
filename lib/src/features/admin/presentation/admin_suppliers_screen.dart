@@ -122,11 +122,9 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
                     if (item.kind == AdminUserKind.werka) {
                       await Navigator.of(context).pushNamed(AppRoutes.adminWerka);
                     } else if (item.kind == AdminUserKind.customer) {
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Customer detail keyingi bosqichda'),
-                        ),
+                      await Navigator.of(context).pushNamed(
+                        AppRoutes.adminCustomerDetail,
+                        arguments: item.id,
                       );
                     } else {
                       await Navigator.of(context).pushNamed(

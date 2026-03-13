@@ -632,6 +632,26 @@ class AdminSupplierDetail {
   }
 }
 
+class AdminCustomerDetail {
+  const AdminCustomerDetail({
+    required this.ref,
+    required this.name,
+    required this.phone,
+  });
+
+  final String ref;
+  final String name;
+  final String phone;
+
+  factory AdminCustomerDetail.fromJson(Map<String, dynamic> json) {
+    return AdminCustomerDetail(
+      ref: json['ref'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+    );
+  }
+}
+
 enum AdminUserKind {
   supplier,
   werka,

@@ -734,6 +734,22 @@ class MobileApi {
     );
   }
 
+  Future<AdminCustomerDetail> adminCustomerDetail(String ref) async {
+    final response = await _sendAuthorized(
+      () => http.get(
+        Uri.parse('$baseUrl/v1/mobile/admin/customers/detail')
+            .replace(queryParameters: {'ref': ref}),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin customer detail failed');
+    }
+    return AdminCustomerDetail.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<List<SupplierItem>> adminItems({String query = ''}) async {
     final response = await _sendAuthorized(
       () => http.get(
