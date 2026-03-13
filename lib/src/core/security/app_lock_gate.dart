@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'device_permissions_bootstrap.dart';
 import 'security_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppLockGate extends StatefulWidget {
   const AppLockGate({
@@ -92,6 +93,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
           .unlockWithPin(_pinController.text.trim());
       if (!ok && mounted) {
         setState(() {
+          _pinController.clear();
           _error = 'PIN noto‘g‘ri';
         });
       }
@@ -164,7 +166,14 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                         controller: _pinController,
                         obscureText: true,
                         keyboardType: TextInputType.number,
-                        maxLength: 4,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        autofillHints: null,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(4),
+                        ],
+                        textInputAction: TextInputAction.done,
                         autofocus: true,
                         onSubmitted: (_) => _unlock(),
                         decoration: const InputDecoration(

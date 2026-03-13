@@ -1,5 +1,6 @@
 import '../../../../core/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class PinEntryScaffold extends StatelessWidget {
   const PinEntryScaffold({
@@ -51,7 +52,14 @@ class PinEntryScaffold extends StatelessWidget {
                     controller: controller,
                     obscureText: true,
                     keyboardType: TextInputType.number,
-                    maxLength: 4,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    autofillHints: null,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(4),
+                    ],
+                    textInputAction: TextInputAction.done,
                     autofocus: autofocus,
                     onSubmitted: (_) => onAction(),
                     decoration: const InputDecoration(
