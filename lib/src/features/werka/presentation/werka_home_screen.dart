@@ -322,7 +322,9 @@ class _WerkaSummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return PressableScale(
       onTap: onTap,
-      child: Padding(
+      child: Container(
+        width: double.infinity,
+        color: const Color(0xFF212121),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         child: Row(
           children: [
