@@ -301,13 +301,14 @@ class _CustomerFeedRow extends StatelessWidget {
       borderRadius: 0,
       onTap: onTap,
       child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: highlighted ? const Color(0xFF212121) : Colors.transparent,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(0),
-            topRight: Radius.circular(0),
-            bottomLeft: Radius.circular(0),
-            bottomRight: Radius.circular(0),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(isFirst ? 14 : 0),
+            topRight: Radius.circular(isFirst ? 14 : 0),
+            bottomLeft: Radius.circular(isLast ? 14 : 0),
+            bottomRight: Radius.circular(isLast ? 14 : 0),
           ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
