@@ -131,6 +131,7 @@ class _CustomerSummaryCard extends StatelessWidget {
       borderRadius: 20,
       child: Column(
         children: [
+          const _CustomerSectionHeader(label: 'Holatlar'),
           _CustomerSummaryRow(
             label: 'Kutilmoqda',
             value: summary.pendingCount.toString(),
@@ -230,42 +231,61 @@ class _CustomerPendingPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return const SoftCard(
-        child: Text('Hozircha kutilayotgan jo‘natmalar yo‘q.'),
-      );
-    }
     return SoftCard(
       padding: EdgeInsets.zero,
       borderWidth: 1.35,
       borderRadius: 20,
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-            decoration: const BoxDecoration(
-              color: Color(0xFF212121),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+          const _CustomerSectionHeader(label: 'Kutilayotgan jo‘natmalar'),
+          if (items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Text(
+                'Hozircha kutilayotgan jo‘natmalar yo‘q.',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ),
-            child: Text(
-              'Kutilayotgan jo‘natmalar',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          for (int index = 0; index < items.length; index++) ...[
-            _CustomerPreviewRow(
-              record: items[index],
-              isLast: index == items.length - 1,
-              onTap: () => onTapRecord(items[index].id),
-            ),
-            if (index != items.length - 1)
-              const Divider(height: 1, thickness: 1),
-          ],
+            )
+          else
+            for (int index = 0; index < items.length; index++) ...[
+              _CustomerPreviewRow(
+                record: items[index],
+                isLast: index == items.length - 1,
+                onTap: () => onTapRecord(items[index].id),
+              ),
+              if (index != items.length - 1)
+                const Divider(height: 1, thickness: 1),
+            ],
         ],
+      ),
+    );
+  }
+}
+
+class _CustomerSectionHeader extends StatelessWidget {
+  const _CustomerSectionHeader({
+    required this.label,
+  });
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: const BoxDecoration(
+        color: Color(0xFF161616),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
