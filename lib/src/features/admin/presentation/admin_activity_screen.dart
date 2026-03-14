@@ -240,8 +240,8 @@ class _AdminActivityRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.only(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(0),
           topRight: Radius.circular(0),
           bottomLeft: Radius.circular(0),
