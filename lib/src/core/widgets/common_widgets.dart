@@ -196,8 +196,6 @@ class ActionDock extends StatelessWidget {
     ];
 
     final double hostHeight = _hostHeightForDevice(deviceClass);
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final bool isDark = AppTheme.isDark(context);
 
     return SizedBox(
@@ -211,18 +209,16 @@ class ActionDock extends StatelessWidget {
             child: Container(
               height: compact ? hostHeight - 18 : hostHeight - 14,
               decoration: BoxDecoration(
-                color: isDark
-                    ? scheme.surfaceContainerLow.withValues(alpha: 0.94)
-                    : scheme.surfaceContainerLowest.withValues(alpha: 0.98),
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(color: AppTheme.cardBorder(context)),
                 boxShadow: [
                   BoxShadow(
                     color: isDark
-                        ? const Color(0x40000000)
-                        : const Color(0x180E1525),
-                    blurRadius: isDark ? 26 : 22,
-                    offset: const Offset(0, 10),
+                        ? const Color(0x28000000)
+                        : const Color(0x100E1525),
+                    blurRadius: isDark ? 20 : 16,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
