@@ -44,6 +44,58 @@ class SmoothAppear extends StatelessWidget {
   }
 }
 
+class SoftReveal extends StatelessWidget {
+  const SoftReveal({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+    this.offset = const Offset(0, 12),
+    this.duration = AppMotion.medium,
+    this.beginScale = 0.985,
+  });
+
+  final Widget child;
+  final Duration delay;
+  final Offset offset;
+  final Duration duration;
+  final double beginScale;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: duration + delay,
+      curve: AppMotion.smooth,
+      builder: (context, value, animatedChild) {
+        final double delayedValue = delay == Duration.zero
+            ? value
+            : ((value * (duration + delay).inMilliseconds) -
+                        delay.inMilliseconds)
+                    .clamp(0, duration.inMilliseconds)
+                    .toDouble() /
+                duration.inMilliseconds;
+        final eased = Curves.easeOutCubic.transform(delayedValue);
+        final scale = beginScale + ((1 - beginScale) * eased);
+
+        return Opacity(
+          opacity: eased,
+          child: Transform.translate(
+            offset: Offset(
+              offset.dx * (1 - eased),
+              offset.dy * (1 - eased),
+            ),
+            child: Transform.scale(
+              scale: scale,
+              child: animatedChild,
+            ),
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
 class PressableScale extends StatefulWidget {
   const PressableScale({
     super.key,

@@ -5,6 +5,7 @@ import '../../../core/notifications/notification_hidden_store.dart';
 import '../../../core/notifications/notification_unread_store.dart';
 import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/session/app_session.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/motion_widgets.dart';
 import '../../shared/models/app_models.dart';
@@ -333,12 +334,16 @@ class _NotificationSection extends StatelessWidget {
             child: Column(
               children: [
                 for (int index = 0; index < items.length; index++) ...[
-                  _CustomerFeedRow(
-                    record: items[index],
-                    isFirst: index == 0,
-                    isLast: index == items.length - 1,
-                    highlighted: highlightedUnreadIds.contains(items[index].id),
-                    onTap: () => onTapRecord(items[index].id),
+                  SoftReveal(
+                    delay: Duration(milliseconds: 20 + (index * 40)),
+                    child: _CustomerFeedRow(
+                      record: items[index],
+                      isFirst: index == 0,
+                      isLast: index == items.length - 1,
+                      highlighted:
+                          highlightedUnreadIds.contains(items[index].id),
+                      onTap: () => onTapRecord(items[index].id),
+                    ),
                   ),
                   if (index != items.length - 1)
                     Divider(
@@ -396,77 +401,84 @@ class _CustomerFeedRow extends StatelessWidget {
     );
 
     return Material(
-      color: highlighted ? scheme.surfaceContainerHigh : Colors.transparent,
+      color: Colors.transparent,
       child: InkWell(
         borderRadius: borderRadius,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: highlighted
-                      ? scheme.secondaryContainer
-                      : scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: AppMotion.medium,
+          curve: AppMotion.smooth,
+          color: highlighted ? scheme.surfaceContainerHigh : Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedContainer(
+                  duration: AppMotion.medium,
+                  curve: AppMotion.smooth,
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: highlighted
+                        ? scheme.secondaryContainer
+                        : scheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _icon,
+                    size: 20,
+                    color: highlighted
+                        ? scheme.onSecondaryContainer
+                        : scheme.onSurfaceVariant,
+                  ),
                 ),
-                child: Icon(
-                  _icon,
-                  size: 20,
-                  color: highlighted
-                      ? scheme.onSecondaryContainer
-                      : scheme.onSurfaceVariant,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        record.itemName,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        record.itemCode,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        record.note.trim().isNotEmpty
+                            ? record.note
+                            : '${record.sentQty.toStringAsFixed(0)} ${record.uom} jo‘natildi',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      record.itemName,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      record.itemCode,
+                      record.createdLabel,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      record.note.trim().isNotEmpty
-                          ? record.note
-                          : '${record.sentQty.toStringAsFixed(0)} ${record.uom} jo‘natildi',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    record.createdLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
 import '../../../core/notifications/refresh_hub.dart';
+import '../../../core/theme/app_motion.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/motion_widgets.dart';
 import '../../shared/models/app_models.dart';
@@ -181,12 +182,15 @@ class _CustomerStatusPanel extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          _CustomerStatusRow(
-            label: 'Pending',
-            value: summary.pendingCount.toString(),
-            highlighted: true,
-            onTap: () => onOpenStatus(CustomerStatusKind.pending),
-            isFirst: true,
+          SoftReveal(
+            delay: const Duration(milliseconds: 20),
+            child: _CustomerStatusRow(
+              label: 'Pending',
+              value: summary.pendingCount.toString(),
+              highlighted: true,
+              onTap: () => onOpenStatus(CustomerStatusKind.pending),
+              isFirst: true,
+            ),
           ),
           Divider(
             height: 1,
@@ -195,10 +199,13 @@ class _CustomerStatusPanel extends StatelessWidget {
             endIndent: 18,
             color: scheme.outlineVariant.withValues(alpha: 0.55),
           ),
-          _CustomerStatusRow(
-            label: 'Confirmed',
-            value: summary.confirmedCount.toString(),
-            onTap: () => onOpenStatus(CustomerStatusKind.confirmed),
+          SoftReveal(
+            delay: const Duration(milliseconds: 60),
+            child: _CustomerStatusRow(
+              label: 'Confirmed',
+              value: summary.confirmedCount.toString(),
+              onTap: () => onOpenStatus(CustomerStatusKind.confirmed),
+            ),
           ),
           Divider(
             height: 1,
@@ -207,11 +214,14 @@ class _CustomerStatusPanel extends StatelessWidget {
             endIndent: 18,
             color: scheme.outlineVariant.withValues(alpha: 0.55),
           ),
-          _CustomerStatusRow(
-            label: 'Rejected',
-            value: summary.rejectedCount.toString(),
-            onTap: () => onOpenStatus(CustomerStatusKind.rejected),
-            isLast: true,
+          SoftReveal(
+            delay: const Duration(milliseconds: 100),
+            child: _CustomerStatusRow(
+              label: 'Rejected',
+              value: summary.rejectedCount.toString(),
+              onTap: () => onOpenStatus(CustomerStatusKind.rejected),
+              isLast: true,
+            ),
           ),
         ],
       ),
@@ -249,52 +259,77 @@ class _CustomerStatusRow extends StatelessWidget {
     );
 
     return Material(
-      color: highlighted ? scheme.surfaceContainer : Colors.transparent,
+      color: Colors.transparent,
       child: InkWell(
         borderRadius: borderRadius,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Row(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    if (highlighted) ...[
-                      Container(
-                        width: 4,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: scheme.primary,
-                          borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: AppMotion.medium,
+          curve: AppMotion.smooth,
+          color: highlighted ? scheme.surfaceContainer : Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      if (highlighted) ...[
+                        Container(
+                          width: 4,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: scheme.primary,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
+                        const SizedBox(width: 12),
+                      ],
+                      Text(label, style: theme.textTheme.titleMedium),
                     ],
-                    Text(label, style: theme.textTheme.titleMedium),
-                  ],
-                ),
-              ),
-              FilledButton.tonal(
-                onPressed: onTap,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(44, 40),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: Text(value),
-              ),
-              const SizedBox(width: 6),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 22,
-                color: scheme.onSurfaceVariant,
-              ),
-            ],
+                FilledButton.tonal(
+                  onPressed: onTap,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(44, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: AppMotion.medium,
+                    switchInCurve: AppMotion.smooth,
+                    switchOutCurve: AppMotion.smooth,
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.12),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Text(
+                      value,
+                      key: ValueKey<String>(value),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -342,11 +377,14 @@ class _CustomerShipmentsPanel extends StatelessWidget {
               child: Column(
                 children: [
                   for (int index = 0; index < items.length; index++) ...[
-                    _CustomerPreviewRow(
-                      record: items[index],
-                      isFirst: index == 0,
-                      isLast: index == items.length - 1,
-                      onTap: () => onTapRecord(items[index].id),
+                    SoftReveal(
+                      delay: Duration(milliseconds: 20 + (index * 40)),
+                      child: _CustomerPreviewRow(
+                        record: items[index],
+                        isFirst: index == 0,
+                        isLast: index == items.length - 1,
+                        onTap: () => onTapRecord(items[index].id),
+                      ),
                     ),
                     if (index != items.length - 1)
                       Divider(
