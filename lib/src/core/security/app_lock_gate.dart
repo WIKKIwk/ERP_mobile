@@ -74,13 +74,33 @@ class _PinUnlockOverlay extends StatefulWidget {
 
 class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
   final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
   String? _error;
   bool _unlocking = false;
+  int _fieldEpoch = 0;
 
   @override
   void dispose() {
+    _pinFocusNode.dispose();
     _pinController.dispose();
     super.dispose();
+  }
+
+  void _resetPinField({String? error}) {
+    _pinController.value = const TextEditingValue(
+      text: '',
+      selection: TextSelection.collapsed(offset: 0),
+      composing: TextRange.empty,
+    );
+    setState(() {
+      _fieldEpoch += 1;
+      _error = error;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _pinFocusNode.requestFocus();
+      }
+    });
   }
 
   Future<void> _unlock() async {
@@ -92,13 +112,14 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
       final ok = await SecurityController.instance
           .unlockWithPin(_pinController.text.trim());
       if (!ok && mounted) {
-        setState(() {
-          _pinController.clear();
-          _error = 'PIN noto‘g‘ri';
-        });
+        _resetPinField(error: 'PIN noto‘g‘ri');
       }
       if (ok) {
-        _pinController.clear();
+        _pinController.value = const TextEditingValue(
+          text: '',
+          selection: TextSelection.collapsed(offset: 0),
+          composing: TextRange.empty,
+        );
       }
     } finally {
       if (mounted) {
@@ -154,10 +175,12 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                     children: [
                       Text(
                         'App qulfi',
-                        style:
-                            Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: Colors.white,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                            ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -168,12 +191,14 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                       ),
                       const SizedBox(height: 14),
                       TextField(
+                        key: ValueKey(_fieldEpoch),
                         controller: _pinController,
+                        focusNode: _pinFocusNode,
                         obscureText: true,
                         keyboardType: TextInputType.number,
                         enableSuggestions: false,
                         autocorrect: false,
-                        autofillHints: null,
+                        autofillHints: const <String>[],
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(4),
@@ -190,9 +215,10 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                         const SizedBox(height: 8),
                         Text(
                           _error!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: const Color(0xFFFF9A9A),
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: const Color(0xFFFF9A9A),
+                                  ),
                         ),
                       ],
                       const SizedBox(height: 14),
@@ -210,8 +236,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
-                            onPressed:
-                                _unlocking ? null : _unlockWithBiometric,
+                            onPressed: _unlocking ? null : _unlockWithBiometric,
                             child: const Text('Face ID / Fingerprint'),
                           ),
                         ),
