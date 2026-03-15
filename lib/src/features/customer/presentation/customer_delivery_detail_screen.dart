@@ -1,6 +1,5 @@
 import '../../../core/api/mobile_api.dart';
 import '../../../core/widgets/app_shell.dart';
-import '../../../core/widgets/common_widgets.dart';
 import 'widgets/customer_dock.dart';
 import '../../shared/models/app_models.dart';
 import 'package:flutter/material.dart';
@@ -60,11 +59,7 @@ class _CustomerDeliveryDetailScreenState
               actions: [
                 SizedBox(
                   width: 110,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF111111),
-                      foregroundColor: Colors.white,
-                    ),
+                  child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
                     child: const Text('Yo‘q'),
                   ),
@@ -98,11 +93,7 @@ class _CustomerDeliveryDetailScreenState
               actions: [
                 SizedBox(
                   width: 110,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF111111),
-                      foregroundColor: Colors.white,
-                    ),
+                  child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
                     child: const Text('Yo‘q'),
                   ),
@@ -165,19 +156,32 @@ class _CustomerDeliveryDetailScreenState
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: SoftCard(child: Text('${snapshot.error}')));
+            return Center(
+              child: Card.filled(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text('${snapshot.error}'),
+                ),
+              ),
+            );
           }
           final detail = snapshot.data!;
           final record = detail.record;
+          final theme = Theme.of(context);
+          final scheme = theme.colorScheme;
           return RefreshIndicator.adaptive(
             onRefresh: _reload,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
               children: [
-                SoftCard(
-                  padding: EdgeInsets.zero,
-                  borderRadius: 20,
+                Card.filled(
+                  margin: EdgeInsets.zero,
+                  color: scheme.surfaceContainerLow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -229,7 +233,7 @@ class _CustomerDeliveryDetailScreenState
                           padding: const EdgeInsets.all(18),
                           child: Text(
                             record.note,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: theme.textTheme.bodyMedium,
                           ),
                         ),
                       ],
@@ -305,11 +309,12 @@ class _CustomerDetailSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF161616),
+        color: scheme.surfaceContainer,
         borderRadius: topRounded
             ? const BorderRadius.only(
                 topLeft: Radius.circular(20),
@@ -321,6 +326,7 @@ class _CustomerDetailSectionHeader extends StatelessWidget {
         label,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
+              color: scheme.onSurfaceVariant,
             ),
       ),
     );
@@ -338,22 +344,25 @@ class _DetailLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$label:',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 6),
         Text(
           value,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontSize: 18,
-              ),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
