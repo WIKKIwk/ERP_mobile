@@ -152,10 +152,12 @@ class _QuietPanel extends StatelessWidget {
   const _QuietPanel({
     required this.child,
     this.padding = const EdgeInsets.all(16),
+    this.color,
   });
 
   final Widget child;
   final EdgeInsets padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +167,8 @@ class _QuietPanel extends StatelessWidget {
     return Card.filled(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      color: isDark ? const Color(0xFF25242B) : scheme.surfaceContainerLow,
+      color: color ??
+          (isDark ? const Color(0xFF25242B) : scheme.surfaceContainerLow),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(28),
       ),
@@ -366,6 +369,7 @@ class _CustomerShipmentsPanel extends StatelessWidget {
 
     return _QuietPanel(
       padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
+      color: isDark ? const Color(0xFF3A4559) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -382,7 +386,7 @@ class _CustomerShipmentsPanel extends StatelessWidget {
           else
             Card.filled(
               margin: EdgeInsets.zero,
-              color: isDark ? const Color(0xFF3A4559) : scheme.surfaceContainer,
+              color: isDark ? const Color(0xFF2A2931) : scheme.surfaceContainer,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
