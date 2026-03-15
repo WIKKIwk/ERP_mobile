@@ -196,6 +196,12 @@ Foundation darajasida yangilangan qatlamlar:
 - route motion va state transition easing
 - shared PIN keypad va morphing indicator UX
 
+Ish uslubi:
+
+- UI refresh kichik, xavfsiz va tez qaytarib bo‘ladigan commitlarga bo‘linadi
+- kerak bo‘lganda co-authored commitlar bilan iterativ pairing oqimi yuritiladi
+- har bir bosqich analyze/build bilan tekshiriladi
+
 Keyingi eng mantiqli bosqichlar:
 
 - `supplier`, `werka`, `admin` ekranlarini ham shu visual systemga tekislash
