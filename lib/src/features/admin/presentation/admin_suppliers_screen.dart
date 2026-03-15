@@ -231,21 +231,18 @@ class _AdminSuppliersSummaryRow extends StatelessWidget {
               style: theme.textTheme.titleLarge,
             ),
           ),
-          FilledButton.tonal(
-            onPressed: onTap,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(44, 40),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
+          Container(
+            constraints: const BoxConstraints(minWidth: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
               value,
+              textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
-                color: scheme.onSecondaryContainer,
+                color: scheme.onSurface,
                 fontWeight: FontWeight.w700,
               ),
             ),
