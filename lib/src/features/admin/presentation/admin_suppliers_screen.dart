@@ -114,37 +114,30 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 116),
               children: [
-                SmoothAppear(
-                  delay: const Duration(milliseconds: 20),
-                  child: _AdminSuppliersSummarySection(
-                    summary: data.summary,
-                    onTapBlocked: () => Navigator.of(context)
-                        .pushNamed(AppRoutes.adminInactiveSuppliers),
-                  ),
+                _AdminSuppliersSummarySection(
+                  summary: data.summary,
+                  onTapBlocked: () => Navigator.of(context)
+                      .pushNamed(AppRoutes.adminInactiveSuppliers),
                 ),
                 const SizedBox(height: 12),
-                SmoothAppear(
-                  delay: const Duration(milliseconds: 60),
-                  child: AdminSupplierListModule(
-                    items: data.items,
-                    onTapUser: (item) async {
-                      if (item.kind == AdminUserKind.werka) {
-                        await Navigator.of(context)
-                            .pushNamed(AppRoutes.adminWerka);
-                      } else if (item.kind == AdminUserKind.customer) {
-                        await Navigator.of(context).pushNamed(
-                          AppRoutes.adminCustomerDetail,
-                          arguments: item.id,
-                        );
-                      } else {
-                        await Navigator.of(context).pushNamed(
-                          AppRoutes.adminSupplierDetail,
-                          arguments: item.id,
-                        );
-                      }
-                      await _reload();
-                    },
-                  ),
+                AdminSupplierListModule(
+                  items: data.items,
+                  onTapUser: (item) async {
+                    if (item.kind == AdminUserKind.werka) {
+                      await Navigator.of(context).pushNamed(AppRoutes.adminWerka);
+                    } else if (item.kind == AdminUserKind.customer) {
+                      await Navigator.of(context).pushNamed(
+                        AppRoutes.adminCustomerDetail,
+                        arguments: item.id,
+                      );
+                    } else {
+                      await Navigator.of(context).pushNamed(
+                        AppRoutes.adminSupplierDetail,
+                        arguments: item.id,
+                      );
+                    }
+                    await _reload();
+                  },
                 ),
               ],
             ),

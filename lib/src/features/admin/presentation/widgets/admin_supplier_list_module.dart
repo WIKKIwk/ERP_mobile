@@ -1,5 +1,4 @@
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/motion_widgets.dart';
 import '../../../shared/models/app_models.dart';
 import 'package:flutter/material.dart';
 
@@ -50,12 +49,9 @@ class AdminSupplierListModule extends StatelessWidget {
                 endIndent: 18,
                 color: AppTheme.cardBorder(context).withValues(alpha: 0.55),
               ),
-            SoftReveal(
-              delay: Duration(milliseconds: 20 + (index * 24)),
-              child: _AdminSupplierRow(
-                item: items[index],
-                onTap: () => onTapUser(items[index]),
-              ),
+            _AdminSupplierRow(
+              item: items[index],
+              onTap: () => onTapUser(items[index]),
             ),
           ],
         ],
