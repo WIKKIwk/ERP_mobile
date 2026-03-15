@@ -477,17 +477,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            SmoothAppear(
-              delay: const Duration(milliseconds: 60),
-              child: _ProfilePanel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                    const SizedBox(height: 24),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outlineVariant
+                          .withValues(alpha: 0.55),
+                    ),
+                    const SizedBox(height: 24),
                     Text(
                       'Security',
                       style: Theme.of(context).textTheme.titleLarge,
