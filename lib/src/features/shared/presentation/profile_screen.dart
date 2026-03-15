@@ -350,7 +350,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               : role == UserRole.customer
                   ? const CustomerDock(activeTab: CustomerDockTab.profile)
                   : const AdminDock(activeTab: AdminDockTab.profile),
-      contentPadding: const EdgeInsets.fromLTRB(16, 0, 18, 0),
+      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
       child: RefreshIndicator.adaptive(
         onRefresh: _refreshProfile,
         child: ListView(
