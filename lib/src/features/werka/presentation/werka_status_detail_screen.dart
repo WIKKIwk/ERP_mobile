@@ -139,78 +139,44 @@ class _WerkaStatusDetailScreenState extends State<WerkaStatusDetailScreen> {
 
                     return RefreshIndicator.adaptive(
                       onRefresh: _reload,
-                      child: ListView.separated(
+                      child: ListView(
                         padding: const EdgeInsets.only(bottom: 110),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final record = items[index];
-                          return Card.filled(
+                        children: [
+                          Card.filled(
                             margin: EdgeInsets.zero,
                             color: scheme.surfaceContainerLow,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(28),
                             ),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(28),
-                              onTap: () {
-                                if (widget.args.kind ==
-                                    WerkaStatusKind.pending) {
-                                  Navigator.of(context).pushNamed(
-                                    AppRoutes.werkaDetail,
-                                    arguments: record,
-                                  );
-                                  return;
-                                }
-                                Navigator.of(context).pushNamed(
-                                  AppRoutes.notificationDetail,
-                                  arguments: record.id,
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(18),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      record.itemCode,
-                                      style: theme.textTheme.titleLarge,
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      '${record.itemCode} • ${record.itemName}',
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      '${record.sentQty.toStringAsFixed(0)} ${record.uom}',
-                                      style: theme.textTheme.headlineMedium,
-                                    ),
-                                    if (record.acceptedQty > 0) ...[
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Qabul: ${record.acceptedQty.toStringAsFixed(0)} ${record.uom}',
-                                        style: theme.textTheme.bodySmall,
-                                      ),
-                                    ],
-                                    if (record.note.trim().isNotEmpty) ...[
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        record.note,
-                                        style: theme.textTheme.bodySmall,
-                                      ),
-                                    ],
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      record.createdLabel,
-                                      style: theme.textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            child: Column(
+                              children: [
+                                for (int index = 0;
+                                    index < items.length;
+                                    index++) ...[
+                                  _WerkaStatusRecordRow(
+                                    record: items[index],
+                                    onTap: () {
+                                      if (widget.args.kind ==
+                                          WerkaStatusKind.pending) {
+                                        Navigator.of(context).pushNamed(
+                                          AppRoutes.werkaDetail,
+                                          arguments: items[index],
+                                        );
+                                        return;
+                                      }
+                                      Navigator.of(context).pushNamed(
+                                        AppRoutes.notificationDetail,
+                                        arguments: items[index].id,
+                                      );
+                                    },
+                                  ),
+                                  if (index != items.length - 1)
+                                    const Divider(height: 1, thickness: 1),
+                                ],
+                              ],
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -225,6 +191,65 @@ class _WerkaStatusDetailScreenState extends State<WerkaStatusDetailScreen> {
         child: Padding(
           padding: EdgeInsets.fromLTRB(20, 0, 24, 0),
           child: WerkaDock(activeTab: null),
+        ),
+      ),
+    );
+  }
+}
+
+class _WerkaStatusRecordRow extends StatelessWidget {
+  const _WerkaStatusRecordRow({
+    required this.record,
+    required this.onTap,
+  });
+
+  final DispatchRecord record;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              record.itemCode,
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${record.itemCode} • ${record.itemName}',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '${record.sentQty.toStringAsFixed(0)} ${record.uom}',
+              style: theme.textTheme.headlineMedium,
+            ),
+            if (record.acceptedQty > 0) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Qabul: ${record.acceptedQty.toStringAsFixed(0)} ${record.uom}',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+            if (record.note.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                record.note,
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 10),
+            Text(
+              record.createdLabel,
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
         ),
       ),
     );
