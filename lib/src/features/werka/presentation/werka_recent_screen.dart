@@ -1,7 +1,5 @@
 import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
-import '../../../core/cache/json_cache_store.dart';
-import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../shared/models/app_models.dart';
 import 'werka_customer_issue_customer_screen.dart';
@@ -9,81 +7,50 @@ import 'werka_unannounced_supplier_screen.dart';
 import 'widgets/werka_dock.dart';
 import 'package:flutter/material.dart';
 
+typedef WerkaRecentLoader = Future<List<DispatchRecord>> Function();
+
 class WerkaRecentScreen extends StatefulWidget {
-  const WerkaRecentScreen({super.key});
+  const WerkaRecentScreen({
+    super.key,
+    this.loader,
+  });
+
+  final WerkaRecentLoader? loader;
 
   @override
   State<WerkaRecentScreen> createState() => _WerkaRecentScreenState();
 }
 
 class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
-  static const String _cacheKey = 'cache_werka_recent';
-
-  final List<DispatchRecord> _items = <DispatchRecord>[];
+  List<DispatchRecord> _items = const <DispatchRecord>[];
   bool _loading = true;
   String? _loadError;
-  int _refreshVersion = 0;
+
+  WerkaRecentLoader get _loader =>
+      widget.loader ?? MobileApi.instance.werkaHistory;
 
   @override
   void initState() {
     super.initState();
-    _prime();
-    RefreshHub.instance.addListener(_handlePushRefresh);
+    _load();
   }
 
-  @override
-  void dispose() {
-    RefreshHub.instance.removeListener(_handlePushRefresh);
-    super.dispose();
-  }
-
-  Future<void> _prime() async {
-    final raw = await JsonCacheStore.instance.readList(_cacheKey);
-    if (raw != null && mounted) {
-      setState(() {
-        _items
-          ..clear()
-          ..addAll(raw.map((item) => DispatchRecord.fromJson(item)));
-      });
-    }
-    await _reload(showSpinner: _items.isEmpty);
-  }
-
-  void _handlePushRefresh() {
-    if (!mounted || RefreshHub.instance.topic != 'werka') {
-      return;
-    }
-    if (_refreshVersion == RefreshHub.instance.version) {
-      return;
-    }
-    _refreshVersion = RefreshHub.instance.version;
-    _reload(showSpinner: false);
-  }
-
-  Future<void> _reload({required bool showSpinner}) async {
+  Future<void> _load() async {
     if (mounted) {
       setState(() {
-        if (showSpinner) {
-          _loading = true;
-        }
+        _loading = true;
         _loadError = null;
       });
     }
     try {
-      final items = await MobileApi.instance.werkaHistory();
+      final items = await _loader();
       if (!mounted) {
         return;
       }
       setState(() {
-        _items
-          ..clear()
-          ..addAll(items);
+        _items = items;
         _loading = false;
       });
-      await JsonCacheStore.instance.writeList(
-        _cacheKey,
-        items.map((item) => item.toJson()).toList(),
-      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -150,7 +117,6 @@ class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: AppTheme.shellStart(context),
@@ -175,10 +141,7 @@ class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
-                child: RefreshIndicator.adaptive(
-                  onRefresh: () => _reload(showSpinner: false),
-                  child: _buildBody(theme, scheme),
-                ),
+                child: _buildBody(theme),
               ),
             ),
           ],
@@ -194,115 +157,132 @@ class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
     );
   }
 
-  Widget _buildBody(ThemeData theme, ColorScheme scheme) {
-    if (_loading && _items.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 140),
-          Center(child: CircularProgressIndicator()),
-        ],
-      );
+  Widget _buildBody(ThemeData theme) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
     }
-
-    if (_loadError != null && _items.isEmpty) {
+    if (_loadError != null) {
       return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 110),
         children: [
-          Card.filled(
-            margin: EdgeInsets.zero,
-            color: scheme.surfaceContainerLow,
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Recent yuklanmadi',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(_loadError!),
-                  const SizedBox(height: 14),
-                  FilledButton(
-                    onPressed: () => _reload(showSpinner: true),
-                    child: const Text('Qayta urinish'),
-                  ),
-                ],
-              ),
-            ),
+          _RecentMessageCard(
+            title: 'Recent yuklanmadi',
+            body: _loadError!,
+            actionLabel: 'Qayta urinish',
+            onPressed: _load,
           ),
         ],
       );
     }
-
     if (_items.isEmpty) {
       return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 110),
-        children: [
-          Card.filled(
-            margin: EdgeInsets.zero,
-            color: scheme.surfaceContainerLow,
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Text(
-                'Hali repeat qilish uchun recent harakat yo‘q.',
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
+        children: const [
+          _RecentInfoCard(
+            title: 'Hali repeat qilish uchun recent harakat yo‘q.',
           ),
         ],
       );
     }
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
+    return ListView.separated(
       padding: const EdgeInsets.only(bottom: 110),
-      children: [
-        Card.filled(
-          margin: EdgeInsets.zero,
-          color: scheme.surfaceContainerLow,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Column(
-            children: [
-              for (int index = 0; index < _items.length; index++) ...[
-                _WerkaRecentRow(
-                  record: _items[index],
-                  headline: _headline(_items[index]),
-                  subline: _subline(_items[index]),
-                  metric: _metric(_items[index]),
-                  actionLabel: _actionLabel(_items[index]),
-                  onRepeat: () => _repeat(_items[index]),
-                ),
-                if (index != _items.length - 1)
-                  const Divider(height: 1, thickness: 1),
-              ],
-            ],
-          ),
-        ),
-      ],
+      itemCount: _items.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final record = _items[index];
+        return _WerkaRecentCard(
+          headline: _headline(record),
+          subline: _subline(record),
+          metric: _metric(record),
+          createdLabel: record.createdLabel,
+          highlight: record.highlight,
+          actionLabel: _actionLabel(record),
+          onRepeat: () => _repeat(record),
+        );
+      },
     );
   }
 }
 
-class _WerkaRecentRow extends StatelessWidget {
-  const _WerkaRecentRow({
-    required this.record,
+class _RecentMessageCard extends StatelessWidget {
+  const _RecentMessageCard({
+    required this.title,
+    required this.body,
+    required this.actionLabel,
+    required this.onPressed,
+  });
+
+  final String title;
+  final String body;
+  final String actionLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: scheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(body),
+            const SizedBox(height: 14),
+            FilledButton(
+              onPressed: onPressed,
+              child: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecentInfoCard extends StatelessWidget {
+  const _RecentInfoCard({
+    required this.title,
+  });
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: scheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Text(title, style: theme.textTheme.titleMedium),
+      ),
+    );
+  }
+}
+
+class _WerkaRecentCard extends StatelessWidget {
+  const _WerkaRecentCard({
     required this.headline,
     required this.subline,
     required this.metric,
+    required this.createdLabel,
+    required this.highlight,
     required this.actionLabel,
     required this.onRepeat,
   });
 
-  final DispatchRecord record;
   final String headline;
   final String subline;
   final String metric;
+  final String createdLabel;
+  final String highlight;
   final String actionLabel;
   final VoidCallback onRepeat;
 
@@ -310,68 +290,76 @@ class _WerkaRecentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  headline,
-                  style: theme.textTheme.titleLarge,
-                ),
-              ),
-              FilledButton.tonal(
-                onPressed: onRepeat,
-                style: FilledButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: scheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    headline,
+                    style: theme.textTheme.titleLarge,
                   ),
                 ),
-                child: Text(actionLabel),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subline,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
+                const SizedBox(width: 12),
+                FilledButton.tonal(
+                  onPressed: onRepeat,
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                  ),
+                  child: Text(actionLabel),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  metric,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                record.createdLabel,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          if (record.highlight.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              record.highlight,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.primary,
+              subline,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    metric,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  createdLabel,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            if (highlight.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                highlight,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.primary,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
