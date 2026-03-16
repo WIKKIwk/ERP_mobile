@@ -216,6 +216,29 @@ extension MobileApiAdmin on MobileApi {
     );
   }
 
+  Future<AdminCustomerDetail> adminRemoveCustomerItem({
+    required String ref,
+    required String itemCode,
+  }) async {
+    final response = await _sendAuthorized(
+      () => http.delete(
+        Uri.parse('$baseUrl/v1/mobile/admin/customers/items/remove').replace(
+          queryParameters: {
+            'ref': ref,
+            'item_code': itemCode,
+          },
+        ),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin customer item remove failed');
+    }
+    return AdminCustomerDetail.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<List<SupplierItem>> adminItems({String query = ''}) async {
     final response = await _sendAuthorized(
       () => http.get(

@@ -29,6 +29,7 @@ class _AdminCustomerDetailScreenState extends State<AdminCustomerDetailScreen> {
   bool _regeneratingCode = false;
   bool _removing = false;
   bool _addingItem = false;
+  String? _removingItemCode;
   int _retryAfterSec = 0;
   Timer? _retryTimer;
 
@@ -348,6 +349,54 @@ class _AdminCustomerDetailScreenState extends State<AdminCustomerDetailScreen> {
     }
   }
 
+  Future<void> _removeItem(SupplierItem item) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Mahsulotni uzish'),
+          content: Text('${item.name} mahsulotini customerdan uzaymi?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Yo‘q'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Ha'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) {
+      return;
+    }
+
+    setState(() => _removingItemCode = item.code);
+    try {
+      final updated = await MobileApi.instance.adminRemoveCustomerItem(
+        ref: widget.customerRef,
+        itemCode: item.code,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() => _detail = updated);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Mahsulot uzilmadi: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _removingItemCode = null);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -401,8 +450,10 @@ class _AdminCustomerDetailScreenState extends State<AdminCustomerDetailScreen> {
               regeneratingCode: _regeneratingCode,
               removing: _removing,
               addingItem: _addingItem,
+              removingItemCode: _removingItemCode,
               onAddPhone: _addPhone,
               onAddItem: _addItem,
+              onRemoveItem: _removeItem,
               onRegenerateCode: _regenerateCode,
               onCopyCode: _copyCode,
               onRemove: _removeCustomer,
@@ -444,8 +495,10 @@ class _AdminCustomerDetailCard extends StatelessWidget {
     required this.regeneratingCode,
     required this.removing,
     required this.addingItem,
+    required this.removingItemCode,
     required this.onAddPhone,
     required this.onAddItem,
+    required this.onRemoveItem,
     required this.onRegenerateCode,
     required this.onCopyCode,
     required this.onRemove,
@@ -457,8 +510,10 @@ class _AdminCustomerDetailCard extends StatelessWidget {
   final bool regeneratingCode;
   final bool removing;
   final bool addingItem;
+  final String? removingItemCode;
   final Future<void> Function(AdminCustomerDetail detail) onAddPhone;
   final Future<void> Function() onAddItem;
+  final Future<void> Function(SupplierItem item) onRemoveItem;
   final Future<void> Function() onRegenerateCode;
   final Future<void> Function(String code) onCopyCode;
   final Future<void> Function() onRemove;
@@ -570,7 +625,12 @@ class _AdminCustomerDetailCard extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: detail.assignedItems.isEmpty
                         ? null
-                        : () => _showAssignedItemsSheet(context, detail),
+                        : () => _showAssignedItemsSheet(
+                              context,
+                              detail,
+                              onRemoveItem: onRemoveItem,
+                              removingItemCode: removingItemCode,
+                            ),
                     child: const Text('Ko‘rish'),
                   ),
                 ),
@@ -601,6 +661,10 @@ class _AdminCustomerDetailCard extends StatelessWidget {
 Future<void> _showAssignedItemsSheet(
   BuildContext context,
   AdminCustomerDetail detail,
+  {
+  required Future<void> Function(SupplierItem item) onRemoveItem,
+  required String? removingItemCode,
+}
 ) async {
   await showModalBottomSheet<void>(
     context: context,
@@ -645,19 +709,44 @@ Future<void> _showAssignedItemsSheet(
                 itemBuilder: (context, index) {
                   final item = detail.assignedItems[index];
                   return _DetailField(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          item.name,
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.code,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: theme.textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.code,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        IconButton(
+                          onPressed: removingItemCode == item.code
+                              ? null
+                              : () async {
+                                  await onRemoveItem(item);
+                                  if (context.mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                          icon: removingItemCode == item.code
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.remove_rounded),
                         ),
                       ],
                     ),
