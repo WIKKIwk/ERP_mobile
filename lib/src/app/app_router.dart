@@ -280,15 +280,6 @@ class AppRouter {
   }
 
   static PageRoute<dynamic> _buildRoute(RouteSettings settings, Widget child) {
-    if (staticDockRoutes.contains(settings.name)) {
-      return PageRouteBuilder<dynamic>(
-        settings: settings,
-        pageBuilder: (context, animation, secondaryAnimation) => child,
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-      );
-    }
-
     return MaterialPageRoute<dynamic>(
       settings: settings,
       builder: (context) {
