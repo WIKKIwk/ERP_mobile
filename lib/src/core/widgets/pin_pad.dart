@@ -753,10 +753,8 @@ class _PinDigitButtonState extends State<_PinDigitButton> {
       child: AnimatedContainer(
         duration: _pressed
             ? const Duration(milliseconds: 90)
-            : const Duration(milliseconds: 280),
-        curve: _pressed
-            ? AppMotion.standardDecelerate
-            : AppMotion.standardDecelerate,
+            : const Duration(milliseconds: 360),
+        curve: _pressed ? AppMotion.standardDecelerate : Curves.easeOutCubic,
         width: 78,
         height: 78,
         decoration: BoxDecoration(
@@ -771,8 +769,8 @@ class _PinDigitButtonState extends State<_PinDigitButton> {
             AnimatedOpacity(
               duration: _pressed
                   ? const Duration(milliseconds: 90)
-                  : const Duration(milliseconds: 260),
-              curve: AppMotion.standardDecelerate,
+                  : const Duration(milliseconds: 340),
+              curve: Curves.easeOutCubic,
               opacity: _pressed ? 1 : 0,
               child: Container(
                 width: 78,
@@ -866,10 +864,8 @@ class _PinActionButtonState extends State<_PinActionButton> {
       child: AnimatedContainer(
         duration: _pressed
             ? const Duration(milliseconds: 90)
-            : const Duration(milliseconds: 280),
-        curve: _pressed
-            ? AppMotion.standardDecelerate
-            : AppMotion.standardDecelerate,
+            : const Duration(milliseconds: 360),
+        curve: _pressed ? AppMotion.standardDecelerate : Curves.easeOutCubic,
         width: 78,
         height: 78,
         decoration: BoxDecoration(
@@ -900,8 +896,8 @@ class _PinActionButtonState extends State<_PinActionButton> {
             AnimatedOpacity(
               duration: _pressed
                   ? const Duration(milliseconds: 90)
-                  : const Duration(milliseconds: 260),
-              curve: AppMotion.standardDecelerate,
+                  : const Duration(milliseconds: 340),
+              curve: Curves.easeOutCubic,
               opacity: _pressed ? 1 : 0,
               child: Container(
                 width: 78,
