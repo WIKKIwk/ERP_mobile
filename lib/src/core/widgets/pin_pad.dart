@@ -413,13 +413,13 @@ class _PinGlyph extends StatelessWidget {
   }
 
   double _sizeAt(double t) {
-    if (t < 0.12) {
-      final local = Curves.easeOutBack.transform(t / 0.12);
-      return 18.0 + (22.0 * local);
+    if (t < 0.18) {
+      final local = AppMotion.standardDecelerate.transform(t / 0.18);
+      return 20.0 + (18.0 * local);
     }
     if (t < 0.34) {
-      final local = Curves.easeOut.transform((t - 0.12) / 0.22);
-      return 40.0 - (4.0 * local);
+      final local = AppMotion.standardDecelerate.transform((t - 0.18) / 0.16);
+      return 38.0 - (2.0 * local);
     }
     final local = AppMotion.standardDecelerate.transform((t - 0.34) / 0.66);
     return 34.0 - (14.0 * local);
