@@ -355,11 +355,11 @@ class _DockButtonState extends State<DockButton> {
             ? scheme.onSecondaryContainer
             : scheme.onSurfaceVariant;
     final BorderRadius borderRadius = BorderRadius.circular(
-      widget.primary ? 999 : 22,
+      widget.primary ? 20 : 22,
     );
-    final OutlinedBorder tapShape = widget.primary
-        ? const CircleBorder()
-        : RoundedRectangleBorder(borderRadius: borderRadius);
+    final OutlinedBorder tapShape = RoundedRectangleBorder(
+      borderRadius: borderRadius,
+    );
     final double iconSize = widget.primary
         ? switch (deviceClass) {
             _DockDeviceClass.small => 33,
@@ -417,9 +417,9 @@ class _DockButtonState extends State<DockButton> {
             curve: AppMotion.smooth,
             height: widget.primary
                 ? switch (deviceClass) {
-                    _DockDeviceClass.small => widget.compact ? 56 : 60,
-                    _DockDeviceClass.medium => widget.compact ? 58 : 62,
-                    _DockDeviceClass.large => widget.compact ? 58 : 62,
+                    _DockDeviceClass.small => widget.compact ? 52 : 56,
+                    _DockDeviceClass.medium => widget.compact ? 54 : 58,
+                    _DockDeviceClass.large => widget.compact ? 54 : 58,
                   }
                 : switch (deviceClass) {
                     _DockDeviceClass.small => widget.compact ? 54 : 58,
@@ -428,9 +428,9 @@ class _DockButtonState extends State<DockButton> {
                   },
             width: widget.primary
                 ? switch (deviceClass) {
-                    _DockDeviceClass.small => widget.compact ? 56 : 60,
-                    _DockDeviceClass.medium => widget.compact ? 58 : 62,
-                    _DockDeviceClass.large => widget.compact ? 58 : 62,
+                    _DockDeviceClass.small => widget.compact ? 58 : 62,
+                    _DockDeviceClass.medium => widget.compact ? 60 : 66,
+                    _DockDeviceClass.large => widget.compact ? 60 : 66,
                   }
                 : switch (deviceClass) {
                     _DockDeviceClass.small => widget.compact ? 62 : 72,
@@ -547,15 +547,15 @@ class _DockPrimaryPlusGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double stroke = size >= 34
-        ? 3.0
+        ? 2.6
         : size >= 32
-            ? 2.8
-            : 2.6;
+            ? 2.4
+            : 2.2;
     final double arm = size >= 34
-        ? 16.0
+        ? 14.0
         : size >= 32
-            ? 15.0
-            : 14.0;
+            ? 13.5
+            : 12.5;
 
     return SizedBox(
       width: size,
