@@ -277,12 +277,12 @@ class _PinGlyph extends StatelessWidget {
         );
       default:
         return const _OrganicBlobBorder(
-          lobes: 6,
+          lobes: 2,
           amplitude: 0.05,
           secondaryAmplitude: 0.0,
           rotation: 0.0,
-          scaleX: 0.94,
-          scaleY: 0.94,
+          scaleX: 0.98,
+          scaleY: 0.98,
         );
     }
   }
@@ -318,25 +318,18 @@ class _PinGlyph extends StatelessWidget {
         );
       default:
         return const _OrganicBlobBorder(
-          lobes: 6,
+          lobes: 2,
           amplitude: 0.03,
           secondaryAmplitude: 0.0,
           rotation: 0.0,
-          scaleX: 0.98,
-          scaleY: 0.98,
+          scaleX: 0.995,
+          scaleY: 0.995,
         );
     }
   }
 
   ShapeBorder _settledShape() {
-    return const _OrganicBlobBorder(
-      lobes: 6,
-      amplitude: 0,
-      secondaryAmplitude: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-    );
+    return const CircleBorder();
   }
 
   ShapeBorder _shapeAt(double t) {
@@ -373,14 +366,7 @@ class _PinGlyph extends StatelessWidget {
         height: 36,
         child: Center(
           child: _GlyphSurface(
-            shape: _OrganicBlobBorder(
-              lobes: 6,
-              amplitude: 0,
-              secondaryAmplitude: 0,
-              rotation: 0,
-              scaleX: 1,
-              scaleY: 1,
-            ),
+            shape: CircleBorder(),
             color: null,
             size: 20,
           ),
