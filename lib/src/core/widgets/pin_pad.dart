@@ -273,14 +273,14 @@ class _PinGlyph extends StatelessWidget {
   }
 
   ShapeBorder _shapeAt(double t) {
-    if (t < 0.26) {
+    if (t < 0.34) {
       return _startShape();
     }
-    if (t < 0.66) {
-      final local = AppMotion.standardDecelerate.transform((t - 0.26) / 0.40);
+    if (t < 0.62) {
+      final local = AppMotion.standardDecelerate.transform((t - 0.34) / 0.28);
       return ShapeBorder.lerp(_startShape(), _midShape(), local)!;
     }
-    final local = AppMotion.standardDecelerate.transform((t - 0.66) / 0.34);
+    final local = AppMotion.standardDecelerate.transform((t - 0.62) / 0.38);
     return ShapeBorder.lerp(_midShape(), const CircleBorder(), local)!;
   }
 
