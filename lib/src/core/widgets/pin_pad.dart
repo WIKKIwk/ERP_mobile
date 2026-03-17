@@ -435,7 +435,7 @@ class _PinGlyph extends StatelessWidget {
           height: 36,
           child: Center(
             child: Transform.rotate(
-              angle: -0.34 * eased,
+              angle: 0,
               child: Transform.scale(
                 scale: 1.08 - (0.08 * eased),
                 child: _GlyphSurface(
