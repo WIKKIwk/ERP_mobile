@@ -159,22 +159,18 @@ class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
       );
     }
 
-    return ListView.separated(
+    return ListView(
       padding: const EdgeInsets.only(bottom: 110),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final record = items[index];
-        return _WerkaRecentCard(
-          headline: _headline(record),
-          subline: _subline(record),
-          metric: _metric(record),
-          createdLabel: record.createdLabel,
-          highlight: record.highlight,
-          actionLabel: _actionLabel(record),
-          onRepeat: () => _repeat(record),
-        );
-      },
+      children: [
+        _WerkaRecentSection(
+          items: items,
+          headlineFor: _headline,
+          sublineFor: _subline,
+          metricFor: _metric,
+          actionLabelFor: _actionLabel,
+          onRepeat: _repeat,
+        ),
+      ],
     );
   }
 
@@ -259,24 +255,22 @@ class _RecentInfoCard extends StatelessWidget {
   }
 }
 
-class _WerkaRecentCard extends StatelessWidget {
-  const _WerkaRecentCard({
-    required this.headline,
-    required this.subline,
-    required this.metric,
-    required this.createdLabel,
-    required this.highlight,
-    required this.actionLabel,
+class _WerkaRecentSection extends StatelessWidget {
+  const _WerkaRecentSection({
+    required this.items,
+    required this.headlineFor,
+    required this.sublineFor,
+    required this.metricFor,
+    required this.actionLabelFor,
     required this.onRepeat,
   });
 
-  final String headline;
-  final String subline;
-  final String metric;
-  final String createdLabel;
-  final String highlight;
-  final String actionLabel;
-  final VoidCallback onRepeat;
+  final List<DispatchRecord> items;
+  final String Function(DispatchRecord record) headlineFor;
+  final String Function(DispatchRecord record) sublineFor;
+  final String Function(DispatchRecord record) metricFor;
+  final String Function(DispatchRecord record) actionLabelFor;
+  final Future<void> Function(DispatchRecord record) onRepeat;
 
   @override
   Widget build(BuildContext context) {
@@ -285,11 +279,61 @@ class _WerkaRecentCard extends StatelessWidget {
     return Card.filled(
       margin: EdgeInsets.zero,
       color: scheme.surfaceContainerLow,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(28),
       ),
+      child: Column(
+        children: [
+          for (int index = 0; index < items.length; index++) ...[
+            _WerkaRecentRow(
+              record: items[index],
+              headline: headlineFor(items[index]),
+              subline: sublineFor(items[index]),
+              metric: metricFor(items[index]),
+              actionLabel: actionLabelFor(items[index]),
+              onRepeat: () => onRepeat(items[index]),
+            ),
+            if (index != items.length - 1)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: 18,
+                endIndent: 18,
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.55),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WerkaRecentRow extends StatelessWidget {
+  const _WerkaRecentRow({
+    required this.record,
+    required this.headline,
+    required this.subline,
+    required this.metric,
+    required this.actionLabel,
+    required this.onRepeat,
+  });
+
+  final DispatchRecord record;
+  final String headline;
+  final String subline;
+  final String metric;
+  final String actionLabel;
+  final VoidCallback onRepeat;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return InkWell(
+      onTap: onRepeat,
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -335,17 +379,17 @@ class _WerkaRecentCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  createdLabel,
+                  record.createdLabel,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-            if (highlight.trim().isNotEmpty) ...[
+            if (record.highlight.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                highlight,
+                record.highlight,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.primary,
                 ),

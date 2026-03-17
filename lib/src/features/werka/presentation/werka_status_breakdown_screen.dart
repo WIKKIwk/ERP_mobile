@@ -141,53 +141,49 @@ class _WerkaStatusBreakdownScreenState
 
                     return RefreshIndicator.adaptive(
                       onRefresh: _reload,
-                      child: ListView.separated(
+                      child: ListView(
                         padding: const EdgeInsets.only(bottom: 110),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return Card.filled(
+                        children: [
+                          Card.filled(
                             margin: EdgeInsets.zero,
                             color: scheme.surfaceContainerLow,
+                            clipBehavior: Clip.antiAlias,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(28),
                             ),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(28),
-                              onTap: () => Navigator.of(context).pushNamed(
-                                AppRoutes.werkaStatusDetail,
-                                arguments: WerkaStatusDetailArgs(
-                                  kind: widget.kind,
-                                  supplierRef: item.supplierRef,
-                                  supplierName: item.supplierName,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(18),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.supplierName,
-                                      style: theme.textTheme.titleLarge,
+                            child: Column(
+                              children: [
+                                for (int index = 0;
+                                    index < items.length;
+                                    index++) ...[
+                                  _WerkaBreakdownRow(
+                                    entry: items[index],
+                                    metricLabel: _metricLabel(items[index]),
+                                    onTap: () =>
+                                        Navigator.of(context).pushNamed(
+                                      AppRoutes.werkaStatusDetail,
+                                      arguments: WerkaStatusDetailArgs(
+                                        kind: widget.kind,
+                                        supplierRef: items[index].supplierRef,
+                                        supplierName: items[index].supplierName,
+                                      ),
                                     ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      _metricLabel(item),
-                                      style: theme.textTheme.headlineMedium,
+                                  ),
+                                  if (index != items.length - 1)
+                                    Divider(
+                                      height: 1,
+                                      thickness: 1,
+                                      indent: 18,
+                                      endIndent: 18,
+                                      color: Theme.of(context)
+                                          .dividerColor
+                                          .withValues(alpha: 0.55),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      '${item.receiptCount} ta receipt',
-                                      style: theme.textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                ],
+                              ],
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -218,4 +214,46 @@ class WerkaStatusDetailArgs {
   final WerkaStatusKind kind;
   final String supplierRef;
   final String supplierName;
+}
+
+class _WerkaBreakdownRow extends StatelessWidget {
+  const _WerkaBreakdownRow({
+    required this.entry,
+    required this.metricLabel,
+    required this.onTap,
+  });
+
+  final WerkaStatusBreakdownEntry entry;
+  final String metricLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              entry.supplierName,
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              metricLabel,
+              style: theme.textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${entry.receiptCount} ta receipt',
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
