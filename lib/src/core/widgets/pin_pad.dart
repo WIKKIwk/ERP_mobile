@@ -267,6 +267,8 @@ enum _PinShapeKind {
   pill,
   pentagon,
   diamond,
+  verySunny,
+  ghostish,
 }
 
 class _PinGlyph extends StatelessWidget {
@@ -335,6 +337,24 @@ class _PinGlyph extends StatelessWidget {
           scaleX: 0.84,
           scaleY: 0.98,
         );
+      case _PinShapeKind.verySunny:
+        return const _OrganicBlobBorder(
+          lobes: 8,
+          amplitude: 0.055,
+          secondaryAmplitude: 0.0,
+          rotation: 0.0,
+          scaleX: 0.9,
+          scaleY: 0.9,
+        );
+      case _PinShapeKind.ghostish:
+        return const _OrganicBlobBorder(
+          lobes: 1,
+          amplitude: 0.11,
+          secondaryAmplitude: 0.0,
+          rotation: math.pi / 2,
+          scaleX: 0.9,
+          scaleY: 1.02,
+        );
       case null:
         return const CircleBorder();
     }
@@ -390,6 +410,24 @@ class _PinGlyph extends StatelessWidget {
           rotation: math.pi / 4,
           scaleX: 0.9,
           scaleY: 1.0,
+        );
+      case _PinShapeKind.verySunny:
+        return const _OrganicBlobBorder(
+          lobes: 8,
+          amplitude: 0.03,
+          secondaryAmplitude: 0.0,
+          rotation: 0.0,
+          scaleX: 0.95,
+          scaleY: 0.95,
+        );
+      case _PinShapeKind.ghostish:
+        return const _OrganicBlobBorder(
+          lobes: 1,
+          amplitude: 0.07,
+          secondaryAmplitude: 0.0,
+          rotation: math.pi / 2,
+          scaleX: 0.95,
+          scaleY: 1.02,
         );
       case null:
         return const CircleBorder();
