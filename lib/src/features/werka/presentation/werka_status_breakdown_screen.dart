@@ -245,26 +245,29 @@ class _WerkaBreakdownRow extends StatelessWidget {
     return InkWell(
       borderRadius: borderRadius,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              entry.supplierName,
-              style: theme.textTheme.titleLarge,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              metricLabel,
-              style: theme.textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${entry.receiptCount} ta receipt',
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                entry.supplierName,
+                style: theme.textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                metricLabel,
+                style: theme.textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${entry.receiptCount} ta receipt',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+          ),
         ),
       ),
     );
