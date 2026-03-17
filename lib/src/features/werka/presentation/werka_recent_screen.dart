@@ -119,7 +119,7 @@ class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
         bottomNavigationBar: const SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 0, 24, 0),
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: WerkaDock(activeTab: WerkaDockTab.recent),
           ),
         ),
@@ -133,7 +133,9 @@ class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
     if (widget.loader == null && store.loadingHistory && !store.loadedHistory) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (widget.loader == null && store.historyError != null && !store.loadedHistory) {
+    if (widget.loader == null &&
+        store.historyError != null &&
+        !store.loadedHistory) {
       return ListView(
         padding: const EdgeInsets.only(bottom: 110),
         children: [
@@ -176,7 +178,8 @@ class _WerkaRecentScreenState extends State<WerkaRecentScreen> {
     );
   }
 
-  List<DispatchRecord> get _testItems => _cachedTestItems ?? const <DispatchRecord>[];
+  List<DispatchRecord> get _testItems =>
+      _cachedTestItems ?? const <DispatchRecord>[];
 
   List<DispatchRecord>? _cachedTestItems;
 

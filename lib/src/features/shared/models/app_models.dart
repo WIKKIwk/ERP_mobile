@@ -281,6 +281,7 @@ class WerkaStatusBreakdownEntry {
 class DispatchRecord {
   const DispatchRecord({
     required this.id,
+    this.recordType = '',
     required this.supplierRef,
     required this.supplierName,
     required this.itemCode,
@@ -298,6 +299,7 @@ class DispatchRecord {
   });
 
   final String id;
+  final String recordType;
   final String supplierRef;
   final String supplierName;
   final String itemCode;
@@ -313,9 +315,14 @@ class DispatchRecord {
   final DispatchStatus status;
   final String createdLabel;
 
+  bool get isDeliveryNote =>
+      recordType == 'delivery_note' ||
+      eventType.startsWith('customer_delivery_');
+
   factory DispatchRecord.fromJson(Map<String, dynamic> json) {
     return DispatchRecord(
       id: json['id'] as String? ?? '',
+      recordType: json['record_type'] as String? ?? '',
       supplierRef: json['supplier_ref'] as String? ?? '',
       supplierName: json['supplier_name'] as String? ?? '',
       itemCode: json['item_code'] as String? ?? '',
@@ -336,6 +343,7 @@ class DispatchRecord {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'record_type': recordType,
       'supplier_ref': supplierRef,
       'supplier_name': supplierName,
       'item_code': itemCode,

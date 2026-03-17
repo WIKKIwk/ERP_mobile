@@ -109,8 +109,7 @@ class _WerkaStatusBreakdownScreenState
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                    'Status ro‘yxati yuklanmadi: $error'),
+                                Text('Status ro‘yxati yuklanmadi: $error'),
                                 const SizedBox(height: 12),
                                 FilledButton(
                                   onPressed: _reload,
@@ -201,7 +200,7 @@ class _WerkaStatusBreakdownScreenState
       bottomNavigationBar: const SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 0, 24, 0),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: WerkaDock(activeTab: null),
         ),
       ),

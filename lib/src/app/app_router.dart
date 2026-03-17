@@ -36,6 +36,7 @@ import '../features/werka/presentation/werka_detail_screen.dart';
 import '../features/werka/presentation/werka_home_screen.dart';
 import '../features/werka/presentation/werka_create_hub_screen.dart';
 import '../features/werka/presentation/werka_customer_issue_customer_screen.dart';
+import '../features/werka/presentation/werka_customer_delivery_detail_screen.dart';
 import '../features/werka/presentation/werka_notifications_screen.dart';
 import '../features/werka/presentation/werka_recent_screen.dart';
 import '../features/werka/presentation/werka_unannounced_supplier_screen.dart';
@@ -66,6 +67,8 @@ class AppRoutes {
   static const String werkaStatusBreakdown = '/werka-status-breakdown';
   static const String werkaStatusDetail = '/werka-status-detail';
   static const String werkaDetail = '/werka-detail';
+  static const String werkaCustomerDeliveryDetail =
+      '/werka-customer-delivery-detail';
   static const String werkaSuccess = '/werka-success';
   static const String profile = '/profile';
   static const String customerHome = '/customer-home';
@@ -203,6 +206,12 @@ class AppRouter {
       case AppRoutes.werkaDetail:
         final DispatchRecord record = settings.arguments as DispatchRecord;
         return _buildRoute(settings, WerkaDetailScreen(record: record));
+      case AppRoutes.werkaCustomerDeliveryDetail:
+        final DispatchRecord record = settings.arguments as DispatchRecord;
+        return _buildRoute(
+          settings,
+          WerkaCustomerDeliveryDetailScreen(record: record),
+        );
       case AppRoutes.werkaSuccess:
         final DispatchRecord record = settings.arguments as DispatchRecord;
         return _buildRoute(settings, WerkaSuccessScreen(record: record));

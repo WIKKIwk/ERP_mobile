@@ -3,6 +3,7 @@ import '../../../core/api/mobile_api.dart';
 import '../../../core/notifications/werka_runtime_store.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../shared/models/app_models.dart';
+import 'widgets/m3_picker_sheet.dart';
 import 'widgets/werka_dock.dart';
 import 'dart:async';
 
@@ -112,51 +113,23 @@ class _WerkaUnannouncedSupplierScreenState
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      sheetAnimationStyle: kM3PickerSheetAnimation,
       builder: (context) {
-        final theme = Theme.of(context);
-        final scheme = theme.colorScheme;
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Supplier tanlang',
-                      style: theme.textTheme.titleLarge,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: suppliers.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final item = suppliers[index];
-                    return ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      tileColor: scheme.surfaceContainerHighest,
-                      title: Text(item.name),
-                      subtitle: Text(item.phone),
-                      onTap: () => Navigator.of(context).pop(item),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+        return M3PickerSheet<SupplierDirectoryEntry>(
+          title: 'Supplier tanlang',
+          hintText: 'Supplier qidiring',
+          items: suppliers,
+          itemTitle: (item) => item.name,
+          itemSubtitle: (item) =>
+              item.phone.trim().isEmpty ? item.ref : item.phone,
+          matchesQuery: (item, query) {
+            final needle = query.trim().toLowerCase();
+            return item.name.toLowerCase().contains(needle) ||
+                item.phone.toLowerCase().contains(needle) ||
+                item.ref.toLowerCase().contains(needle);
+          },
+          onSelected: (item) => Navigator.of(context).pop(item),
         );
       },
     );
@@ -202,58 +175,22 @@ class _WerkaUnannouncedSupplierScreenState
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      sheetAnimationStyle: kM3PickerSheetAnimation,
       builder: (context) {
-        final theme = Theme.of(context);
-        final scheme = theme.colorScheme;
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Mol tanlang',
-                      style: theme.textTheme.titleLarge,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _selectedSupplier!.name,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: _supplierItems.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final item = _supplierItems[index];
-                    return ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      tileColor: scheme.surfaceContainerHighest,
-                      title: Text(item.name),
-                      subtitle: Text(item.code),
-                      onTap: () => Navigator.of(context).pop(item),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+        return M3PickerSheet<SupplierItem>(
+          title: 'Mol tanlang',
+          supportingText: _selectedSupplier!.name,
+          hintText: 'Mol qidiring',
+          items: _supplierItems,
+          itemTitle: (item) => item.name,
+          itemSubtitle: (item) => item.code,
+          matchesQuery: (item, query) {
+            final needle = query.trim().toLowerCase();
+            return item.name.toLowerCase().contains(needle) ||
+                item.code.toLowerCase().contains(needle);
+          },
+          onSelected: (item) => Navigator.of(context).pop(item),
         );
       },
     );
@@ -500,7 +437,7 @@ class _WerkaUnannouncedSupplierScreenState
       bottomNavigationBar: const SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 0, 24, 0),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: WerkaDock(activeTab: null),
         ),
       ),

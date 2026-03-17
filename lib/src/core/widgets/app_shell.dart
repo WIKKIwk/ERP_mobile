@@ -12,7 +12,7 @@ class AppShell extends StatelessWidget {
     this.actions,
     this.bottom,
     this.contentPadding = const EdgeInsets.fromLTRB(4, 0, 6, 0),
-    this.bottomPadding = const EdgeInsets.fromLTRB(20, 0, 24, 0),
+    this.bottomPadding = const EdgeInsets.symmetric(horizontal: 20),
     this.animateOnEnter = true,
   });
 

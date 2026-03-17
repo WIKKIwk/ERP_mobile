@@ -85,97 +85,97 @@ class _CustomerStatusDetailScreenState
                         icon: const Icon(Icons.arrow_back_rounded, size: 28),
                       ),
                     ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      _title,
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 16, 0),
-                child: AnimatedBuilder(
-                  animation: CustomerStore.instance,
-                  builder: (context, _) {
-                    final store = CustomerStore.instance;
-                    if (store.loading && !store.loaded) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                    }
-                    if (store.error != null && !store.loaded) {
-                          return Center(
-                            child: Card.filled(
-                              margin: EdgeInsets.zero,
-                              color: scheme.surfaceContainerLow,
-                              child: Padding(
-                                padding: const EdgeInsets.all(18),
-                                child: Text('${store.error}'),
-                              ),
-                            ),
-                          );
-                    }
-                    final items = store.itemsForKind(widget.kind);
-                    if (items.isEmpty) {
-                          return Center(
-                            child: Card.filled(
-                              margin: EdgeInsets.zero,
-                              color: scheme.surfaceContainerLow,
-                              child: Padding(
-                                padding: const EdgeInsets.all(18),
-                                child: Text(
-                                  'Hozircha yozuv yo‘q.',
-                                  style: theme.textTheme.titleMedium,
-                                ),
-                              ),
-                            ),
-                          );
-                    }
-                    return RefreshIndicator.adaptive(
-                      onRefresh: _reload,
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(bottom: 110),
-                        children: [
-                          Card.filled(
-                            margin: EdgeInsets.zero,
-                            color: scheme.surfaceContainerLow,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                            child: Column(
-                              children: [
-                                for (int index = 0;
-                                    index < items.length;
-                                    index++) ...[
-                                  _CustomerStatusRecordRow(
-                                    record: items[index],
-                                    onTap: () => _openDetail(items[index].id),
-                                  ),
-                                  if (index != items.length - 1)
-                                    const Divider(height: 1, thickness: 1),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        _title,
+                        style: theme.textTheme.headlineMedium,
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
               ),
-            ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 16, 0),
+                  child: AnimatedBuilder(
+                    animation: CustomerStore.instance,
+                    builder: (context, _) {
+                      final store = CustomerStore.instance;
+                      if (store.loading && !store.loaded) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      if (store.error != null && !store.loaded) {
+                        return Center(
+                          child: Card.filled(
+                            margin: EdgeInsets.zero,
+                            color: scheme.surfaceContainerLow,
+                            child: Padding(
+                              padding: const EdgeInsets.all(18),
+                              child: Text('${store.error}'),
+                            ),
+                          ),
+                        );
+                      }
+                      final items = store.itemsForKind(widget.kind);
+                      if (items.isEmpty) {
+                        return Center(
+                          child: Card.filled(
+                            margin: EdgeInsets.zero,
+                            color: scheme.surfaceContainerLow,
+                            child: Padding(
+                              padding: const EdgeInsets.all(18),
+                              child: Text(
+                                'Hozircha yozuv yo‘q.',
+                                style: theme.textTheme.titleMedium,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return RefreshIndicator.adaptive(
+                        onRefresh: _reload,
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 110),
+                          children: [
+                            Card.filled(
+                              margin: EdgeInsets.zero,
+                              color: scheme.surfaceContainerLow,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              child: Column(
+                                children: [
+                                  for (int index = 0;
+                                      index < items.length;
+                                      index++) ...[
+                                    _CustomerStatusRecordRow(
+                                      record: items[index],
+                                      onTap: () => _openDetail(items[index].id),
+                                    ),
+                                    if (index != items.length - 1)
+                                      const Divider(height: 1, thickness: 1),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         ),
         bottomNavigationBar: const SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 0, 24, 0),
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: CustomerDock(activeTab: null),
           ),
         ),

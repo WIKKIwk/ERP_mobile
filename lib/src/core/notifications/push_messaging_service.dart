@@ -59,6 +59,7 @@ class PushMessagingService {
       }
       final record = DispatchRecord(
         id: data['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        recordType: data['record_type'] ?? '',
         supplierRef: data['supplier_ref'] ?? '',
         supplierName: data['supplier_name'] ?? '',
         itemCode: data['item_code'] ?? '',

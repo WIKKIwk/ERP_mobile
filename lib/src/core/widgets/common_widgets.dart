@@ -243,10 +243,7 @@ class ActionDock extends StatelessWidget {
                         (index) => Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Transform.translate(
-                            offset: Offset(
-                              0,
-                              liftCenter && index == leading.length ? -3 : 0,
-                            ),
+                            offset: const Offset(0, 0),
                             child: buttons[index],
                           ),
                         ),
@@ -268,10 +265,7 @@ class ActionDock extends StatelessWidget {
                           },
                         ),
                         child: Transform.translate(
-                          offset: Offset(
-                            0,
-                            liftCenter && index == leading.length ? -3 : 0,
-                          ),
+                          offset: const Offset(0, 0),
                           child: buttons[index],
                         ),
                       ),
@@ -373,9 +367,9 @@ class _DockButtonState extends State<DockButton> {
         : (widget.iconWidget ?? Icon(widget.icon));
     final double iconSize = widget.primary
         ? switch (deviceClass) {
-            _DockDeviceClass.small => 31,
-            _DockDeviceClass.medium => 32,
-            _DockDeviceClass.large => 32,
+            _DockDeviceClass.small => 33,
+            _DockDeviceClass.medium => 34,
+            _DockDeviceClass.large => 34,
           }
         : switch (deviceClass) {
             _DockDeviceClass.small => 28,
@@ -418,9 +412,9 @@ class _DockButtonState extends State<DockButton> {
             curve: AppMotion.smooth,
             height: widget.primary
                 ? switch (deviceClass) {
-                    _DockDeviceClass.small => widget.compact ? 52 : 56,
-                    _DockDeviceClass.medium => widget.compact ? 54 : 58,
-                    _DockDeviceClass.large => widget.compact ? 54 : 58,
+                    _DockDeviceClass.small => widget.compact ? 56 : 60,
+                    _DockDeviceClass.medium => widget.compact ? 58 : 62,
+                    _DockDeviceClass.large => widget.compact ? 58 : 62,
                   }
                 : switch (deviceClass) {
                     _DockDeviceClass.small => widget.compact ? 54 : 58,
@@ -429,9 +423,9 @@ class _DockButtonState extends State<DockButton> {
                   },
             width: widget.primary
                 ? switch (deviceClass) {
-                    _DockDeviceClass.small => widget.compact ? 52 : 56,
-                    _DockDeviceClass.medium => widget.compact ? 54 : 58,
-                    _DockDeviceClass.large => widget.compact ? 54 : 58,
+                    _DockDeviceClass.small => widget.compact ? 56 : 60,
+                    _DockDeviceClass.medium => widget.compact ? 58 : 62,
+                    _DockDeviceClass.large => widget.compact ? 58 : 62,
                   }
                 : switch (deviceClass) {
                     _DockDeviceClass.small => widget.compact ? 62 : 72,

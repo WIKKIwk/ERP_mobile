@@ -430,7 +430,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
       bottomNavigationBar: const SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 0, 24, 0),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: WerkaDock(activeTab: null),
         ),
       ),

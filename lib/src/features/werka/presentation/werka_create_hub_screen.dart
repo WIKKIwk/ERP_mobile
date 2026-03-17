@@ -15,90 +15,94 @@ class WerkaCreateHubScreen extends StatelessWidget {
       subtitle: '',
       leading: const _CreateHubBackButton(),
       bottom: const WerkaDock(activeTab: null),
+      contentPadding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          Card.filled(
-            margin: EdgeInsets.zero,
-            color: scheme.surfaceContainerLow,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-              side: BorderSide(
-                color: scheme.outlineVariant.withValues(alpha: 0.7),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Card.filled(
+              margin: EdgeInsets.zero,
+              color: scheme.surfaceContainerLow,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+                side: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.7),
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                InkWell(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    topRight: Radius.circular(28),
-                  ),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    AppRoutes.werkaUnannouncedSupplier,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 20,
+              child: Column(
+                children: [
+                  InkWell(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
                     ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Aytilmagan mol',
-                            style: theme.textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Supplier, mol va miqdorni bir oqimda tanlang',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
+                    onTap: () => Navigator.of(context).pushNamed(
+                      AppRoutes.werkaUnannouncedSupplier,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 20,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Aytilmagan mol',
+                              style: theme.textTheme.titleLarge,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 6),
+                            Text(
+                              'Supplier, mol va miqdorni bir oqimda tanlang',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const Divider(height: 1, thickness: 1),
-                InkWell(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(28),
-                    bottomRight: Radius.circular(28),
-                  ),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    AppRoutes.werkaCustomerIssueCustomer,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 20,
+                  const Divider(height: 1, thickness: 1),
+                  InkWell(
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(28),
+                      bottomRight: Radius.circular(28),
                     ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Mol jo‘natish',
-                            style: theme.textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Customerga jo‘natma yaratish oqimi',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
+                    onTap: () => Navigator.of(context).pushNamed(
+                      AppRoutes.werkaCustomerIssueCustomer,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 20,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Mol jo‘natish',
+                              style: theme.textTheme.titleLarge,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 6),
+                            Text(
+                              'Customerga jo‘natma yaratish oqimi',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

@@ -25,11 +25,13 @@ class _WerkaStatusDetailScreenState extends State<WerkaStatusDetailScreen> {
   @override
   void initState() {
     super.initState();
-    WerkaStore.instance.bootstrapDetail(widget.args.kind, widget.args.supplierRef);
+    WerkaStore.instance
+        .bootstrapDetail(widget.args.kind, widget.args.supplierRef);
   }
 
   Future<void> _reload() async {
-    await WerkaStore.instance.refreshDetail(widget.args.kind, widget.args.supplierRef);
+    await WerkaStore.instance
+        .refreshDetail(widget.args.kind, widget.args.supplierRef);
   }
 
   String get _title {
@@ -60,145 +62,163 @@ class _WerkaStatusDetailScreenState extends State<WerkaStatusDetailScreen> {
           bottom: false,
           child: Column(
             children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              child: Row(
-                children: [
-                  SizedBox(
-                    height: 52,
-                    width: 52,
-                    child: IconButton.filledTonal(
-                      onPressed: () => Navigator.of(context).pop(_didMutate),
-                      icon: const Icon(Icons.arrow_back_rounded, size: 28),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      _title,
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 16, 0),
-                child: AnimatedBuilder(
-                  animation: WerkaStore.instance,
-                  builder: (context, _) {
-                    final store = WerkaStore.instance;
-                    if (store.loadingDetail(widget.args.kind, widget.args.supplierRef) &&
-                        store.detailItems(widget.args.kind, widget.args.supplierRef).isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final error = store.detailError(widget.args.kind, widget.args.supplierRef);
-                    if (error != null &&
-                        store.detailItems(widget.args.kind, widget.args.supplierRef).isEmpty) {
-                      return Center(
-                        child: Card.filled(
-                          margin: EdgeInsets.zero,
-                          color: scheme.surfaceContainerLow,
-                          child: Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                    'Receiptlar yuklanmadi: $error'),
-                                const SizedBox(height: 12),
-                                FilledButton(
-                                  onPressed: _reload,
-                                  child: const Text('Qayta urinish'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final items = store.detailItems(widget.args.kind, widget.args.supplierRef);
-                    if (items.isEmpty) {
-                      return Center(
-                        child: Card.filled(
-                          margin: EdgeInsets.zero,
-                          color: scheme.surfaceContainerLow,
-                          child: Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Text(
-                              'Bu supplierda hozircha receipt yo‘q.',
-                              style: theme.textTheme.titleMedium,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return RefreshIndicator.adaptive(
-                      onRefresh: _reload,
-                      child: ListView(
-                        padding: const EdgeInsets.only(bottom: 110),
-                        children: [
-                          Card.filled(
-                            margin: EdgeInsets.zero,
-                            color: scheme.surfaceContainerLow,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                            child: Column(
-                              children: [
-                                for (int index = 0;
-                                    index < items.length;
-                                    index++) ...[
-                                  _WerkaStatusRecordRow(
-                                    record: items[index],
-                                    onTap: () {
-                                      if (widget.args.kind ==
-                                          WerkaStatusKind.pending) {
-                                        Navigator.of(context).pushNamed(
-                                          AppRoutes.werkaDetail,
-                                          arguments: items[index],
-                                        ).then((changed) {
-                                          if (changed == true) {
-                                            _didMutate = true;
-                                            _reload();
-                                          }
-                                        });
-                                        return;
-                                      }
-                                      Navigator.of(context).pushNamed(
-                                        AppRoutes.notificationDetail,
-                                        arguments: items[index].id,
-                                      );
-                                    },
-                                  ),
-                                  if (index != items.length - 1)
-                                    const Divider(height: 1, thickness: 1),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 52,
+                      width: 52,
+                      child: IconButton.filledTonal(
+                        onPressed: () => Navigator.of(context).pop(_didMutate),
+                        icon: const Icon(Icons.arrow_back_rounded, size: 28),
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        _title,
+                        style: theme.textTheme.headlineMedium,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 16, 0),
+                  child: AnimatedBuilder(
+                    animation: WerkaStore.instance,
+                    builder: (context, _) {
+                      final store = WerkaStore.instance;
+                      if (store.loadingDetail(
+                              widget.args.kind, widget.args.supplierRef) &&
+                          store
+                              .detailItems(
+                                  widget.args.kind, widget.args.supplierRef)
+                              .isEmpty) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final error = store.detailError(
+                          widget.args.kind, widget.args.supplierRef);
+                      if (error != null &&
+                          store
+                              .detailItems(
+                                  widget.args.kind, widget.args.supplierRef)
+                              .isEmpty) {
+                        return Center(
+                          child: Card.filled(
+                            margin: EdgeInsets.zero,
+                            color: scheme.surfaceContainerLow,
+                            child: Padding(
+                              padding: const EdgeInsets.all(18),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Yozuvlar yuklanmadi: $error'),
+                                  const SizedBox(height: 12),
+                                  FilledButton(
+                                    onPressed: _reload,
+                                    child: const Text('Qayta urinish'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      final items = store.detailItems(
+                          widget.args.kind, widget.args.supplierRef);
+                      if (items.isEmpty) {
+                        return Center(
+                          child: Card.filled(
+                            margin: EdgeInsets.zero,
+                            color: scheme.surfaceContainerLow,
+                            child: Padding(
+                              padding: const EdgeInsets.all(18),
+                              child: Text(
+                                'Bu ro‘yxatda hozircha yozuv yo‘q.',
+                                style: theme.textTheme.titleMedium,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return RefreshIndicator.adaptive(
+                        onRefresh: _reload,
+                        child: ListView(
+                          padding: const EdgeInsets.only(bottom: 110),
+                          children: [
+                            Card.filled(
+                              margin: EdgeInsets.zero,
+                              color: scheme.surfaceContainerLow,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              child: Column(
+                                children: [
+                                  for (int index = 0;
+                                      index < items.length;
+                                      index++) ...[
+                                    _WerkaStatusRecordRow(
+                                      record: items[index],
+                                      onTap: () => _openRecord(items[index]),
+                                    ),
+                                    if (index != items.length - 1)
+                                      const Divider(height: 1, thickness: 1),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         ),
         bottomNavigationBar: const SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 0, 24, 0),
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: WerkaDock(activeTab: null),
           ),
         ),
       ),
+    );
+  }
+
+  void _openRecord(DispatchRecord record) {
+    if (record.isDeliveryNote) {
+      Navigator.of(context).pushNamed(
+        AppRoutes.werkaCustomerDeliveryDetail,
+        arguments: record,
+      );
+      return;
+    }
+    if (widget.args.kind == WerkaStatusKind.pending) {
+      Navigator.of(context)
+          .pushNamed(
+        AppRoutes.werkaDetail,
+        arguments: record,
+      )
+          .then((changed) {
+        if (changed == true) {
+          _didMutate = true;
+          _reload();
+        }
+      });
+      return;
+    }
+    Navigator.of(context).pushNamed(
+      AppRoutes.notificationDetail,
+      arguments: record.id,
     );
   }
 }

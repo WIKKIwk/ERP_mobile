@@ -103,9 +103,9 @@ class _WerkaHomeScreenState extends State<WerkaHomeScreen>
       child: Column(
         children: [
           Expanded(
-          child: AnimatedBuilder(
-            animation: WerkaStore.instance,
-            builder: (context, _) {
+            child: AnimatedBuilder(
+              animation: WerkaStore.instance,
+              builder: (context, _) {
                 final store = WerkaStore.instance;
                 if (store.loadingHome && !store.loadedHome) {
                   return const Center(child: CircularProgressIndicator());
@@ -122,27 +122,28 @@ class _WerkaHomeScreenState extends State<WerkaHomeScreen>
                           child: Padding(
                             padding: const EdgeInsets.all(18),
                             child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Pending list yuklanmadi',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${store.homeError}',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const SizedBox(height: 14),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton(
-                                  onPressed: _reload,
-                                  child: const Text('Qayta urinish'),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Pending list yuklanmadi',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${store.homeError}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                const SizedBox(height: 14),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton(
+                                    onPressed: _reload,
+                                    child: const Text('Qayta urinish'),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -375,7 +376,9 @@ class _WerkaPendingRow extends StatelessWidget {
     final theme = Theme.of(context);
     return PressableScale(
       onTap: () => Navigator.of(context).pushNamed(
-        AppRoutes.werkaDetail,
+        record.isDeliveryNote
+            ? AppRoutes.werkaCustomerDeliveryDetail
+            : AppRoutes.werkaDetail,
         arguments: record,
       ),
       child: SizedBox(
