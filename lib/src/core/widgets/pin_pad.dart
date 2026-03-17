@@ -214,42 +214,67 @@ class _PinGlyph extends StatelessWidget {
   final int animateTick;
   final int variant;
 
-  ShapeBorder _startShape() {
-    return const StarBorder(
-      points: 5,
-      innerRadiusRatio: 0.46,
-      pointRounding: 0.58,
-      valleyRounding: 0.42,
-      squash: 0.06,
-    );
-  }
+  int get _shapeSeed => (animateTick + variant) % 4;
 
-  ShapeBorder _midShape() {
-    switch (variant % 3) {
+  ShapeBorder _startShape() {
+    switch (_shapeSeed) {
       case 0:
-        return const StarBorder.polygon(
-          sides: 5,
-          pointRounding: 0.56,
+        return const StarBorder(
+          points: 5,
+          innerRadiusRatio: 0.46,
+          pointRounding: 0.54,
+          valleyRounding: 0.32,
+          squash: 0.04,
         );
       case 1:
         return const StarBorder.polygon(
           sides: 3,
-          pointRounding: 0.72,
+          pointRounding: 0.78,
+        );
+      case 2:
+        return const StarBorder.polygon(
+          sides: 5,
+          pointRounding: 0.64,
         );
       default:
         return const StarBorder.polygon(
           sides: 6,
-          pointRounding: 0.52,
+          pointRounding: 0.58,
+        );
+    }
+  }
+
+  ShapeBorder _midShape() {
+    switch (_shapeSeed) {
+      case 0:
+        return const StarBorder.polygon(
+          sides: 5,
+          pointRounding: 0.72,
+        );
+      case 1:
+        return const StarBorder.polygon(
+          sides: 4,
+          pointRounding: 0.84,
+        );
+      case 2:
+        return const StarBorder.polygon(
+          sides: 6,
+          pointRounding: 0.76,
+        );
+      default:
+        return const StarBorder.polygon(
+          sides: 8,
+          pointRounding: 0.68,
         );
     }
   }
 
   ShapeBorder _shapeAt(double t) {
-    if (t < 0.52) {
-      final local = Curves.easeOutCubic.transform(t / 0.52);
+    if (t < 0.6) {
+      final local = AppMotion.standardDecelerate.transform(t / 0.6);
       return ShapeBorder.lerp(_startShape(), _midShape(), local)!;
     }
-    final local = AppMotion.emphasizedDecelerate.transform((t - 0.52) / 0.48);
+    final local = AppMotion.standardDecelerate.transform((t - 0.6) / 0.4);
     return ShapeBorder.lerp(_midShape(), const CircleBorder(), local)!;
   }
 
@@ -270,12 +295,13 @@ class _PinGlyph extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       key: ValueKey<String>('glyph-$variant-$animateTick'),
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 760),
-      curve: AppMotion.emphasized,
+      duration: const Duration(milliseconds: 980),
+      curve: AppMotion.standardDecelerate,
       builder: (context, value, _) {
-        final size = 22.5 - (2.5 * Curves.easeOut.transform(value));
+        final eased = AppMotion.standardDecelerate.transform(value);
+        final size = 22.0 - (2.0 * eased);
         return Transform.scale(
-          scale: 1.08 - (0.08 * Curves.easeOut.transform(value)),
+          scale: 1.04 - (0.04 * eased),
           child: _GlyphSurface(
             shape: _shapeAt(value),
             color: scheme.primary,
