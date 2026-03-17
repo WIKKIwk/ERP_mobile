@@ -39,11 +39,20 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   Future<_CustomerHomePayload> _load() async {
     final results = await Future.wait<dynamic>([
-      MobileApi.instance.customerSummary(),
+      MobileApi.instance.customerStatusDetails(CustomerStatusKind.pending),
+      MobileApi.instance.customerStatusDetails(CustomerStatusKind.confirmed),
+      MobileApi.instance.customerStatusDetails(CustomerStatusKind.rejected),
       MobileApi.instance.customerHistory(),
     ]);
-    final summary = results[0] as CustomerHomeSummary;
-    final history = results[1] as List<DispatchRecord>;
+    final pendingItems = results[0] as List<DispatchRecord>;
+    final confirmedItems = results[1] as List<DispatchRecord>;
+    final rejectedItems = results[2] as List<DispatchRecord>;
+    final history = results[3] as List<DispatchRecord>;
+    final summary = CustomerHomeSummary(
+      pendingCount: pendingItems.length,
+      confirmedCount: confirmedItems.length,
+      rejectedCount: rejectedItems.length,
+    );
     return _CustomerHomePayload(
       summary: summary,
       previewItems: history.take(3).toList(),
