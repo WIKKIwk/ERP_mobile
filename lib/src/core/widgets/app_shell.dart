@@ -121,11 +121,13 @@ class AppShellIconAction extends StatefulWidget {
     super.key,
     this.icon,
     this.iconWidget,
+    this.showBorder = false,
     required this.onTap,
   });
 
   final IconData? icon;
   final Widget? iconWidget;
+  final bool showBorder;
   final VoidCallback onTap;
 
   @override
@@ -161,9 +163,11 @@ class _AppShellIconActionState extends State<AppShellIconAction> {
             decoration: BoxDecoration(
               color: scheme.secondaryContainer.withValues(alpha: 0.82),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.55),
-              ),
+              border: widget.showBorder
+                  ? Border.all(
+                      color: scheme.outlineVariant.withValues(alpha: 0.55),
+                    )
+                  : null,
             ),
             child: Center(
               child: widget.iconWidget ??

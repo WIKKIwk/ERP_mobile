@@ -50,46 +50,65 @@ class _SupplierQtyScreenState extends State<SupplierQtyScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return AppShell(
+      leading: AppShellIconAction(
+        icon: Icons.arrow_back_rounded,
+        onTap: () => Navigator.of(context).maybePop(),
+      ),
       title: 'Miqdor',
       subtitle: '',
+      contentPadding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
       bottom: const SupplierDock(activeTab: null, centerActive: true),
       child: ListView(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         children: [
-          Text(
-            widget.item.code,
-            style: textTheme.titleLarge,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            widget.item.name,
-            style: textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 18),
-          TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: textTheme.displaySmall,
-            decoration: InputDecoration(
-              hintText: '0',
-              suffixText: widget.item.uom,
+          Card.filled(
+            margin: EdgeInsets.zero,
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
             ),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                final double qty = double.tryParse(controller.text.trim()) ?? 0;
-                if (qty <= 0) {
-                  return;
-                }
-                Navigator.of(context).pushNamed(
-                  AppRoutes.supplierConfirm,
-                  arguments: SupplierConfirmArgs(item: widget.item, qty: qty),
-                );
-              },
-              child: const Text('Davom etish'),
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.item.name,
+                    style: textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: controller,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    textAlignVertical: TextAlignVertical.center,
+                    style: textTheme.headlineMedium,
+                    decoration: InputDecoration(
+                      suffixText: widget.item.uom,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        final double qty =
+                            double.tryParse(controller.text.trim()) ?? 0;
+                        if (qty <= 0) {
+                          return;
+                        }
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.supplierConfirm,
+                          arguments:
+                              SupplierConfirmArgs(item: widget.item, qty: qty),
+                        );
+                      },
+                      child: const Text('Davom etish'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

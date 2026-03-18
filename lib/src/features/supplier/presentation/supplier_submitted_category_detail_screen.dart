@@ -104,6 +104,7 @@ class _SupplierSubmittedCategoryDetailScreenState
     return AppShell(
       title: _title,
       subtitle: '',
+      contentPadding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
       leading: AppShellIconAction(
         icon: Icons.arrow_back_rounded,
         onTap: () => Navigator.of(context).maybePop(),
@@ -134,7 +135,7 @@ class _SupplierSubmittedCategoryDetailScreenState
           return RefreshIndicator.adaptive(
             onRefresh: _reload,
             child: ListView(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               children: [
                 Card.filled(
                   margin: EdgeInsets.zero,

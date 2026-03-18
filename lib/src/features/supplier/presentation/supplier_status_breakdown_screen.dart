@@ -90,6 +90,7 @@ class _SupplierStatusBreakdownScreenState
     return AppShell(
       title: _title,
       subtitle: '',
+      contentPadding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
       leading: AppShellIconAction(
         icon: Icons.arrow_back_rounded,
         onTap: () => Navigator.of(context).maybePop(),
@@ -141,6 +142,7 @@ class _SupplierStatusBreakdownScreenState
                   Card.filled(
                     margin: EdgeInsets.zero,
                     color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    clipBehavior: Clip.antiAlias,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
                     ),
@@ -226,7 +228,7 @@ class _SupplierStatusBreakdownScreenState
           return RefreshIndicator(
             onRefresh: _reload,
             child: ListView(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               children: [
                 Card.filled(
                   margin: EdgeInsets.zero,
