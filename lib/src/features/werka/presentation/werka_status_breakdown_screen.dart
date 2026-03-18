@@ -2,7 +2,6 @@ import '../../../app/app_router.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
-import '../../../core/widgets/motion_widgets.dart';
 import '../../shared/models/app_models.dart';
 import '../state/werka_store.dart';
 import 'widgets/werka_dock.dart';
@@ -177,7 +176,6 @@ class _WerkaStatusBreakdownScreenState
                                   _WerkaBreakdownRow(
                                     entry: items[index],
                                     metricLabel: _metricLabel(items[index]),
-                                    isFirst: index == 0,
                                     isLast: index == items.length - 1,
                                     onTap: () =>
                                         Navigator.of(context).pushNamed(
@@ -240,63 +238,67 @@ class _WerkaBreakdownRow extends StatelessWidget {
   const _WerkaBreakdownRow({
     required this.entry,
     required this.metricLabel,
-    required this.isFirst,
     required this.isLast,
     required this.onTap,
   });
 
   final WerkaStatusBreakdownEntry entry;
   final String metricLabel;
-  final bool isFirst;
   final bool isLast;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return PressableScale(
-      borderRadius: (isFirst || isLast) ? 24 : 0,
-      onTap: onTap,
-      child: SizedBox(
-        width: double.infinity,
-        child: Container(
-          decoration: BoxDecoration(
-            border: isLast
-                ? null
-                : Border(
-                    bottom: BorderSide(
-                      color: AppTheme.cardBorder(context),
-                      width: 1,
+    final radius = BorderRadius.circular(28);
+    return Material(
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: radius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        customBorder: RoundedRectangleBorder(borderRadius: radius),
+        onTap: onTap,
+        child: SizedBox(
+          width: double.infinity,
+          child: Container(
+            decoration: BoxDecoration(
+              border: isLast
+                  ? null
+                  : Border(
+                      bottom: BorderSide(
+                        color: AppTheme.cardBorder(context),
+                        width: 1,
+                      ),
                     ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.supplierName,
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        metricLabel,
+                        style: theme.textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppLocalizations.of(context)
+                            .receiptCountLabel(entry.receiptCount),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
                   ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.supplierName,
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      metricLabel,
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppLocalizations.of(context)
-                          .receiptCountLabel(entry.receiptCount),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
