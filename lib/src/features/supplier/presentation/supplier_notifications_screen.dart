@@ -4,13 +4,11 @@ import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/notifications/notification_unread_store.dart';
 import '../../../core/session/app_session.dart';
 import '../../../core/widgets/app_shell.dart';
-import '../../../core/widgets/common_widgets.dart';
 import '../../../core/widgets/motion_widgets.dart';
 import '../../shared/models/app_models.dart';
 import '../state/supplier_store.dart';
 import 'widgets/supplier_dock.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class SupplierNotificationsScreen extends StatefulWidget {
   const SupplierNotificationsScreen({super.key});
@@ -161,18 +159,11 @@ class _SupplierNotificationsScreenState
     return AppShell(
       title: 'Notifications',
       subtitle: '',
+      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
       actions: [
-        AppShellIconAction(
-          iconWidget: SvgPicture.asset(
-            'assets/icons/brush-3-line.svg',
-            width: 22,
-            height: 22,
-            colorFilter: ColorFilter.mode(
-              Theme.of(context).colorScheme.onSurface,
-              BlendMode.srcIn,
-            ),
-          ),
-          onTap: _clearAll,
+        IconButton.filledTonal(
+          onPressed: _clearAll,
+          icon: const Icon(Icons.clear_all_rounded),
         ),
       ],
       bottom: const SupplierDock(activeTab: SupplierDockTab.notifications),
@@ -182,8 +173,7 @@ class _SupplierNotificationsScreenState
           final hidden = NotificationHiddenStore.instance.hiddenIdsForProfile(
             AppSession.instance.profile,
           );
-          final items = (snapshot.data ??
-                  SupplierStore.instance.historyItems)
+          final items = (snapshot.data ?? SupplierStore.instance.historyItems)
               .where((item) => !hidden.contains(item.id))
               .toList();
           final orderedItems = [
@@ -199,31 +189,35 @@ class _SupplierNotificationsScreenState
               onRefresh: _reload,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 116),
                 children: [
                   const SizedBox(height: 120),
-                  SoftCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Notifications yuklanmadi',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${snapshot.error}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 14),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: _reload,
-                            child: const Text('Qayta urinish'),
+                  Card.filled(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Notifications yuklanmadi',
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            '${snapshot.error}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: _reload,
+                              child: const Text('Qayta urinish'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -232,9 +226,12 @@ class _SupplierNotificationsScreenState
           }
 
           if (items.isEmpty) {
-            return const Center(
-              child: SoftCard(
-                child: Text('Hali bildirishnomalar yo‘q.'),
+            return Center(
+              child: Text(
+                'Hali bildirishnomalar yo‘q.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
             );
           }
@@ -243,12 +240,15 @@ class _SupplierNotificationsScreenState
             onRefresh: _reload,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 116),
               children: [
-                SoftCard(
-                  padding: EdgeInsets.zero,
-                  borderWidth: 1.45,
-                  borderRadius: 20,
+                Card.filled(
+                  margin: EdgeInsets.zero,
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
                   child: Column(
                     children: [
                       for (int index = 0;
@@ -258,12 +258,18 @@ class _SupplierNotificationsScreenState
                           record: orderedItems[index],
                           highlighted: _highlightedUnreadIds
                               .contains(orderedItems[index].id),
-                          isFirst: index == 0,
-                          isLast: index == orderedItems.length - 1,
                           onTap: () => _openDetail(orderedItems[index].id),
                         ),
                         if (index != orderedItems.length - 1)
-                          const Divider(height: 1, thickness: 1),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            indent: 18,
+                            endIndent: 18,
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: 0.55),
+                          ),
                       ],
                     ],
                   ),
@@ -281,15 +287,11 @@ class _SupplierNotificationRow extends StatelessWidget {
   const _SupplierNotificationRow({
     required this.record,
     required this.highlighted,
-    required this.isFirst,
-    required this.isLast,
     required this.onTap,
   });
 
   final DispatchRecord record;
   final bool highlighted;
-  final bool isFirst;
-  final bool isLast;
   final VoidCallback onTap;
 
   String _secondary(DispatchRecord record) {
@@ -315,15 +317,11 @@ class _SupplierNotificationRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: highlighted ? const Color(0xFF212121) : Colors.transparent,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(0),
-            topRight: Radius.circular(0),
-            bottomLeft: Radius.circular(0),
-            bottomRight: Radius.circular(0),
-          ),
+          color: highlighted
+              ? Theme.of(context).colorScheme.secondaryContainer
+              : Colors.transparent,
         ),
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -334,7 +332,11 @@ class _SupplierNotificationRow extends StatelessWidget {
                   child: Text(
                     notificationTitle(record),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: highlighted ? Colors.white : null,
+                          color: highlighted
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer
+                              : null,
                         ),
                   ),
                 ),
@@ -348,7 +350,9 @@ class _SupplierNotificationRow extends StatelessWidget {
             Text(
               _secondary(record),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: highlighted ? Colors.white70 : null,
+                    color: highlighted
+                        ? Theme.of(context).colorScheme.onSecondaryContainer
+                        : null,
                   ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -360,7 +364,11 @@ class _SupplierNotificationRow extends StatelessWidget {
                   child: Text(
                     _metricLine(record),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: highlighted ? Colors.white70 : null,
+                          color: highlighted
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer
+                              : null,
                         ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -370,7 +378,9 @@ class _SupplierNotificationRow extends StatelessWidget {
                 Text(
                   record.createdLabel,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: highlighted ? Colors.white70 : null,
+                        color: highlighted
+                            ? Theme.of(context).colorScheme.onSecondaryContainer
+                            : null,
                       ),
                 ),
               ],
@@ -435,9 +445,8 @@ class _NotificationStatusBadge extends StatelessWidget {
       height: 36,
       width: 36,
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         shape: BoxShape.circle,
-        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Icon(
         icon,
