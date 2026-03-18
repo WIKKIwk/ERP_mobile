@@ -114,6 +114,86 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
     return '${profile.role.name}:${profile.ref}';
   }
 
+  Future<bool?> _showActionConfirmDialog({
+    required String title,
+    required String message,
+    required String cancelLabel,
+    required String confirmLabel,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.28),
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        final scheme = theme.colorScheme;
+
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Dialog(
+            insetPadding:
+                const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            backgroundColor: scheme.surfaceContainerHigh,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.65),
+              ),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.headlineSmall),
+                    const SizedBox(height: 10),
+                    Text(
+                      message,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        height: 1.45,
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF111111),
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(false),
+                            child: Text(cancelLabel),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: scheme.primaryContainer,
+                              foregroundColor: scheme.onPrimaryContainer,
+                            ),
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(true),
+                            child: Text(confirmLabel),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _reloadForAccountChange() async {
     _accountKey = _currentAccountKey();
     final future = _loadAfterMarkSeen();
@@ -207,66 +287,13 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
       }
       reason = controller.text.trim();
     } else {
-      final bool? first = await showDialog<bool>(
-        context: context,
-        barrierColor: Colors.black.withValues(alpha: 0.28),
-        builder: (context) {
-          return BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: AlertDialog(
-              title: const Text('Tasdiqlash'),
-              content: const Text('Haqiqatan ham tasdiqlaysizmi?'),
-              actions: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF111111),
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Yo‘q'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Ha'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
+      final bool? confirmed = await _showActionConfirmDialog(
+        title: 'Tasdiqlash',
+        message: 'Haqiqatan ham tasdiqlaysizmi?',
+        cancelLabel: 'Yo‘q',
+        confirmLabel: 'Ha',
       );
-      if (first != true) {
-        return;
-      }
-      if (!mounted) return;
-      final bool? second = await showDialog<bool>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Yakuniy tasdiq'),
-            content: const Text('Draft submit bo‘ladi. Davom etasizmi?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Yo‘q'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Ha'),
-              ),
-            ],
-          );
-        },
-      );
-      if (second != true) {
+      if (confirmed != true) {
         return;
       }
     }
@@ -476,28 +503,13 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                           ? null
                           : () async {
                               final messenger = ScaffoldMessenger.of(context);
-                              final bool? confirmed = await showDialog<bool>(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('Tasdiqlash'),
-                                    content: const Text(
-                                      'Haqiqatan ham shu holatni tasdiqlaysizmi?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(false),
-                                        child: const Text('Yo‘q'),
-                                      ),
-                                      FilledButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(true),
-                                        child: const Text('Ha'),
-                                      ),
-                                    ],
-                                  );
-                                },
+                              final bool? confirmed =
+                                  await _showActionConfirmDialog(
+                                title: 'Tasdiqlash',
+                                message:
+                                    'Haqiqatan ham shu holatni tasdiqlaysizmi?',
+                                cancelLabel: 'Yo‘q',
+                                confirmLabel: 'Ha',
                               );
                               if (confirmed != true) {
                                 return;

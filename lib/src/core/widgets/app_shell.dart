@@ -212,6 +212,9 @@ class AppRefreshIndicator extends StatefulWidget {
 class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
   bool _showOverlay = false;
   int _statusToken = 0;
+  bool _gestureActive = false;
+  bool _gestureAllowsRefresh = true;
+  bool _gestureDirectionResolved = false;
 
   void _handleStatusChange(RefreshIndicatorStatus? status) {
     _statusToken++;
@@ -243,6 +246,62 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     }
   }
 
+  bool _handleRefreshScrollNotification(ScrollNotification notification) {
+    if (widget.triggerMode != RefreshIndicatorTriggerMode.onEdge) {
+      return false;
+    }
+
+    if (notification is ScrollStartNotification) {
+      _gestureActive = notification.dragDetails != null;
+      _gestureAllowsRefresh = notification.metrics.extentBefore == 0.0;
+      _gestureDirectionResolved = false;
+      return false;
+    }
+
+    if (!_gestureActive || !_gestureAllowsRefresh) {
+      if (notification is ScrollEndNotification) {
+        _gestureActive = false;
+        _gestureAllowsRefresh = true;
+        _gestureDirectionResolved = false;
+      }
+      return !_gestureAllowsRefresh;
+    }
+
+    if (!_gestureDirectionResolved &&
+        (notification is ScrollUpdateNotification ||
+            notification is OverscrollNotification)) {
+      if (notification.metrics.extentBefore != 0.0) {
+        _gestureAllowsRefresh = false;
+        return true;
+      }
+
+      double? dragDelta;
+      if (notification is ScrollUpdateNotification) {
+        dragDelta = notification.dragDetails?.delta.dy;
+      } else if (notification is OverscrollNotification) {
+        dragDelta = notification.dragDetails?.delta.dy;
+      }
+
+      if (dragDelta != null) {
+        if (dragDelta < 0.0) {
+          _gestureAllowsRefresh = false;
+          return true;
+        }
+        if (dragDelta > 0.0) {
+          _gestureDirectionResolved = true;
+        }
+      }
+    }
+
+    if (notification is ScrollEndNotification) {
+      _gestureActive = false;
+      _gestureAllowsRefresh = true;
+      _gestureDirectionResolved = false;
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -257,7 +316,10 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
           semanticsLabel: widget.semanticsLabel,
           semanticsValue: widget.semanticsValue,
           triggerMode: widget.triggerMode,
-          child: widget.child,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _handleRefreshScrollNotification,
+            child: widget.child,
+          ),
         ),
         Positioned.fill(
           child: IgnorePointer(
