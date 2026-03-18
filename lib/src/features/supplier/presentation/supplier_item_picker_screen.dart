@@ -138,6 +138,15 @@ class _SupplierItemPickerScreenState extends State<SupplierItemPickerScreen>
     required SupplierItem item,
     required Animation<double> animation,
   }) {
+    if (animation.value >= 0.999) {
+      return _SupplierItemRow(
+        item: item,
+        onTap: () => Navigator.of(context).pushNamed(
+          AppRoutes.supplierQty,
+          arguments: item,
+        ),
+      );
+    }
     final curved = CurvedAnimation(
       parent: animation,
       curve: AppMotion.emphasizedDecelerate,
