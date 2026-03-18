@@ -2,6 +2,7 @@ import '../../../core/api/mobile_api.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/widgets/app_shell.dart';
+import '../../../core/widgets/m3_confirm_dialog.dart';
 import 'widgets/customer_dock.dart';
 import '../../shared/models/app_models.dart';
 import '../state/customer_store.dart';
@@ -104,34 +105,12 @@ class _CustomerDeliveryDetailScreenState
       }
       reason = controller.text.trim();
     } else {
-      final bool? confirmed = await showDialog<bool>(
+      final bool? confirmed = await showM3ConfirmDialog(
         context: context,
-        barrierColor: Colors.black.withValues(alpha: 0.28),
-        builder: (context) {
-          return BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: AlertDialog(
-              title: Text(l10n.confirmTitle),
-              content: Text(l10n.confirmQuestion),
-              actions: [
-                SizedBox(
-                  width: 110,
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(l10n.no),
-                  ),
-                ),
-                SizedBox(
-                  width: 110,
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(l10n.yes),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+        title: l10n.confirmTitle,
+        message: l10n.confirmQuestion,
+        cancelLabel: l10n.no,
+        confirmLabel: l10n.yes,
       );
       if (confirmed != true) {
         return;
