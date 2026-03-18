@@ -210,7 +210,6 @@ class AppRefreshIndicator extends StatefulWidget {
 }
 
 class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
-  RefreshIndicatorStatus? _status;
   bool _showOverlay = false;
   int _statusToken = 0;
 
@@ -223,7 +222,6 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     }
 
     setState(() {
-      _status = status;
       if (status != RefreshIndicatorStatus.done &&
           status != RefreshIndicatorStatus.canceled &&
           status != null) {
@@ -242,25 +240,6 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
           _showOverlay = false;
         });
       });
-    }
-  }
-
-  String _labelForStatus() {
-    switch (_status) {
-      case RefreshIndicatorStatus.drag:
-        return 'Yangilash uchun torting';
-      case RefreshIndicatorStatus.armed:
-        return 'Bo‘shating';
-      case RefreshIndicatorStatus.snap:
-        return 'Tayyorlanmoqda';
-      case RefreshIndicatorStatus.refresh:
-        return 'Yangilanmoqda';
-      case RefreshIndicatorStatus.done:
-        return 'Tayyor';
-      case RefreshIndicatorStatus.canceled:
-        return 'Bekor qilindi';
-      case null:
-        return 'Yangilanmoqda';
     }
   }
 
@@ -309,28 +288,16 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
                           shape: const StadiumBorder(),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
+                              horizontal: 14,
+                              vertical: 12,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.4,
-                                    color: scheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  _labelForStatus(),
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: scheme.onSurface,
-                                  ),
-                                ),
-                              ],
+                            child: SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: scheme.primary,
+                              ),
                             ),
                           ),
                         ),
