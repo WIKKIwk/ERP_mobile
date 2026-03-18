@@ -1,4 +1,5 @@
 import 'device_permissions_bootstrap.dart';
+import '../localization/app_localizations.dart';
 import '../widgets/pin_pad.dart';
 import 'security_controller.dart';
 import 'package:flutter/material.dart';
@@ -119,6 +120,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
   }
 
   Future<void> _unlock() async {
+    final l10n = context.l10n;
     setState(() {
       _unlocking = true;
       _error = null;
@@ -127,7 +129,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
       final ok = await SecurityController.instance
           .unlockWithPin(_pinController.text.trim());
       if (!ok && mounted) {
-        _resetPinField(error: 'PIN noto‘g‘ri');
+        _resetPinField(error: l10n.pinWrong);
       }
       if (ok) {
         _pinController.value = const TextEditingValue(
@@ -145,6 +147,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
   }
 
   Future<void> _unlockWithBiometric() async {
+    final l10n = context.l10n;
     setState(() {
       _unlocking = true;
       _error = null;
@@ -153,7 +156,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
       final ok = await SecurityController.instance.unlockWithBiometric();
       if (!ok && mounted) {
         setState(() {
-          _error = 'Biometrik tasdiq bajarilmadi';
+          _error = l10n.biometricFailed;
         });
       }
     } finally {
@@ -167,6 +170,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Material(
       type: MaterialType.transparency,
       child: Stack(
@@ -190,13 +194,13 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'App qulfi',
+                          l10n.appLockTitle,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '4 xonali PIN kiriting',
+                          l10n.appLockSubtitle,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
@@ -204,8 +208,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                         PinCodeEditor(
                           controller: _pinController,
                           onAction: _unlock,
-                          actionLabel:
-                              _unlocking ? 'Tekshirilmoqda...' : 'Ochish',
+                          actionLabel: _unlocking ? l10n.checking : l10n.unlock,
                           actionIcon: Icons.arrow_forward_rounded,
                           errorText: _error,
                           busy: _unlocking,
@@ -218,7 +221,7 @@ class _PinUnlockOverlayState extends State<_PinUnlockOverlay> {
                             child: OutlinedButton(
                               onPressed:
                                   _unlocking ? null : _unlockWithBiometric,
-                              child: const Text('Face ID / Fingerprint'),
+                              child: Text(l10n.biometricCta),
                             ),
                           ),
                         ],

@@ -1,6 +1,8 @@
 import '../../../core/api/mobile_api.dart';
 import '../../../core/security/security_controller.dart';
 import '../../../app/app_router.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../../../core/session/app_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_controller.dart';
@@ -89,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         return;
       }
       setState(() {
-        errorMessage = 'Nickname saqlanmadi';
+        errorMessage = context.l10n.nicknameSaveFailed;
       });
     } finally {
       if (mounted) {
@@ -127,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         return;
       }
       setState(() {
-        errorMessage = 'Rasm tanlanmadi';
+        errorMessage = context.l10n.imagePickFailed;
       });
     }
   }
@@ -169,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         return;
       }
       setState(() {
-        errorMessage = 'Rasm saqlanmadi';
+        errorMessage = context.l10n.imageSaveFailed;
       });
     } finally {
       if (mounted) {
@@ -325,22 +327,23 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final current = profile;
     final role = current.role;
     final subtitle = role == UserRole.supplier
-        ? 'Supplier account'
+        ? l10n.supplierAccount
         : role == UserRole.werka
-            ? 'Werka account'
+            ? l10n.werkaAccount
             : role == UserRole.customer
-                ? 'Customer account'
-                : 'Admin account';
+                ? l10n.customerAccount
+                : l10n.adminAccount;
     final bool hasPin = SecurityController.instance.hasPinForCurrentUser;
     final bool biometricEnabled =
         SecurityController.instance.biometricEnabledForCurrentUser;
     final bool savingProfileChanges = savingNickname || savingAvatar;
 
     return AppShell(
-      title: 'Profile',
+      title: l10n.profileTitle,
       subtitle: '',
       animateOnEnter: role != UserRole.customer,
       bottom: role == UserRole.supplier
@@ -431,12 +434,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     const SizedBox(height: 18),
                     _InfoTile(
-                      label: 'Telefon',
+                      label: l10n.phoneLabel,
                       value: current.phone,
                     ),
                     const SizedBox(height: 10),
                     _InfoTile(
-                      label: 'Asl ism',
+                      label: l10n.legalNameLabel,
                       value: current.legalName.isEmpty
                           ? current.displayName
                           : current.legalName,
@@ -445,9 +448,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                     TextField(
                       controller: nicknameController,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        labelText: 'Nickname',
-                        hintText: 'O‘zingizga ko‘rinadigan ism',
+                      decoration: InputDecoration(
+                        labelText: l10n.nicknameLabel,
+                        hintText: l10n.nicknameHint,
                       ),
                     ),
                     if (_hasProfileChanges) ...[
@@ -466,14 +469,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   ),
                                 )
                               : const Icon(Icons.check_rounded),
-                          label: const Text('Saqlash'),
+                          label: Text(l10n.save),
                         ),
                       ),
                     ],
                     if (pendingAvatarBytes != null) ...[
                       const SizedBox(height: 10),
                       Text(
-                        'Yangi rasm tanlandi, saqlashni bosing.',
+                        l10n.selectedImageNotice,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -488,14 +491,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Security',
+                      l10n.securityTitle,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      hasPin
-                          ? '4 xonali PIN yoqilgan'
-                          : 'App uchun 4 xonali PIN o‘rnating',
+                      hasPin ? l10n.pinEnabled : l10n.pinDisabled,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 14),
@@ -503,19 +504,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                       primary: true,
                       onPressed: savingPin ? null : _showPinFlow,
                       label: savingPin
-                          ? 'Saqlanmoqda...'
+                          ? l10n.pinSaving
                           : hasPin
-                              ? 'PIN almashtirish'
-                              : 'PIN o‘rnatish',
+                              ? l10n.pinChange
+                              : l10n.pinSet,
                     ),
                     if (hasPin) ...[
                       const SizedBox(height: 10),
                       _ProfileActionButton(
                         primary: false,
                         onPressed: savingPin ? null : _removePin,
-                        label: 'PIN o‘chirish',
+                        label: l10n.pinRemove,
                       ),
                     ],
+                    const SizedBox(height: 16),
+                    _LanguagePreferenceRow(
+                      currentLocale: LocaleController.instance.locale,
+                    ),
                     const SizedBox(height: 16),
                     _BiometricPreferenceRow(
                       enabled: biometricEnabled,
@@ -559,6 +564,62 @@ class _ProfilePanel extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: child,
       ),
+    );
+  }
+}
+
+class _LanguagePreferenceRow extends StatelessWidget {
+  const _LanguagePreferenceRow({
+    required this.currentLocale,
+  });
+
+  final Locale currentLocale;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.languageTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.languageBody,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        SegmentedButton<Locale>(
+          segments: [
+            ButtonSegment<Locale>(
+              value: const Locale('uz'),
+              label: Text(l10n.uzbek),
+            ),
+            ButtonSegment<Locale>(
+              value: const Locale('en'),
+              label: Text(l10n.english),
+            ),
+          ],
+          selected: {currentLocale},
+          onSelectionChanged: (values) {
+            final next = values.first;
+            LocaleController.instance.setLocale(next);
+          },
+          showSelectedIcon: false,
+        ),
+      ],
     );
   }
 }
@@ -744,6 +805,7 @@ class _BiometricPreferenceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Row(
@@ -754,14 +816,14 @@ class _BiometricPreferenceRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Biometrik autentifikatsiyani yoqish',
+                l10n.biometricEnableTitle,
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 4),
               Text(
                 enabled
-                    ? 'Yoqilgan. App Face ID yoki fingerprint bilan tez ochiladi.'
-                    : 'O‘chirilgan. Face ID yoki fingerprint bilan tez ochish ishlamaydi.',
+                    ? l10n.biometricEnabledBody
+                    : l10n.biometricDisabledBody,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
