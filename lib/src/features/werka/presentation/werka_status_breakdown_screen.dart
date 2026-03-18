@@ -2,6 +2,7 @@ import '../../../app/app_router.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
+import '../../../core/widgets/motion_widgets.dart';
 import '../../shared/models/app_models.dart';
 import '../state/werka_store.dart';
 import 'widgets/werka_dock.dart';
@@ -253,43 +254,33 @@ class _WerkaBreakdownRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final borderRadius = BorderRadius.only(
-      topLeft: Radius.circular(isFirst ? 28 : 0),
-      topRight: Radius.circular(isFirst ? 28 : 0),
-      bottomLeft: Radius.circular(isLast ? 28 : 0),
-      bottomRight: Radius.circular(isLast ? 28 : 0),
-    );
-    return Material(
-      color: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        customBorder: RoundedRectangleBorder(borderRadius: borderRadius),
-        onTap: onTap,
-        child: SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.supplierName,
-                  style: theme.textTheme.titleLarge,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  metricLabel,
-                  style: theme.textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  AppLocalizations.of(context)
-                      .receiptCountLabel(entry.receiptCount),
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
-            ),
+    final double cornerRadius = (isFirst || isLast) ? 28 : 0;
+    return PressableScale(
+      borderRadius: cornerRadius,
+      onTap: onTap,
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                entry.supplierName,
+                style: theme.textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                metricLabel,
+                style: theme.textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                AppLocalizations.of(context)
+                    .receiptCountLabel(entry.receiptCount),
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
           ),
         ),
       ),
