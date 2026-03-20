@@ -1,221 +1,40 @@
 # Accord Mobile App
 
-`Accord Mobile App` - ERPNext bilan ishlaydigan operatsion Flutter ilova. U Android-first tamoyiliga tayangan va 4 ta rol uchun alohida ish oqimlarini beradi:
+Accord Mobile App is the Flutter client for the Accord operational workflow on top of ERPNext. It is an Android-first application that connects four role-based experiences to the mobile backend and, through that backend, to ERPNext.
+
+Main flow:
+
+`mobile_app -> mobile_server -> ERPNext`
+
+## Overview
+
+The app supports these roles:
 
 - `Supplier`
 - `Werka`
 - `Customer`
 - `Admin`
 
-Bu client ilova biznes qoidalarni o'zi ishlab chiqmaydi. Ilovaning vazifasi:
+The client is intentionally thin. It does not define business truth on its own. Its responsibility is to:
 
-- autentifikatsiya qilish
-- rolga mos ekranlarni ko'rsatish
-- API chaqiruvlarini yuborish
-- unread, hidden, cache, push va local alert qatlamini boshqarish
-- session, lock va runtime reset qoidalarini ushlab turish
+- authenticate users
+- render role-specific flows
+- call the mobile API
+- manage session state, app lock, caches, notifications, and runtime resets
+- keep role-local UI state consistent across screens
 
-Qisqa zanjir:
+## Current Business Rules
 
-`mobile_app -> mobile_server -> ERPNext`
+These rules are important and reflect the current production-oriented architecture:
 
-## 1. Hozirgi asosiy qoidalar
+- `Delivery Note` is the source of truth for customer delivery state
+- ERP custom fields, not comments, define business state
+- comments are discussion and audit history only
+- a role should read from one shared store instead of each screen owning its own copy of the same state
+- logout must clear all session-scoped runtime state, not just the token
+- release APKs must use the public domain backend, not `127.0.0.1` or `localhost`
 
-- ERP `Delivery Note` - status truth source.
-- commentlar business truth emas, faqat qo'shimcha izoh.
-- bir rol ichida bir nechta ekran bitta store'dan foydalanishi kerak.
-- logout faqat tokenni o'chirmaydi, sessionga bog'liq runtime state'ni ham reset qiladi.
-- release APK uchun `127.0.0.1` emas, domain URL ishlatiladi.
-
-## 2. Arxitektura
-
-Ilova 3 qatlamga bo'lingan:
-
-1. `Presentation`
-   - screenlar
-   - widgetlar
-   - dock navigation
-   - local UI state
-
-2. `Core`
-   - API client
-   - session
-   - cache
-   - notifications
-   - security
-   - theme
-   - localization
-   - network guard
-
-3. `Shared models`
-   - rol, status, summary, detail va form argument modellari
-
-Asosiy entry fayllar:
-
-- [main.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/main.dart)
-- [app.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/app/app.dart)
-- [app_router.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/app/app_router.dart)
-- [mobile_api.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/api/mobile_api.dart)
-- [app_models.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/shared/models/app_models.dart)
-
-### Startup oqimi
-
-1. `main.dart` quyidagilarni load qiladi:
-   - local notifications
-   - session
-   - unread store
-   - security
-   - theme
-   - locale
-2. `ErpnextStockMobileApp` ishga tushadi.
-3. `MaterialApp` ichida:
-   - `NetworkRequirementRuntime`
-   - `NotificationRuntime`
-   - `AppLockGate`
-   - `DevicePreview` qatlamlari o'raladi
-4. initial route doim `login` route'i.
-5. `AppEntryScreen` mavjud local session'ni tekshiradi va kerak bo'lsa role home'ga o'tkazadi.
-
-### Session oqimi
-
-- `AppSession` token va `SessionProfile` ni `SharedPreferences` da saqlaydi.
-- login muvaffaqiyatli bo'lsa:
-  - session saqlanadi
-  - last phone/code saqlanadi
-  - role home route tanlanadi
-- logout bo'lsa:
-  - session tozalanadi
-  - role store'lar reset qilinadi
-  - unread/hidden state tozalanadi
-  - notification snapshot va cache tozalanadi
-  - avatar cache tozalanadi
-  - last login phone/code o'chiriladi
-
-Asosiy fayllar:
-
-- [app_session.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/session/app_session.dart)
-- [app_runtime_reset.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/session/app_runtime_reset.dart)
-- [app_entry_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/auth/presentation/app_entry_screen.dart)
-- [mobile_api_auth_profile.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/api/mobile_api_auth_profile.dart)
-
-## 3. Rol bo'yicha interface
-
-### `Supplier`
-
-Supplier oqimi:
-
-- home summary
-- status breakdown
-- item picker
-- qty kiritish
-- dispatch yaratish
-- recent/history
-- notifications
-- detail va status detail
-
-Asosiy ekranlar:
-
-- [supplier_home_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_home_screen.dart)
-- [supplier_notifications_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_notifications_screen.dart)
-- [supplier_recent_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_recent_screen.dart)
-- [supplier_status_breakdown_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_status_breakdown_screen.dart)
-- [supplier_status_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_status_detail_screen.dart)
-- [supplier_item_picker_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_item_picker_screen.dart)
-- [supplier_qty_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_qty_screen.dart)
-- [supplier_confirm_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_confirm_screen.dart)
-- [supplier_success_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/presentation/supplier_success_screen.dart)
-
-### `Werka`
-
-Werka oqimi:
-
-- home summary
-- pending list
-- status breakdown
-- status detail
-- recent/history
-- notifications
-- create hub
-- unannounced supplier flow
-- customer issue flow
-- receipt confirm / partial / reject
-
-Asosiy ekranlar:
-
-- [werka_home_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_home_screen.dart)
-- [werka_notifications_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_notifications_screen.dart)
-- [werka_recent_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_recent_screen.dart)
-- [werka_status_breakdown_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_status_breakdown_screen.dart)
-- [werka_status_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_status_detail_screen.dart)
-- [werka_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_detail_screen.dart)
-- [werka_customer_delivery_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_customer_delivery_detail_screen.dart)
-- [werka_create_hub_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_create_hub_screen.dart)
-- [werka_unannounced_supplier_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_unannounced_supplier_screen.dart)
-- [werka_customer_issue_customer_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_customer_issue_customer_screen.dart)
-- [werka_success_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/presentation/werka_success_screen.dart)
-
-### `Customer`
-
-Customer oqimi:
-
-- home summary
-- pending / confirmed / rejected counts
-- notifications
-- delivery detail
-- status detail
-- approve / reject flow
-
-Asosiy ekranlar:
-
-- [customer_home_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/customer/presentation/customer_home_screen.dart)
-- [customer_notifications_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/customer/presentation/customer_notifications_screen.dart)
-- [customer_status_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/customer/presentation/customer_status_detail_screen.dart)
-- [customer_delivery_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/customer/presentation/customer_delivery_detail_screen.dart)
-
-### `Admin`
-
-Admin oqimi:
-
-- ERP settings
-- supplier list
-- blocked / inactive suppliers
-- supplier detail
-- customer detail
-- item create
-- werka info
-- activity feed
-
-Asosiy ekranlar:
-
-- [admin_home_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_home_screen.dart)
-- [admin_activity_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_activity_screen.dart)
-- [admin_create_hub_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_create_hub_screen.dart)
-- [admin_settings_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_settings_screen.dart)
-- [admin_suppliers_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_suppliers_screen.dart)
-- [admin_inactive_suppliers_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_inactive_suppliers_screen.dart)
-- [admin_supplier_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_supplier_detail_screen.dart)
-- [admin_customer_detail_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_customer_detail_screen.dart)
-- [admin_item_create_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_item_create_screen.dart)
-- [admin_supplier_create_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_supplier_create_screen.dart)
-- [admin_customer_create_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_customer_create_screen.dart)
-- [admin_supplier_items_view_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_supplier_items_view_screen.dart)
-- [admin_supplier_items_add_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_supplier_items_add_screen.dart)
-- [admin_werka_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/presentation/admin_werka_screen.dart)
-
-## 4. Backend contract
-
-Ilova backend bilan quyidagi umumiy model orqali ishlaydi:
-
-- auth login/logout/profile
-- role summary
-- history/recent feed
-- status breakdown
-- status detail
-- create/update actions
-- notification detail va comments
-- admin directory va settings
-
-Delivery Note state fields:
+Current `Delivery Note` state mapping:
 
 - `accord_flow_state`
   - `0` = none
@@ -228,467 +47,323 @@ Delivery Note state fields:
 - `accord_customer_reason`
 - `accord_delivery_actor`
 
-Muhim:
+Notes:
 
-- `accord_delivery_actor` live ERP'da hali `Data` turida qolgan.
-- qiymat amalda string sifatida yoziladi, lekin semantik jihatdan `werka` ni bildiradi.
-- business state commentlardan emas, ERP fieldlardan olinadi.
+- `accord_delivery_actor` still exists as a `Data` field in the live ERP environment, even though it is used with integer semantics
+- customer delivery comments can now be discussed through ERPNext `Delivery Note` comments while state truth remains in the ERP fields above
 
-## 5. API qatlam
+## Architecture
 
-`mobile_api.dart` barcha endpointlarni role bo'yicha bo'lib beradi.
+The app is organized into three main layers:
 
-### Auth va profile
+1. `Presentation`
+   - screens
+   - widgets
+   - dock navigation
+   - route-level UI interactions
 
-- login
-- logout
-- profile fetch
-- nickname update
-- avatar upload
-- push token register/unregister
+2. `Core`
+   - API client
+   - session management
+   - cache and persistence helpers
+   - push and local notifications
+   - security and app lock
+   - localization
+   - theme
+   - network guard
 
-### Supplier endpointlari
+3. `Shared models`
+   - role types
+   - dispatch and notification models
+   - summaries and detail payloads
+   - route arguments
 
-- summary
-- history
-- status breakdown
-- status details
-- items
-- dispatch create
-- notification detail
-- comments add
-- unannounced response
+Key entry files:
 
-### Werka endpointlari
+- `lib/main.dart`
+- `lib/src/app/app.dart`
+- `lib/src/app/app_router.dart`
+- `lib/src/core/api/mobile_api.dart`
+- `lib/src/features/shared/models/app_models.dart`
 
-- pending
-- suppliers
-- customers
-- supplier items
-- customer items
-- unannounced create
-- customer issue create
-- summary
-- status breakdown
-- status details
-- history
-- confirm receipt
+## App Startup
 
-### Customer endpointlari
+Startup flow:
 
-- summary
-- history
-- status details
-- delivery detail
-- respond delivery
+1. `main.dart` loads:
+   - local notifications
+   - session
+   - unread store
+   - security controller
+   - theme controller
+   - locale controller
+2. `ErpnextStockMobileApp` starts
+3. `MaterialApp` is wrapped with:
+   - `NetworkRequirementRuntime`
+   - `NotificationRuntime`
+   - `AppLockGate`
+   - `DevicePreview` in supported non-release desktop/dev contexts
+4. the initial route is always `/`
+5. `AppEntryScreen` validates any saved local session before routing to a role home screen
 
-### Admin endpointlari
+## Session, Security, and Reset
 
-- settings
-- settings update
-- werka code regenerate
-- activity
-- suppliers list
-- suppliers summary
-- inactive suppliers
-- supplier detail
+`AppSession` stores the active token and `SessionProfile` in `SharedPreferences`.
+
+When login succeeds:
+
+- the session is stored
+- the app resolves the destination route by role
+- push token sync is triggered
+
+When logout succeeds:
+
+- the session is cleared
+- role stores are reset
+- unread and hidden notification state is cleared
+- notification snapshots and caches are removed
+- avatar cache is cleared
+- last login credentials are removed
+
+Relevant files:
+
+- `lib/src/core/session/app_session.dart`
+- `lib/src/core/session/app_runtime_reset.dart`
+- `lib/src/features/auth/presentation/app_entry_screen.dart`
+- `lib/src/core/api/mobile_api_auth_profile.dart`
+
+## Role Flows
+
+### Supplier
+
+Supplier flow includes:
+
+- home summary
+- item selection and dispatch creation
+- status breakdown and detail
+- notifications and history
+- detail views for receipt state and follow-up actions
+
+Primary screens:
+
+- `lib/src/features/supplier/presentation/supplier_home_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_notifications_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_recent_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_status_breakdown_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_status_detail_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_item_picker_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_qty_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_confirm_screen.dart`
+- `lib/src/features/supplier/presentation/supplier_success_screen.dart`
+
+### Werka
+
+Werka flow includes:
+
+- home summary
+- pending receipts
+- status breakdown and detail
+- recent/history
+- notifications
+- supplier receipt confirmation and return flow
+- unannounced supplier flow
+- customer issue flow
+- customer delivery discussion entry points
+
+Primary screens:
+
+- `lib/src/features/werka/presentation/werka_home_screen.dart`
+- `lib/src/features/werka/presentation/werka_notifications_screen.dart`
+- `lib/src/features/werka/presentation/werka_recent_screen.dart`
+- `lib/src/features/werka/presentation/werka_status_breakdown_screen.dart`
+- `lib/src/features/werka/presentation/werka_status_detail_screen.dart`
+- `lib/src/features/werka/presentation/werka_detail_screen.dart`
+- `lib/src/features/werka/presentation/werka_customer_delivery_detail_screen.dart`
+- `lib/src/features/werka/presentation/werka_create_hub_screen.dart`
+- `lib/src/features/werka/presentation/werka_unannounced_supplier_screen.dart`
+- `lib/src/features/werka/presentation/werka_customer_issue_customer_screen.dart`
+- `lib/src/features/werka/presentation/werka_success_screen.dart`
+
+### Customer
+
+Customer flow includes:
+
+- home summary
+- pending / confirmed / rejected states
+- shipment detail
+- approve / reject actions
+- rejection with either a structured reason or a meaningful free-text reason
+- discussion entry points for accepted and rejected delivery outcomes
+- notifications
+
+Primary screens:
+
+- `lib/src/features/customer/presentation/customer_home_screen.dart`
+- `lib/src/features/customer/presentation/customer_notifications_screen.dart`
+- `lib/src/features/customer/presentation/customer_status_detail_screen.dart`
+- `lib/src/features/customer/presentation/customer_delivery_detail_screen.dart`
+
+### Admin
+
+Admin flow includes:
+
+- ERP settings
+- supplier directory
+- inactive / blocked supplier management
+- supplier detail and item assignment
 - customer detail
-- customer phone update
-- customer code regenerate
-- customer remove
-- customer item add/remove
-- items list/create
-- supplier create/update actions
+- item creation
+- Werka info
+- activity feed
 
-Asosiy fayllar:
+Primary screens:
 
-- [mobile_api_customer.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/api/mobile_api_customer.dart)
-- [mobile_api_werka.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/api/mobile_api_werka.dart)
-- [mobile_api_admin.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/api/mobile_api_admin.dart)
-- [mobile_api_supplier_notifications.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/api/mobile_api_supplier_notifications.dart)
+- `lib/src/features/admin/presentation/admin_home_screen.dart`
+- `lib/src/features/admin/presentation/admin_activity_screen.dart`
+- `lib/src/features/admin/presentation/admin_create_hub_screen.dart`
+- `lib/src/features/admin/presentation/admin_settings_screen.dart`
+- `lib/src/features/admin/presentation/admin_suppliers_screen.dart`
+- `lib/src/features/admin/presentation/admin_inactive_suppliers_screen.dart`
+- `lib/src/features/admin/presentation/admin_supplier_detail_screen.dart`
+- `lib/src/features/admin/presentation/admin_customer_detail_screen.dart`
+- `lib/src/features/admin/presentation/admin_item_create_screen.dart`
+- `lib/src/features/admin/presentation/admin_supplier_create_screen.dart`
+- `lib/src/features/admin/presentation/admin_customer_create_screen.dart`
+- `lib/src/features/admin/presentation/admin_supplier_items_view_screen.dart`
+- `lib/src/features/admin/presentation/admin_supplier_items_add_screen.dart`
+- `lib/src/features/admin/presentation/admin_werka_screen.dart`
 
-## 6. State, cache va runtime
+## Notifications and Discussion Threads
 
-Ilova server response'lariga to'liq qaram bo'lib qolmasligi uchun local state ishlatadi.
+The app supports:
 
-### Role store'lar
+- unread and hidden notification state
+- polling-based refresh
+- FCM push token registration
+- local notifications for surfaced dispatch changes
+- ERP-visible discussion comments for delivery-note-backed customer response flows
 
-- [customer_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/customer/state/customer_store.dart)
-- [werka_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/werka/state/werka_store.dart)
-- [supplier_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/supplier/state/supplier_store.dart)
-- [admin_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/admin/state/admin_store.dart)
+Recent hardening work included:
 
-Bu store'larning vazifasi:
+- multi-device push token retention on the backend
+- safer customer rejection validation
+- delivery discussion entry points in Customer and Werka flows
+- delivery-note-backed discussion comments routed to real ERPNext `Delivery Note` comments
 
-- summary va listlarni markazlash
-- loading/error state ushlash
-- bir role ichidagi turli ekranlarga bir xil truth berish
-- runtime mutation'larni qo'llash
+Important principle:
 
-### Runtime stores
+- comments are audit and discussion history
+- ERP custom fields remain the only business truth for state transitions
 
-- [customer_delivery_runtime_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/customer_delivery_runtime_store.dart)
-- [supplier_runtime_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/supplier_runtime_store.dart)
-- [werka_runtime_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/werka_runtime_store.dart)
+Relevant files:
 
-Bu qatlam qisqa vaqt ichida lokal optimistic update qiladi. Masalan:
+- `lib/src/core/notifications/notification_runtime.dart`
+- `lib/src/core/notifications/push_messaging_service.dart`
+- `lib/src/core/notifications/local_notification_service.dart`
+- `lib/src/features/shared/presentation/notification_detail_screen.dart`
 
-- customer detail ochilishi bilan status darhol yangilanadi
-- supplier/wereka summary count'lari instant ko'rinadi
-- server keyin kelganda mutation reconcile qilinadi
+## API Layer
 
-### Cache qatlamlari
+`mobile_api.dart` groups role-based API calls into extension files.
 
-- [json_cache_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/cache/json_cache_store.dart)
-- [profile_avatar_cache.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/shared/data/profile_avatar_cache.dart)
+Main API areas:
 
-### Unread/hidden qatlamlari
+- auth and profile
+- supplier summary/history/status/items/dispatch
+- Werka summary/pending/history/status/confirm/create flows
+- customer summary/history/status/detail/respond
+- notification detail and comment APIs
+- admin settings, directories, item creation, and activity
 
-- [notification_unread_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/notification_unread_store.dart)
-- [notification_hidden_store.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/notification_hidden_store.dart)
+Primary files:
 
-Muhim qoidalar:
+- `lib/src/core/api/mobile_api.dart`
+- `lib/src/core/api/mobile_api_auth_profile.dart`
+- `lib/src/core/api/mobile_api_supplier_notifications.dart`
+- `lib/src/core/api/mobile_api_werka.dart`
+- `lib/src/core/api/mobile_api_customer.dart`
+- `lib/src/core/api/mobile_api_admin.dart`
 
-- unread badge faqat real unread ID bo'lsa ko'rinadi
-- hidden yozuvlar badge'ni ushlab turmaydi
-- clear action server delete emas, local hide hisoblanadi
-- notification snapshot eski role'dan yangisiga o'tganda tozalanadi
+## State Management
 
-### RefreshHub
+The app is moving toward a single-store-per-role model so that counts, previews, lists, and detail refreshes stay aligned.
 
-- [refresh_hub.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/refresh_hub.dart)
+Current role stores:
 
-Bu tizim push yoki boshqa signal kelganda role ekranlarini qayta yuklash uchun ishlatiladi.
+- `lib/src/features/supplier/state/supplier_store.dart`
+- `lib/src/features/werka/state/werka_store.dart`
+- `lib/src/features/customer/state/customer_store.dart`
+- `lib/src/features/admin/state/admin_store.dart`
 
-### Cache-first UX
+Runtime mutation helpers:
 
-Ba'zi screenlar:
+- `lib/src/core/notifications/customer_delivery_runtime_store.dart`
+- `lib/src/core/notifications/supplier_runtime_store.dart`
+- `lib/src/core/notifications/werka_runtime_store.dart`
 
-- avval local cache ko'rsatadi
-- keyin network refresh qiladi
+## Development
 
-Bu ayniqsa notifications va recent feed ekranlarida foydali.
-
-## 7. Push va local alert
-
-Ilovada ikki signal qatlami bor:
-
-1. FCM push
-2. app ichidagi runtime poll
-
-Asosiy fayllar:
-
-- [push_messaging_service.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/push_messaging_service.dart)
-- [notification_runtime.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/notification_runtime.dart)
-- [local_notification_service.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/notifications/local_notification_service.dart)
-
-### Muhim xatti-harakatlar
-
-- `PushMessagingService` faqat Android'da ishga tushadi.
-- token login'dan keyin sync qilinadi.
-- foreground push kelganda unread ID qo'shiladi.
-- role mismatch bo'lsa push ignore qilinadi.
-- `NotificationRuntime` har 12 soniyada history poll qiladi.
-- poll bilan eski/yangilangan record signatures solishtiriladi.
-- mos record o'zgarsa unread mark bo'ladi va local notification chiqadi.
-
-## 8. Security
-
-Ilovada PIN lock va biometrik unlock bor.
-
-Asosiy fayllar:
-
-- [security_controller.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/security/security_controller.dart)
-- [app_lock_gate.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/security/app_lock_gate.dart)
-- [pin_setup_entry_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/shared/presentation/pin_setup_entry_screen.dart)
-- [pin_setup_confirm_screen.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/shared/presentation/pin_setup_confirm_screen.dart)
-
-Imkoniyatlar:
-
-- 4 xonali PIN
-- PIN profil bo'yicha alohida saqlanadi
-- biometrik unlock
-- app background'dan qaytganda lock
-- login'dan keyin unlock
-
-## 9. UI tamoyillari
-
-Ilova UI'si enterprise uslubga yaqin:
-
-- `AppShell` asosiy frame
-- `ActionDock` role navigation
-- `SoftCard`, `StatusPill`, `MetricBadge` shared vizual bloklar
-- `AppRefreshIndicator` custom refresh experience
-- page enter/out motion
-- `Material 3` tonal surface yo'nalishi
-
-Asosiy shared widgetlar:
-
-- [app_shell.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/widgets/app_shell.dart)
-- [common_widgets.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/widgets/common_widgets.dart)
-- [motion_widgets.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/widgets/motion_widgets.dart)
-- [app_theme.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/theme/app_theme.dart)
-- [app_motion.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/theme/app_motion.dart)
-
-### Customer tab navigation
-
-Customer oqimida home / notifications / profile o'rtasida swipe va route replacement ishlatiladi:
-
-- [customer_tab_navigation.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/customer/presentation/widgets/customer_tab_navigation.dart)
-- [customer_dock.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/features/customer/presentation/widgets/customer_dock.dart)
-
-## 10. Network va offline
-
-Asosiy fayllar:
-
-- [network_requirement_runtime.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/network/network_requirement_runtime.dart)
-- [network_required_dialog.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/network/network_required_dialog.dart)
-
-Xatti-harakatlar:
-
-- app ochilganda backend healthz tekshiriladi
-- resume bo'lganda yana tekshiriladi
-- backend yetib bo'lmasa blur dialog chiqadi
-- login screen internet muammosini aniq xabar bilan ko'rsatadi
-
-## 11. Theme va localization
-
-Asosiy fayllar:
-
-- [theme_controller.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/theme/theme_controller.dart)
-- [locale_controller.dart](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/lib/src/core/localization/locale_controller.dart)
-
-Hozirgi holat:
-
-- theme `light` / `dark`
-- locale `uz`, `en`, `ru`
-- sozlamalar local saqlanadi
-
-## 12. Android integratsiya
-
-Muhim Android fayllar:
-
-- [android/app/build.gradle.kts](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/android/app/build.gradle.kts)
-- [android/build.gradle.kts](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/android/build.gradle.kts)
-- [android/app/src/main/AndroidManifest.xml](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/android/app/src/main/AndroidManifest.xml)
-- [android/app/google-services.json](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/android/app/google-services.json)
-
-Integratsiyalar:
-
-- FCM
-- local notifications
-- launcher icon
-- Android permission handling
-- release APK uchun domain URL
-
-## 13. Fayl tuzilmasi
-
-Qisqacha xarita:
-
-```text
-mobile_app/
-├── android/
-├── assets/
-│   ├── branding/
-│   └── icons/
-├── lib/
-│   ├── main.dart
-│   └── src/
-│       ├── app/
-│       ├── core/
-│       │   ├── api/
-│       │   ├── cache/
-│       │   ├── localization/
-│       │   ├── network/
-│       │   ├── notifications/
-│       │   ├── security/
-│       │   ├── session/
-│       │   ├── theme/
-│       │   └── widgets/
-│       └── features/
-│           ├── auth/
-│           ├── customer/
-│           ├── supplier/
-│           ├── werka/
-│           ├── admin/
-│           └── shared/
-├── test/
-├── Makefile
-└── pubspec.yaml
-```
-
-## 14. Dependencies
-
-Asosiy package'lar:
-
-- `flutter_svg`
-- `google_fonts`
-- `shared_preferences`
-- `file_picker`
-- `local_auth`
-- `firebase_core`
-- `firebase_messaging`
-- `flutter_local_notifications`
-- `device_preview`
-- `http`
-
-To'liq ro'yxat uchun:
-
-- [pubspec.yaml](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/pubspec.yaml)
-
-## 15. Run va build buyruqlari
-
-### Dependencies
+Install dependencies:
 
 ```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
 flutter pub get
 ```
 
-### Local run
+Run locally:
 
 ```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
-make run
+flutter run
 ```
 
-Bu:
-
-- local backend/core'ni ko'taradi
-- Flutter Linux preview ishga tushiradi
-- default API URL sifatida `http://127.0.0.1:8081` ni ishlatadi
-
-### Web preview
+Analyze:
 
 ```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
-make web
-```
-
-### Remote tunnel run
-
-```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
-make run-remote
-```
-
-### Domain run
-
-```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
-make run-domain
-```
-
-Domain URL:
-
-- `https://core.wspace.sbs`
-
-### Domain APK
-
-```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
-make apk-domain APK_NAME=accord.apk
-```
-
-Natija:
-
-- [accord.apk](/home/wikki/local.git/erpnext_stock_telegram/mobile_app/build/app/outputs/flutter-apk/accord.apk)
-
-### Remote APK
-
-```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
-make apk-remote APK_NAME=accord.apk
-```
-
-### Static verification
-
-```bash
-cd /home/wikki/local.git/erpnext_stock_telegram/mobile_app
 flutter analyze
+```
+
+Test:
+
+```bash
 flutter test
 ```
 
-### Muhim Make targetlar
+## Release APK
 
-- `make deps`
-- `make run`
-- `make web`
-- `make run-remote`
-- `make run-domain`
-- `make remote-up`
-- `make remote-stop`
-- `make domain-up`
-- `make apk-remote`
-- `make apk-domain`
-- `make analyze`
-- `make test`
+Release APKs must target the public domain backend.
 
-## 16. Muhim environment
+Build command:
 
-`dart-define`:
-
-- `MOBILE_API_BASE_URL`
-
-Default:
-
-```text
-http://127.0.0.1:8081
+```bash
+make apk-domain APK_NAME=accord.apk
 ```
 
-APK uchun:
+Output:
 
-- release build'larda domain URL ishlatilsin
-- `127.0.0.1` / `localhost` release uchun ishlatilmasin
+`build/app/outputs/flutter-apk/accord.apk`
 
-## 17. Local-only fayllar
+Current release backend domain:
 
-Commit qilinmasligi kerak bo'lgan fayllar:
+`https://core.wspace.sbs`
 
-- `android/app/google-services.json`
-- local secretlar
-- machine-specific build artefaktlar
+## Operational Notes
 
-## 18. Manual verification uchun eng muhim flows
+- Do not ship release APKs pointing to `127.0.0.1` or `localhost`
+- Do not use comments as business truth
+- Keep ERP-side state changes in the ERP custom fields and treat comments as discussion only
+- Prefer extending behavior through API and custom apps rather than modifying ERPNext core
 
-Tavsiya etiladigan real testlar:
+## Related Repositories
 
-- supplier login
-- werka login
-- customer login
-- admin login
-- app kill / reopen
-- logout / reopen
-- supplier dispatch
-- werka accept / partial / reject
-- werka customer issue
-- werka unannounced supplier
-- customer approve / reject
-- unread badge
-- hidden notifications
-- app lock
-- offline warning
-- real Android APK install
+- mobile backend: `../mobile_server`
+- ERP custom app: `/home/wikki/storage/local.git/erpnext_n1/erp/apps/accord_state_core`
 
-## 19. Hozirgi known gap
+## Status
 
-Lokal testlarda bir nechta widget testlar uchun localization wrapper hali to'liq to'g'rilanmagan bo'lishi mumkin. Hozirgi kod bazada:
+The app currently includes:
 
-- `flutter analyze` yashil
-- `flutter test` esa ayrim widget testlarda `AppLocalizations` context setup'iga urilishi mumkin
+- hardened session restore and logout reset
+- multi-device push token support on the backend side
+- structured customer rejection UX
+- delivery discussion entry points for Customer and Werka
 
-Bu README doc muammosi emas, test harness masalasi.
-
-## 20. Qisqa xulosa
-
-Bu repo oddiy Flutter demo emas. Bu:
-
-- ERPNext bilan integratsiyalashgan
-- role-based
-- session-aware
-- cache-first
-- push-ready
-- app-lock bilan himoyalangan
-- Android-first operatsion mobil client
-
-Keyingi README ishlari uchun eng muhim yozuvlar shu faylda jamlangan. Agar xohlasangiz, keyingi bosqichda men shu README'ni yana ham qisqartirib, tashqi odamga beriladigan "clean" versiyaga ham aylantirib beraman.
+The main remaining product/architecture focus is continued cleanup of role-store consistency and history/source alignment.
