@@ -333,6 +333,9 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     if (!widget.notificationPredicate(notification)) {
       return false;
     }
+    if (notification.metrics.axisDirection != AxisDirection.down) {
+      return false;
+    }
     if (!_isNearTop(notification.metrics)) {
       return false;
     }
