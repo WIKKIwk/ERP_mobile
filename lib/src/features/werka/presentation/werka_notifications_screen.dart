@@ -26,7 +26,6 @@ class WerkaNotificationsScreen extends StatefulWidget {
 class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
     with WidgetsBindingObserver {
   static const String _cacheKey = 'cache_werka_notifications';
-  late Future<List<DispatchRecord>> _itemsFuture;
   List<DispatchRecord>? _cachedItems;
   Set<String> _highlightedUnreadIds = <String>{};
   int _refreshVersion = 0;
@@ -38,11 +37,11 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WerkaStore.instance.bootstrapHistory();
-    _itemsFuture = _loadAndTrack();
     NotificationHiddenStore.instance.load().then((_) {
       if (mounted) setState(() {});
     });
     _loadCache();
+    WerkaStore.instance.addListener(_handleStoreChanged);
     RefreshHub.instance.addListener(_handlePushRefresh);
   }
 
@@ -57,7 +56,7 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
   }
 
   Future<void> _clearAll() async {
-    final current = _cachedItems ?? await _itemsFuture;
+    final current = WerkaStore.instance.historyItems;
     if (!mounted) {
       return;
     }
@@ -96,15 +95,14 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
       return;
     }
     setState(() {
-      _cachedItems = const [];
       _highlightedUnreadIds.clear();
-      _itemsFuture = Future.value(const <DispatchRecord>[]);
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    WerkaStore.instance.removeListener(_handleStoreChanged);
     RefreshHub.instance.removeListener(_handlePushRefresh);
     super.dispose();
   }
@@ -144,8 +142,7 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
     }
   }
 
-  Future<List<DispatchRecord>> _loadAndTrack() async {
-    await WerkaStore.instance.refreshHistory();
+  Future<void> _syncFromStore() async {
     final items = WerkaStore.instance.historyItems;
     final hidden = NotificationHiddenStore.instance.hiddenIdsForProfile(
       AppSession.instance.profile,
@@ -174,15 +171,19 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
       _cacheKey,
       items.map((item) => item.toJson()).toList(),
     );
-    return items;
+    _cachedItems = items;
+  }
+
+  void _handleStoreChanged() {
+    if (!mounted) {
+      return;
+    }
+    _syncFromStore();
   }
 
   Future<void> _reload() async {
-    final future = _loadAndTrack();
-    setState(() {
-      _itemsFuture = future;
-    });
-    await future;
+    await WerkaStore.instance.refreshHistory();
+    await _syncFromStore();
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
@@ -226,24 +227,25 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
         ),
       ],
       bottom: const WerkaDock(activeTab: WerkaDockTab.notifications),
-      child: FutureBuilder<List<DispatchRecord>>(
-        future: _itemsFuture,
-        builder: (context, snapshot) {
+      child: AnimatedBuilder(
+        animation: WerkaStore.instance,
+        builder: (context, _) {
+          final store = WerkaStore.instance;
           final hidden = NotificationHiddenStore.instance.hiddenIdsForProfile(
             AppSession.instance.profile,
           );
-          final items = (snapshot.data ?? _cachedItems ?? <DispatchRecord>[])
+          final items =
+              ((store.loadedHistory ? store.historyItems : (_cachedItems ?? <DispatchRecord>[])))
               .where((item) => !hidden.contains(item.id))
               .toList();
           final orderedItems = [
             ...items.where((item) => _highlightedUnreadIds.contains(item.id)),
             ...items.where((item) => !_highlightedUnreadIds.contains(item.id)),
           ];
-          if (snapshot.connectionState != ConnectionState.done &&
-              items.isEmpty) {
+          if (store.loadingHistory && !store.loadedHistory && items.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError && items.isEmpty) {
+          if (store.historyError != null && !store.loadedHistory && items.isEmpty) {
             return AppRefreshIndicator(
               onRefresh: _reload,
               child: ListView(
@@ -265,7 +267,7 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
                           const SizedBox(height: 8),
                           Text(
                             context.l10n
-                                .notificationsLoadFailedWith(snapshot.error!),
+                                .notificationsLoadFailedWith(store.historyError!),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           const SizedBox(height: 14),
