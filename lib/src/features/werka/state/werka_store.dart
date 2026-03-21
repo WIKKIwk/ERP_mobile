@@ -39,6 +39,38 @@ class WerkaStore extends ChangeNotifier {
   Object? get homeError => _homeError;
   Object? get historyError => _historyError;
   WerkaHomeSummary get summary {
+    if (_loadedHome && _loadedHistory) {
+      var confirmed = 0;
+      var returned = 0;
+      for (final item in _historyItems) {
+        if (!_countsTowardWerkaSummary(item)) {
+          continue;
+        }
+        switch (item.status) {
+          case DispatchStatus.accepted:
+            confirmed += 1;
+          case DispatchStatus.partial:
+          case DispatchStatus.rejected:
+          case DispatchStatus.cancelled:
+            returned += 1;
+          case DispatchStatus.pending:
+          case DispatchStatus.draft:
+            break;
+        }
+      }
+      final adjusted = WerkaRuntimeStore.instance.applySummary(
+        WerkaHomeSummary(
+          pendingCount: pendingItems.length,
+          confirmedCount: confirmed,
+          returnedCount: returned,
+        ),
+      );
+      return WerkaHomeSummary(
+        pendingCount: pendingItems.length,
+        confirmedCount: adjusted.confirmedCount,
+        returnedCount: adjusted.returnedCount,
+      );
+    }
     final adjusted = WerkaRuntimeStore.instance.applySummary(_summary);
     return WerkaHomeSummary(
       pendingCount: pendingItems.length,
@@ -89,12 +121,14 @@ class WerkaStore extends ChangeNotifier {
     notifyListeners();
     try {
       final results = await Future.wait<dynamic>([
-        MobileApi.instance.werkaSummary(),
         MobileApi.instance.werkaPending(),
+        MobileApi.instance.werkaHistory(),
       ]);
-      _summary = results[0] as WerkaHomeSummary;
-      _pendingItems = results[1] as List<DispatchRecord>;
+      _pendingItems = results[0] as List<DispatchRecord>;
+      _historyItems = results[1] as List<DispatchRecord>;
       _loadedHome = true;
+      _loadedHistory = true;
+      _historyError = null;
     } catch (error) {
       _homeError = error;
     } finally {
@@ -204,6 +238,11 @@ class WerkaStore extends ChangeNotifier {
 
   void _forwardRuntimeChange() {
     notifyListeners();
+  }
+
+  bool _countsTowardWerkaSummary(DispatchRecord record) {
+    return record.eventType.isEmpty ||
+        record.eventType.startsWith('customer_delivery_');
   }
 
   List<WerkaStatusBreakdownEntry> _pendingBreakdownItems() {
