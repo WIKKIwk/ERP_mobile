@@ -25,11 +25,14 @@ class LocalNotificationService {
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
+    const darwinSettings = DarwinInitializationSettings();
     const linuxSettings = LinuxInitializationSettings(
       defaultActionName: 'Open notification',
     );
     const settings = InitializationSettings(
       android: androidSettings,
+      iOS: darwinSettings,
+      macOS: darwinSettings,
       linux: linuxSettings,
     );
     await _plugin.initialize(settings);
@@ -42,6 +45,13 @@ class LocalNotificationService {
 
   Future<void> requestPermission() async {
     await initialize();
+    final ios = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    await ios?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await android?.requestNotificationsPermission();
@@ -62,6 +72,8 @@ class LocalNotificationService {
         priority: Priority.high,
         playSound: true,
       ),
+      iOS: const DarwinNotificationDetails(),
+      macOS: const DarwinNotificationDetails(),
       linux: const LinuxNotificationDetails(),
     );
 

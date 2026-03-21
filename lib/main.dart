@@ -14,12 +14,15 @@ import 'package:flutter/material.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LocalNotificationService.instance.initialize();
-  await AppSession.instance.load();
-  await NotificationUnreadStore.instance.load();
-  await SecurityController.instance.load();
-  await ThemeController.instance.load();
-  await LocaleController.instance.load();
+  await _runStartupStep(
+    'local notifications',
+    LocalNotificationService.instance.initialize,
+  );
+  await _runStartupStep('session', AppSession.instance.load);
+  await _runStartupStep('notification unread store', NotificationUnreadStore.instance.load);
+  await _runStartupStep('security', SecurityController.instance.load);
+  await _runStartupStep('theme', ThemeController.instance.load);
+  await _runStartupStep('locale', LocaleController.instance.load);
   runApp(
     DevicePreview(
       enabled: AppPreview.enabled,
@@ -28,5 +31,17 @@ Future<void> main() async {
   );
   if (!kIsWeb) {
     unawaited(PushMessagingService.instance.initialize());
+  }
+}
+
+Future<void> _runStartupStep(
+  String label,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+  } catch (error, stackTrace) {
+    debugPrint('startup step failed: $label -> $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
 }
