@@ -222,6 +222,11 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
         metrics.pixels <= metrics.minScrollExtent + _edgeTolerance;
   }
 
+  bool _contentCanActuallyScroll(ScrollMetrics metrics) {
+    return (metrics.maxScrollExtent - metrics.minScrollExtent) >
+        _edgeTolerance;
+  }
+
   void _handleStatusChange(RefreshIndicatorStatus? status) {
     _statusToken++;
     final token = _statusToken;
@@ -258,6 +263,12 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     }
 
     if (notification is ScrollStartNotification) {
+      if (!_contentCanActuallyScroll(notification.metrics)) {
+        _gestureActive = false;
+        _gestureAllowsRefresh = false;
+        _gestureDirectionResolved = false;
+        return true;
+      }
       _gestureActive = notification.dragDetails != null;
       _gestureAllowsRefresh = _isNearTop(notification.metrics);
       _gestureDirectionResolved = false;
@@ -320,6 +331,9 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
 
   bool _refreshNotificationPredicate(ScrollNotification notification) {
     if (!widget.notificationPredicate(notification)) {
+      return false;
+    }
+    if (!_contentCanActuallyScroll(notification.metrics)) {
       return false;
     }
     if (notification.metrics.axisDirection != AxisDirection.down) {
