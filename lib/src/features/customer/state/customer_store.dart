@@ -150,7 +150,7 @@ class CustomerStore extends ChangeNotifier {
       for (final item in rejectedItems) item.id: item,
     };
     final result = byId.values.toList()
-      ..sort((a, b) => b.createdLabel.compareTo(a.createdLabel));
+      ..sort((a, b) => compareCreatedLabelsDesc(a.createdLabel, b.createdLabel));
     return result;
   }
 

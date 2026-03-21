@@ -225,7 +225,7 @@ class WerkaStore extends ChangeNotifier {
       }
       current.receiptCount += 1;
       current.totalSentQty += item.sentQty;
-      if (item.createdLabel.compareTo(current.latestCreatedLabel) > 0) {
+      if (createdLabelIsAfter(item.createdLabel, current.latestCreatedLabel)) {
         current.latestCreatedLabel = item.createdLabel;
       }
       if (current.supplierName.trim().isEmpty && item.supplierName.trim().isNotEmpty) {
@@ -237,7 +237,7 @@ class WerkaStore extends ChangeNotifier {
     }
 
     final items = grouped.values.toList()
-      ..sort((a, b) => b.latestCreatedLabel.compareTo(a.latestCreatedLabel));
+      ..sort((a, b) => compareCreatedLabelsDesc(a.latestCreatedLabel, b.latestCreatedLabel));
     return items
         .map(
           (item) => WerkaStatusBreakdownEntry(

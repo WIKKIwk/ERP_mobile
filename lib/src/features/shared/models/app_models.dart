@@ -19,6 +19,52 @@ const String customerDeliveryResultEventPrefix = 'customer_delivery_result:';
 String customerDeliveryResultEventId(String deliveryNoteID) =>
     '$customerDeliveryResultEventPrefix${deliveryNoteID.trim()}';
 
+DateTime? parseCreatedLabelTimestamp(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) {
+    return null;
+  }
+  final dateOnly = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+  final dateTimeWithSpace = RegExp(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}');
+  var normalized = trimmed;
+  if (dateOnly.hasMatch(trimmed)) {
+    normalized = '${trimmed}T00:00:00';
+  } else if (dateTimeWithSpace.hasMatch(trimmed)) {
+    normalized = trimmed.replaceFirst(' ', 'T');
+  }
+  return DateTime.tryParse(normalized);
+}
+
+int compareCreatedLabelsDesc(String left, String right) {
+  final leftTime = parseCreatedLabelTimestamp(left);
+  final rightTime = parseCreatedLabelTimestamp(right);
+  if (leftTime != null && rightTime != null) {
+    return rightTime.compareTo(leftTime);
+  }
+  if (leftTime != null) {
+    return -1;
+  }
+  if (rightTime != null) {
+    return 1;
+  }
+  return right.compareTo(left);
+}
+
+bool createdLabelIsAfter(String candidate, String current) {
+  final candidateTime = parseCreatedLabelTimestamp(candidate);
+  final currentTime = parseCreatedLabelTimestamp(current);
+  if (candidateTime != null && currentTime != null) {
+    return candidateTime.isAfter(currentTime);
+  }
+  if (candidateTime != null) {
+    return true;
+  }
+  if (currentTime != null) {
+    return false;
+  }
+  return candidate.compareTo(current) > 0;
+}
+
 class SupplierItem {
   const SupplierItem({
     required this.code,

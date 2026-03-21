@@ -89,7 +89,7 @@ class WerkaRuntimeStore extends ChangeNotifier {
       }
     }
     final result = byId.values.toList();
-    result.sort((a, b) => b.createdLabel.compareTo(a.createdLabel));
+    result.sort((a, b) => compareCreatedLabelsDesc(a.createdLabel, b.createdLabel));
     return result;
   }
 

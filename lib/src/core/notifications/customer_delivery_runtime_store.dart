@@ -157,7 +157,7 @@ class CustomerDeliveryRuntimeStore extends ChangeNotifier {
 
   List<DispatchRecord> _sorted(Iterable<DispatchRecord> records) {
     final result = records.toList();
-    result.sort((a, b) => b.createdLabel.compareTo(a.createdLabel));
+    result.sort((a, b) => compareCreatedLabelsDesc(a.createdLabel, b.createdLabel));
     return result;
   }
 
