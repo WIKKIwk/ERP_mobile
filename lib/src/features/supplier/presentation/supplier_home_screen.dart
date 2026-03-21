@@ -114,8 +114,8 @@ class _SupplierHomeScreenState extends State<SupplierHomeScreen>
             return AppRefreshIndicator(
               onRefresh: _reload,
               child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: ClampingScrollPhysics(),
+                physics: const ClampingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
                 padding: EdgeInsets.zero,
                 children: [
@@ -167,8 +167,8 @@ class _SupplierHomeScreenState extends State<SupplierHomeScreen>
           return AppRefreshIndicator(
             onRefresh: _reload,
             child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: ClampingScrollPhysics(),
+              physics: const ClampingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
               padding: EdgeInsets.zero,
               children: [

@@ -94,8 +94,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         return AppRefreshIndicator(
           onRefresh: _reload,
           child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: ClampingScrollPhysics(),
+            physics: const ClampingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
             ),
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
             children: [

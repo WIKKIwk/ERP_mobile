@@ -116,8 +116,8 @@ class _WerkaHomeScreenState extends State<WerkaHomeScreen>
                   return AppRefreshIndicator(
                     onRefresh: _reload,
                     child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(
-                        parent: ClampingScrollPhysics(),
+                      physics: const ClampingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
                       ),
                       children: [
                         const SizedBox(height: 120),
@@ -163,8 +163,8 @@ class _WerkaHomeScreenState extends State<WerkaHomeScreen>
                 return AppRefreshIndicator(
                   onRefresh: _reload,
                   child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: ClampingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
                     ),
                     padding: EdgeInsets.zero,
                     children: [
