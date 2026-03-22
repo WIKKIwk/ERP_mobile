@@ -392,8 +392,16 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
       return false;
     }
 
-    if (notification is ScrollEndNotification && _pullExtent > 0) {
-      _setPullExtent(0.0);
+    if (notification is ScrollEndNotification) {
+      final position = _activePosition;
+      if (_pullExtent > 0) {
+        _setPullExtent(0.0);
+      }
+      if (position != null &&
+          position.hasPixels &&
+          position.pixels < position.minScrollExtent - _edgeTolerance) {
+        _settleTopEdge(forceJump: true);
+      }
     }
 
     return false;
