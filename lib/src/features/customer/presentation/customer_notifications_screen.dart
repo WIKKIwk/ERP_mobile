@@ -32,6 +32,7 @@ class CustomerNotificationsScreen extends StatefulWidget {
 class _CustomerNotificationsScreenState
     extends State<CustomerNotificationsScreen> {
   static const String _cacheKey = 'cache_customer_notifications';
+  final ScrollController _scrollController = ScrollController();
   List<DispatchRecord>? _cachedItems;
   Set<String> _highlightedUnreadIds = <String>{};
   int _refreshVersion = 0;
@@ -57,6 +58,7 @@ class _CustomerNotificationsScreenState
   void dispose() {
     CustomerStore.instance.removeListener(_handleStoreChanged);
     RefreshHub.instance.removeListener(_handlePushRefresh);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -81,6 +83,21 @@ class _CustomerNotificationsScreenState
   Future<void> _reload() async {
     await CustomerStore.instance.refresh();
     await _syncFromStore();
+    _restoreTopEdgeAfterRefresh();
+  }
+
+  void _restoreTopEdgeAfterRefresh() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) {
+        return;
+      }
+      final position = _scrollController.position;
+      final target = position.minScrollExtent;
+      if ((position.pixels - target).abs() <= 0.5) {
+        return;
+      }
+      _scrollController.jumpTo(target);
+    });
   }
 
   Future<void> _openDetail(String deliveryNoteID) async {
@@ -204,6 +221,7 @@ class _CustomerNotificationsScreenState
             onRefresh: _reload,
             allowRefreshOnShortContent: true,
             child: ListView(
+              controller: _scrollController,
               physics: const TopRefreshScrollPhysics(),
               padding: EdgeInsets.fromLTRB(0, 8, 0, bottomPadding),
               children: [
@@ -219,6 +237,7 @@ class _CustomerNotificationsScreenState
             onRefresh: _reload,
             allowRefreshOnShortContent: true,
             child: ListView(
+              controller: _scrollController,
               physics: const TopRefreshScrollPhysics(),
               padding: EdgeInsets.fromLTRB(0, 8, 0, bottomPadding),
               children: [
@@ -234,6 +253,7 @@ class _CustomerNotificationsScreenState
           onRefresh: _reload,
           allowRefreshOnShortContent: true,
           child: ListView(
+            controller: _scrollController,
             physics: const TopRefreshScrollPhysics(),
             padding: EdgeInsets.fromLTRB(0, 8, 0, bottomPadding),
             children: [
