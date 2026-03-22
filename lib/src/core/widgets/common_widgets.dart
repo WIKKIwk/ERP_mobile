@@ -234,43 +234,33 @@ class ActionDock extends StatelessWidget {
             left: tightToEdges ? 8 : 20,
             right: tightToEdges ? 8 : 20,
             bottom: compact ? 5 : 7,
-            child: centered && !tightToEdges
-                ? Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List<Widget>.generate(
-                        buttons.length,
-                        (index) => Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Transform.translate(
-                            offset: const Offset(0, 0),
-                            child: buttons[index],
-                          ),
-                        ),
+            child: Row(
+              children: List<Widget>.generate(
+                buttons.length,
+                (index) => Expanded(
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: centered && !tightToEdges
+                            ? 4
+                            : switch (deviceClass) {
+                                _DockDeviceClass.small => tightToEdges ? 0 : 1,
+                                _DockDeviceClass.medium =>
+                                  tightToEdges ? 1 : 2,
+                                _DockDeviceClass.large =>
+                                  tightToEdges ? 1 : 3,
+                              },
                       ),
-                    ),
-                  )
-                : Row(
-                    mainAxisAlignment: tightToEdges
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.spaceEvenly,
-                    children: List<Widget>.generate(
-                      buttons.length,
-                      (index) => Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: switch (deviceClass) {
-                            _DockDeviceClass.small => tightToEdges ? 0 : 1,
-                            _DockDeviceClass.medium => tightToEdges ? 1 : 2,
-                            _DockDeviceClass.large => tightToEdges ? 1 : 3,
-                          },
-                        ),
-                        child: Transform.translate(
-                          offset: const Offset(0, 0),
-                          child: buttons[index],
-                        ),
+                      child: Transform.translate(
+                        offset: const Offset(0, 0),
+                        child: buttons[index],
                       ),
                     ),
                   ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
