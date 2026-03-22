@@ -86,7 +86,7 @@ private final class AccordLiquidDockHostController: UITabBarController, UITabBar
       contentController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       contentController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       contentController.view.topAnchor.constraint(equalTo: view.topAnchor),
-      contentController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      contentController.view.bottomAnchor.constraint(equalTo: tabBar.topAnchor),
     ])
     contentController.didMove(toParent: self)
 
@@ -120,9 +120,6 @@ private final class AccordLiquidDockHostController: UITabBarController, UITabBar
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    if contentController.view.superview === view {
-      view.bringSubviewToFront(contentController.view)
-    }
     view.bringSubviewToFront(tabBar)
   }
 
