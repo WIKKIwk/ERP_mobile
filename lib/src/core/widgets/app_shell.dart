@@ -214,9 +214,11 @@ class AppRefreshIndicator extends StatefulWidget {
 class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
   static const double _triggerDistance = 72.0;
   static const double _maxPullDistance = 108.0;
+  static const Duration _releaseSettleDuration = Duration(milliseconds: 380);
   final ScrollController _scrollController = ScrollController();
   double _pullExtent = 0.0;
   bool _refreshing = false;
+  bool _userPulling = false;
 
   static const double _edgeTolerance = 0.5;
 
@@ -262,6 +264,7 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     }
     setState(() {
       _refreshing = true;
+      _userPulling = false;
       _pullExtent = 0.0;
     });
     _settleTopEdge(forceJump: true);
@@ -271,6 +274,7 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
       if (mounted) {
         setState(() {
           _refreshing = false;
+          _userPulling = false;
           _pullExtent = 0.0;
         });
         _settleTopEdge();
@@ -297,6 +301,15 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     }
     setState(() {
       _pullExtent = clamped;
+    });
+  }
+
+  void _setUserPulling(bool nextValue) {
+    if (_userPulling == nextValue) {
+      return;
+    }
+    setState(() {
+      _userPulling = nextValue;
     });
   }
 
@@ -344,6 +357,7 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
         notification.dragDetails != null &&
         _isNearTop(notification.metrics) &&
         notification.overscroll < 0) {
+      _setUserPulling(true);
       final nextPull = (_pullExtent + (-notification.overscroll))
           .clamp(0.0, _maxPullDistance);
       _setPullExtent(nextPull);
@@ -356,6 +370,7 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     if (notification is ScrollUpdateNotification &&
         notification.dragDetails != null &&
         _pullExtent > 0) {
+      _setUserPulling(true);
       final delta = notification.scrollDelta ?? 0.0;
       if (delta > 0) {
         _setPullExtent(_pullExtent - delta);
@@ -366,6 +381,7 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     }
 
     if (notification is ScrollEndNotification) {
+      _setUserPulling(false);
       if (_pullExtent > 0) {
         _setPullExtent(0.0);
       }
@@ -391,6 +407,13 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     final translateY = _refreshing
         ? widget.edgeOffset + 12.0
         : widget.edgeOffset + (widget.displacement * progress) - 28.0;
+    final motionDuration = _userPulling
+        ? Duration.zero
+        : _refreshing
+            ? AppMotion.fast
+            : _releaseSettleDuration;
+    final motionCurve =
+        _refreshing ? AppMotion.standardDecelerate : AppMotion.emphasizedDecelerate;
 
     return PrimaryScrollController(
       controller: _scrollController,
@@ -398,8 +421,11 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
         onNotification: _handleScrollNotification,
         child: Stack(
           children: [
-            Transform.translate(
-              offset: Offset(0, contentTranslateY),
+            AnimatedContainer(
+              duration: motionDuration,
+              curve: motionCurve,
+              transform: Matrix4.translationValues(0, contentTranslateY, 0),
+              transformAlignment: Alignment.topCenter,
               child: widget.child,
             ),
             if (visible)
@@ -409,8 +435,11 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
                 right: 0,
                 child: IgnorePointer(
                   ignoring: true,
-                  child: Transform.translate(
-                    offset: Offset(0, translateY),
+                  child: AnimatedContainer(
+                    duration: motionDuration,
+                    curve: motionCurve,
+                    transform: Matrix4.translationValues(0, translateY, 0),
+                    transformAlignment: Alignment.topCenter,
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: AnimatedOpacity(
