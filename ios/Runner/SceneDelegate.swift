@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 
 class SceneDelegate: FlutterSceneDelegate {
-  private var dockController: AccordLiquidDockWindowController?
+  private var dockHostController: AccordLiquidDockHostController?
 
   override func scene(
     _ scene: UIScene,
@@ -10,14 +10,23 @@ class SceneDelegate: FlutterSceneDelegate {
     options connectionOptions: UIScene.ConnectionOptions
   ) {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
-    guard let window,
-          let flutterViewController = window.rootViewController as? FlutterViewController else {
+    guard let window else {
       return
     }
-    dockController = AccordLiquidDockWindowController(
-      window: window,
+    if let hostController = window.rootViewController as? AccordLiquidDockHostController {
+      dockHostController = hostController
+      return
+    }
+    guard let flutterViewController = window.rootViewController as? FlutterViewController else {
+      return
+    }
+    let hostController = AccordLiquidDockHostController(
+      contentController: flutterViewController,
       messenger: flutterViewController.binaryMessenger
     )
+    window.rootViewController = hostController
+    window.makeKeyAndVisible()
+    dockHostController = hostController
   }
 }
 
@@ -29,19 +38,47 @@ private struct AccordLiquidDockItem: Hashable {
   let allowLongPress: Bool
 }
 
-private final class AccordLiquidDockWindowController {
-  private let overlayView: AccordLiquidDockOverlayView
+private final class AccordLiquidDockHostController: UIViewController {
+  private let contentController: FlutterViewController
+  private let dockView: AccordLiquidDockOverlayView
 
-  init(window: UIWindow, messenger: FlutterBinaryMessenger) {
-    overlayView = AccordLiquidDockOverlayView(messenger: messenger)
-    window.addSubview(overlayView)
-    window.bringSubviewToFront(overlayView)
+  init(
+    contentController: FlutterViewController,
+    messenger: FlutterBinaryMessenger
+  ) {
+    self.contentController = contentController
+    dockView = AccordLiquidDockOverlayView(messenger: messenger)
+    super.init(nibName: nil, bundle: nil)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    view.backgroundColor = .clear
+
+    addChild(contentController)
+    view.addSubview(contentController.view)
+    contentController.view.translatesAutoresizingMaskIntoConstraints = false
     NSLayoutConstraint.activate([
-      overlayView.leadingAnchor.constraint(equalTo: window.leadingAnchor),
-      overlayView.trailingAnchor.constraint(equalTo: window.trailingAnchor),
-      overlayView.bottomAnchor.constraint(equalTo: window.bottomAnchor),
-      overlayView.heightAnchor.constraint(equalToConstant: 120),
+      contentController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      contentController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      contentController.view.topAnchor.constraint(equalTo: view.topAnchor),
+      contentController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
     ])
+    contentController.didMove(toParent: self)
+
+    view.addSubview(dockView)
+    NSLayoutConstraint.activate([
+      dockView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      dockView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      dockView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      dockView.heightAnchor.constraint(equalToConstant: 120),
+    ])
+    view.bringSubviewToFront(dockView)
   }
 }
 
