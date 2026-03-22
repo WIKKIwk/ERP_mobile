@@ -336,7 +336,12 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
         notification.dragDetails != null &&
         _isNearTop(notification.metrics) &&
         notification.overscroll < 0) {
-      _setPullExtent(_pullExtent + (-notification.overscroll));
+      final nextPull = (_pullExtent + (-notification.overscroll))
+          .clamp(0.0, _maxPullDistance);
+      _setPullExtent(nextPull);
+      if (nextPull >= _triggerDistance) {
+        _startRefresh();
+      }
       return false;
     }
 
@@ -353,11 +358,7 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     }
 
     if (notification is ScrollEndNotification && _pullExtent > 0) {
-      if (_pullExtent >= _triggerDistance) {
-        _startRefresh();
-      } else {
-        _setPullExtent(0.0);
-      }
+      _setPullExtent(0.0);
     }
 
     return false;
