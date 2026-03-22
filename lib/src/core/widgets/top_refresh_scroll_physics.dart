@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 /// Scroll physics that keeps pull-to-refresh available at the top edge while
 /// preventing bottom-edge overscroll on short lists.
-class TopRefreshScrollPhysics extends ClampingScrollPhysics {
+class TopRefreshScrollPhysics extends BouncingScrollPhysics {
   const TopRefreshScrollPhysics({super.parent});
 
   static const double _maxTopRefreshOverscroll = 88.0;
