@@ -58,6 +58,7 @@ private final class AccordLiquidDockHostController: UITabBarController, UITabBar
   private let channel: FlutterMethodChannel
   private var items: [AccordLiquidDockItem] = []
   private var suppressSelectionCallback = false
+  private weak var contentContainerView: UIView?
 
   init(
     contentController: FlutterViewController,
@@ -89,15 +90,8 @@ private final class AccordLiquidDockHostController: UITabBarController, UITabBar
     setViewControllers([seedController], animated: false)
 
     addChild(contentController)
-    view.addSubview(contentController.view)
-    contentController.view.translatesAutoresizingMaskIntoConstraints = false
-    NSLayoutConstraint.activate([
-      contentController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      contentController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      contentController.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-      contentController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-    ])
     contentController.didMove(toParent: self)
+    _attachFlutterContentIfPossible()
 
     if #available(iOS 26.0, *) {
       // Keep the iOS 26 tab bar on the system default layout path.
@@ -127,9 +121,7 @@ private final class AccordLiquidDockHostController: UITabBarController, UITabBar
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    if contentController.view.superview === view {
-      view.bringSubviewToFront(contentController.view)
-    }
+    _attachFlutterContentIfPossible()
     tabBar.superview?.clipsToBounds = false
     tabBar.superview?.layer.masksToBounds = false
     view.bringSubviewToFront(tabBar)
@@ -192,8 +184,28 @@ private final class AccordLiquidDockHostController: UITabBarController, UITabBar
     setViewControllers(controllers, animated: false)
     selectedIndex = items.firstIndex(where: { $0.active }) ?? 0
     suppressSelectionCallback = false
+    _attachFlutterContentIfPossible()
 
     result(nil)
+  }
+
+  private func _attachFlutterContentIfPossible() {
+    guard let selectedView = selectedViewController?.view else {
+      return
+    }
+    if contentContainerView === selectedView {
+      return
+    }
+    contentController.view.removeFromSuperview()
+    contentController.view.translatesAutoresizingMaskIntoConstraints = false
+    selectedView.addSubview(contentController.view)
+    NSLayoutConstraint.activate([
+      contentController.view.leadingAnchor.constraint(equalTo: selectedView.leadingAnchor),
+      contentController.view.trailingAnchor.constraint(equalTo: selectedView.trailingAnchor),
+      contentController.view.topAnchor.constraint(equalTo: selectedView.topAnchor),
+      contentController.view.bottomAnchor.constraint(equalTo: selectedView.bottomAnchor),
+    ])
+    contentContainerView = selectedView
   }
 
   private func iconName(for item: AccordLiquidDockItem, selected: Bool) -> String {
@@ -229,6 +241,7 @@ private final class AccordLiquidDockHostController: UITabBarController, UITabBar
     }
     let item = items[selectedIndex]
     NSLog("accord_dock tap id=%@", item.id)
+    _attachFlutterContentIfPossible()
     channel.invokeMethod("tap", arguments: ["id": item.id])
   }
 
