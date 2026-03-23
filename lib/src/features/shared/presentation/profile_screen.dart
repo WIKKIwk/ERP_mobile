@@ -432,6 +432,34 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     style:
                                         Theme.of(context).textTheme.bodySmall,
                                   ),
+                                  if (current.phone.trim().isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.phone_rounded,
+                                          size: 16,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            current.phone,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -442,11 +470,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ],
                         ),
                         const SizedBox(height: 18),
-                        _InfoTile(
-                          label: l10n.phoneLabel,
-                          value: current.phone,
-                        ),
-                        const SizedBox(height: 10),
                         _InfoTile(
                           label: l10n.legalNameLabel,
                           value: current.legalName.isEmpty
