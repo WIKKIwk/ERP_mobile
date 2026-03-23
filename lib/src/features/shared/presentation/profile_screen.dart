@@ -460,6 +460,40 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       ],
                                     ),
                                   ],
+                                  if ((current.legalName.isEmpty
+                                          ? current.displayName
+                                          : current.legalName)
+                                      .trim()
+                                      .isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.badge_rounded,
+                                          size: 16,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            current.legalName.isEmpty
+                                                ? current.displayName
+                                                : current.legalName,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -469,14 +503,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 18),
-                        _InfoTile(
-                          label: l10n.legalNameLabel,
-                          value: current.legalName.isEmpty
-                              ? current.displayName
-                              : current.legalName,
-                        ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
                         TextField(
                           controller: nicknameController,
                           onChanged: (_) => setState(() {}),
@@ -854,47 +881,6 @@ class _ProfileActionButton extends StatelessWidget {
             ),
     );
     return child;
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
