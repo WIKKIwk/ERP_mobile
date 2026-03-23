@@ -2,10 +2,9 @@ import '../../features/shared/models/app_models.dart';
 import 'app_runtime_reset.dart';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppSession extends ChangeNotifier {
+class AppSession {
   AppSession._();
 
   static final AppSession instance = AppSession._();
@@ -46,7 +45,6 @@ class AppSession extends ChangeNotifier {
     profile = SessionProfile.fromJson(
       jsonDecode(storedProfile) as Map<String, dynamic>,
     );
-    notifyListeners();
   }
 
   Future<void> setSession({
@@ -68,7 +66,6 @@ class AppSession extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
     await prefs.setString(_profileKey, jsonEncode(profile.toJson()));
-    notifyListeners();
   }
 
   Future<void> clear() async {
@@ -81,13 +78,11 @@ class AppSession extends ChangeNotifier {
     await AppRuntimeReset.instance.resetSessionScopedState(
       previousProfile: previousProfile,
     );
-    notifyListeners();
   }
 
   Future<void> updateProfile(SessionProfile nextProfile) async {
     profile = nextProfile;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_profileKey, jsonEncode(nextProfile.toJson()));
-    notifyListeners();
   }
 }

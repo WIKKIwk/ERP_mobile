@@ -32,17 +32,6 @@ Widget _customerTabScreen(CustomerDockTab tab) {
   }
 }
 
-String _customerTabRouteName(CustomerDockTab tab) {
-  switch (tab) {
-    case CustomerDockTab.home:
-      return '/customer-home';
-    case CustomerDockTab.notifications:
-      return '/customer-notifications';
-    case CustomerDockTab.profile:
-      return '/profile';
-  }
-}
-
 void navigateToCustomerTab(
   BuildContext context, {
   required CustomerDockTab from,
@@ -58,7 +47,6 @@ void navigateToCustomerTab(
 
   Navigator.of(context).pushReplacement(
     _CustomerTabRoute(
-      routeName: _customerTabRouteName(to),
       child: _customerTabScreen(to),
       direction: direction,
     ),
@@ -115,11 +103,9 @@ void handleCustomerTabSwipe(
 
 class _CustomerTabRoute extends PageRouteBuilder<void> {
   _CustomerTabRoute({
-    required this.routeName,
     required this.child,
     required this.direction,
   }) : super(
-          settings: RouteSettings(name: routeName),
           transitionDuration: AppMotion.pageEnter,
           reverseTransitionDuration: AppMotion.pageExit,
           pageBuilder: (context, animation, secondaryAnimation) => child,
@@ -166,7 +152,6 @@ class _CustomerTabRoute extends PageRouteBuilder<void> {
           },
         );
 
-  final String routeName;
   final Widget child;
   final CustomerTabTransitionDirection direction;
 }

@@ -2,13 +2,6 @@ import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
-class AppShellBottomPlaceholder extends StatelessWidget {
-  const AppShellBottomPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
-}
-
 class AppShell extends StatelessWidget {
   const AppShell({
     super.key,
@@ -36,17 +29,16 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveBottom = bottom is AppShellBottomPlaceholder ? null : bottom;
 
     return Scaffold(
       extendBody: true,
-      bottomNavigationBar: effectiveBottom == null
+      bottomNavigationBar: bottom == null
           ? null
           : SafeArea(
               top: false,
               child: Padding(
                 padding: bottomPadding,
-                child: effectiveBottom,
+                child: bottom!,
               ),
             ),
       body: DecoratedBox(

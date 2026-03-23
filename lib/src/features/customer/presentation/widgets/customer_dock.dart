@@ -1,10 +1,8 @@
 import '../../../../app/app_router.dart';
 import '../../../../core/notifications/notification_unread_store.dart';
 import '../../../../core/session/app_session.dart';
-import '../../../../core/widgets/app_shell.dart';
 import '../../../../core/widgets/common_widgets.dart';
 import '../../../../core/widgets/logout_prompt.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 enum CustomerDockTab {
@@ -29,9 +27,6 @@ class CustomerDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      return const AppShellBottomPlaceholder();
-    }
     return AnimatedBuilder(
       animation: NotificationUnreadStore.instance,
       builder: (context, _) {

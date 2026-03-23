@@ -20,6 +20,88 @@ permissions:
   contents: write
 
 jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+    env:
+      MOBILE_API_BASE_URL: https://core.wspace.sbs
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Firebase config secret
+        env:
+          ANDROID_GOOGLE_SERVICES_JSON: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "${ANDROID_GOOGLE_SERVICES_JSON}" ]; then
+            echo "Missing secret: ANDROID_GOOGLE_SERVICES_JSON" >&2
+            echo "Add the raw contents of android/app/google-services.json as a repository secret." >&2
+            exit 1
+          fi
+
+      - name: Write google-services.json
+        env:
+          ANDROID_GOOGLE_SERVICES_JSON: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON }}
+        run: |
+          printf '%s' "${ANDROID_GOOGLE_SERVICES_JSON}" > android/app/google-services.json
+
+      - name: Write GoogleService-Info.plist when available
+        env:
+          IOS_GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          if [ -n "${IOS_GOOGLE_SERVICE_INFO_PLIST}" ]; then
+            printf '%s' "${IOS_GOOGLE_SERVICE_INFO_PLIST}" > ios/Runner/GoogleService-Info.plist
+          else
+            echo "IOS_GOOGLE_SERVICE_INFO_PLIST is not set; continuing without it."
+          fi
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build release APK
+        run: |
+          flutter build apk --release \
+            --dart-define=MOBILE_API_BASE_URL="${MOBILE_API_BASE_URL}"
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/flutter-apk/accord.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: accord-apk
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/accord.apk
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'true' && github.event.inputs.release_tag != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: ${{ github.event.inputs.release_tag }}
+          files: |
+            build/app/outputs/flutter-apk/accord.apk
+
   build-ios-ipa:
     runs-on: macos-latest
     env:
@@ -60,18 +142,6 @@ jobs:
         with:
           channel: stable
           cache: true
-
-      - name: Select Xcode 26
-        run: |
-          SELECTED_XCODE_APP="$(find /Applications -maxdepth 1 -type d \( -name 'Xcode_26*.app' -o -name 'Xcode-26*.app' -o -name 'Xcode26*.app' \) | sort -V | tail -n 1)"
-          if [ -z "${SELECTED_XCODE_APP}" ]; then
-            echo "Xcode 26 not found on runner. Available Xcode apps:" >&2
-            find /Applications -maxdepth 1 -type d -name 'Xcode*.app' | sort >&2 || true
-            exit 1
-          fi
-          echo "Selected Xcode app: ${SELECTED_XCODE_APP}"
-          sudo xcode-select -s "${SELECTED_XCODE_APP}/Contents/Developer"
-          xcodebuild -version
 
       - name: Install dependencies
         run: flutter pub get

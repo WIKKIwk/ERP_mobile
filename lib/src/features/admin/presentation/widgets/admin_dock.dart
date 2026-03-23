@@ -1,8 +1,6 @@
 import '../../../../app/app_router.dart';
-import '../../../../core/widgets/app_shell.dart';
 import '../../../../core/widgets/common_widgets.dart';
 import '../../../../core/widgets/logout_prompt.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 enum AdminDockTab {
@@ -27,9 +25,6 @@ class AdminDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      return const AppShellBottomPlaceholder();
-    }
     return ActionDock(
       compact: compact,
       tightToEdges: tightToEdges,
