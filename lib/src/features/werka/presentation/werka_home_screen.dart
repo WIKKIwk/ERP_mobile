@@ -257,6 +257,7 @@ class _WerkaSummaryRow extends StatelessWidget {
       bottomRight: Radius.circular(isLast ? 28 : 0),
     );
     return PressableScale(
+      onTap: onTap,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
