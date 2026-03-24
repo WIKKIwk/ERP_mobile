@@ -5,7 +5,7 @@ class AppLoadingIndicator extends StatefulWidget {
   const AppLoadingIndicator({
     super.key,
     this.size = 64,
-    this.glyphSize = 20,
+    this.glyphSize = 21,
   });
 
   final double size;
