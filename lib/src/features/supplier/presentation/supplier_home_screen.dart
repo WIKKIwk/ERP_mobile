@@ -10,7 +10,6 @@ import '../../../core/widgets/motion_widgets.dart';
 import '../../../core/widgets/top_refresh_scroll_physics.dart';
 import '../../shared/models/app_models.dart';
 import '../state/supplier_store.dart';
-import 'supplier_qty_screen.dart';
 import 'widgets/supplier_dock.dart';
 import 'package:flutter/material.dart';
 
@@ -422,19 +421,10 @@ class _SupplierPendingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final item = SupplierItem(
-      code: record.itemCode,
-      name: record.itemName,
-      uom: record.uom,
-      warehouse: '',
-    );
     return PressableScale(
       onTap: () => Navigator.of(context).pushNamed(
-        AppRoutes.supplierQty,
-        arguments: SupplierQtyArgs(
-          item: item,
-          initialQty: record.sentQty,
-        ),
+        AppRoutes.notificationDetail,
+        arguments: record.id,
       ),
       child: SizedBox(
         width: double.infinity,
@@ -448,11 +438,8 @@ class _SupplierPendingRow extends StatelessWidget {
               bottomRight: Radius.circular(isLast ? 24 : 0),
             ),
             onTap: () => Navigator.of(context).pushNamed(
-              AppRoutes.supplierQty,
-              arguments: SupplierQtyArgs(
-                item: item,
-                initialQty: record.sentQty,
-              ),
+              AppRoutes.notificationDetail,
+              arguments: record.id,
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
