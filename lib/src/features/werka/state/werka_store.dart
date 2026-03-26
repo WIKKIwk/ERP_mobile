@@ -66,14 +66,14 @@ class WerkaStore extends ChangeNotifier {
         ),
       );
       return WerkaHomeSummary(
-        pendingCount: pendingItems.length,
+        pendingCount: adjusted.pendingCount,
         confirmedCount: adjusted.confirmedCount,
         returnedCount: adjusted.returnedCount,
       );
     }
     final adjusted = WerkaRuntimeStore.instance.applySummary(_summary);
     return WerkaHomeSummary(
-      pendingCount: pendingItems.length,
+      pendingCount: adjusted.pendingCount,
       confirmedCount: adjusted.confirmedCount,
       returnedCount: adjusted.returnedCount,
     );
