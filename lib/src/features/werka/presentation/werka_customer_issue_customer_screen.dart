@@ -30,6 +30,7 @@ class WerkaCustomerIssueCustomerScreen extends StatefulWidget {
 class _WerkaCustomerIssueCustomerScreenState
     extends State<WerkaCustomerIssueCustomerScreen> {
   late Future<List<CustomerDirectoryEntry>> _customersFuture;
+  late Future<List<CustomerItemOption>> _itemOptionsFuture;
   final TextEditingController _qtyController = TextEditingController(text: '1');
 
   CustomerDirectoryEntry? _selectedCustomer;
@@ -42,6 +43,7 @@ class _WerkaCustomerIssueCustomerScreenState
   void initState() {
     super.initState();
     _customersFuture = MobileApi.instance.werkaCustomers();
+    _itemOptionsFuture = MobileApi.instance.werkaCustomerItemOptions();
     if (widget.prefill != null) {
       _applyPrefill(widget.prefill!);
     }
@@ -54,9 +56,73 @@ class _WerkaCustomerIssueCustomerScreenState
   }
 
   Future<void> _reloadCustomers() async {
-    final future = MobileApi.instance.werkaCustomers();
-    setState(() => _customersFuture = future);
-    await future;
+    final customersFuture = MobileApi.instance.werkaCustomers();
+    final itemOptionsFuture = MobileApi.instance.werkaCustomerItemOptions();
+    setState(() {
+      _customersFuture = customersFuture;
+      _itemOptionsFuture = itemOptionsFuture;
+    });
+    await Future.wait([customersFuture, itemOptionsFuture]);
+  }
+
+  Future<void> _loadItemsForCustomer(
+    CustomerDirectoryEntry customer, {
+    String? preferredItemCode,
+  }) async {
+    setState(() {
+      _selectedCustomer = customer;
+      _selectedItem = null;
+      _customerItems = const <SupplierItem>[];
+      _loadingItems = true;
+    });
+    try {
+      final items = await MobileApi.instance.werkaCustomerItems(
+        customerRef: customer.ref,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _customerItems = items;
+        if (preferredItemCode != null && preferredItemCode.trim().isNotEmpty) {
+          _selectedItem = items.cast<SupplierItem?>().firstWhere(
+                    (item) => item?.code == preferredItemCode,
+                    orElse: () => null,
+                  ) ??
+              SupplierItem(
+                code: preferredItemCode,
+                name: items
+                        .cast<SupplierItem?>()
+                        .firstWhere(
+                          (item) => item?.code == preferredItemCode,
+                          orElse: () => null,
+                        )
+                        ?.name ??
+                    '',
+                uom: items
+                        .cast<SupplierItem?>()
+                        .firstWhere(
+                          (item) => item?.code == preferredItemCode,
+                          orElse: () => null,
+                        )
+                        ?.uom ??
+                    '',
+                warehouse: items
+                        .cast<SupplierItem?>()
+                        .firstWhere(
+                          (item) => item?.code == preferredItemCode,
+                          orElse: () => null,
+                        )
+                        ?.warehouse ??
+                    '',
+              );
+        }
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loadingItems = false);
+      }
+    }
   }
 
   Future<void> _applyPrefill(WerkaCustomerIssuePrefillArgs prefill) async {
@@ -141,59 +207,74 @@ class _WerkaCustomerIssueCustomerScreenState
     if (picked == null || !mounted) {
       return;
     }
-
-    setState(() {
-      _selectedCustomer = picked;
-      _selectedItem = null;
-      _customerItems = const <SupplierItem>[];
-      _loadingItems = true;
-    });
-    try {
-      final items = await MobileApi.instance.werkaCustomerItems(
-        customerRef: picked.ref,
-      );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _customerItems = items;
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _loadingItems = false);
-      }
-    }
+    await _loadItemsForCustomer(picked);
   }
 
   Future<void> _pickItem() async {
-    if (_selectedCustomer == null || _loadingItems) {
-      return;
-    }
-    if (_customerItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Customerga biriktirilgan mol topilmadi')),
-      );
+    if (_loadingItems) {
       return;
     }
     final l10n = context.l10n;
-    final picked = await showModalBottomSheet<SupplierItem>(
+    final options = await _itemOptionsFuture;
+    if (!mounted) {
+      return;
+    }
+    if (_selectedCustomer != null && _customerItems.isNotEmpty) {
+      final picked = await showModalBottomSheet<SupplierItem>(
+        context: context,
+        useSafeArea: true,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        sheetAnimationStyle: kM3PickerSheetAnimation,
+        builder: (context) {
+          return M3PickerSheet<SupplierItem>(
+            title: l10n.selectItem,
+            supportingText: _selectedCustomer!.name,
+            hintText: l10n.searchItem,
+            items: _customerItems,
+            itemTitle: (item) => item.name,
+            itemSubtitle: (_) => '',
+            matchesQuery: (item, query) {
+              return searchMatches(query, [
+                item.name,
+                item.code,
+              ]);
+            },
+            onSelected: (item) => Navigator.of(context).pop(item),
+          );
+        },
+      );
+      if (!mounted || picked == null) {
+        return;
+      }
+      setState(() => _selectedItem = picked);
+      return;
+    }
+    if (options.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Biriktirilgan mol topilmadi')),
+      );
+      return;
+    }
+    final picked = await showModalBottomSheet<CustomerItemOption>(
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       sheetAnimationStyle: kM3PickerSheetAnimation,
       builder: (context) {
-        return M3PickerSheet<SupplierItem>(
+        return M3PickerSheet<CustomerItemOption>(
           title: l10n.selectItem,
-          supportingText: _selectedCustomer!.name,
           hintText: l10n.searchItem,
-          items: _customerItems,
-          itemTitle: (item) => item.name,
-          itemSubtitle: (_) => '',
+          items: options,
+          itemTitle: (item) => item.itemName,
+          itemSubtitle: (item) => item.customerName,
           matchesQuery: (item, query) {
             return searchMatches(query, [
-              item.name,
-              item.code,
+              item.itemName,
+              item.itemCode,
+              item.customerName,
+              item.customerPhone,
             ]);
           },
           onSelected: (item) => Navigator.of(context).pop(item),
@@ -203,7 +284,14 @@ class _WerkaCustomerIssueCustomerScreenState
     if (!mounted || picked == null) {
       return;
     }
-    setState(() => _selectedItem = picked);
+    await _loadItemsForCustomer(
+      CustomerDirectoryEntry(
+        ref: picked.customerRef,
+        name: picked.customerName,
+        phone: picked.customerPhone,
+      ),
+      preferredItemCode: picked.itemCode,
+    );
   }
 
   Future<void> _submit() async {
@@ -334,7 +422,7 @@ class _WerkaCustomerIssueCustomerScreenState
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final canPickItem = _selectedCustomer != null && !_loadingItems;
+    final canPickItem = !_loadingItems;
     final canSubmit = _selectedCustomer != null &&
         _selectedItem != null &&
         !_submitting &&
@@ -384,6 +472,24 @@ class _WerkaCustomerIssueCustomerScreenState
                           style: theme.textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 18),
+                        Text(l10n.itemLabel,
+                            style: theme.textTheme.bodySmall),
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: canPickItem ? _pickItem : null,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                _loadingItems
+                                    ? l10n.loading
+                                    : _selectedItem?.name ?? l10n.selectItem,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
                         Text(l10n.customerLabel,
                             style: theme.textTheme.bodySmall),
                         const SizedBox(height: 6),
@@ -399,25 +505,16 @@ class _WerkaCustomerIssueCustomerScreenState
                             ),
                           ),
                         ),
-                        if (_selectedCustomer != null) ...[
+                        if (_selectedCustomer != null &&
+                            _selectedItem == null) ...[
                           const SizedBox(height: 14),
-                          Text(l10n.itemLabel,
-                              style: theme.textTheme.bodySmall),
-                          const SizedBox(height: 6),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: canPickItem ? _pickItem : null,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  _loadingItems
-                                      ? l10n.loading
-                                      : _selectedItem?.name ?? l10n.selectItem,
-                                ),
+                          if (_selectedCustomer!.phone.trim().isNotEmpty)
+                            Text(
+                              _selectedCustomer!.phone,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
                               ),
                             ),
-                          ),
                         ],
                         if (_selectedItem != null) ...[
                           const SizedBox(height: 14),

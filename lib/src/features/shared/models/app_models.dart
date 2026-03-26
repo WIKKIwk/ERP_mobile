@@ -128,6 +128,38 @@ class CustomerDirectoryEntry {
   }
 }
 
+class CustomerItemOption {
+  const CustomerItemOption({
+    required this.customerRef,
+    required this.customerName,
+    required this.customerPhone,
+    required this.itemCode,
+    required this.itemName,
+    required this.uom,
+    required this.warehouse,
+  });
+
+  final String customerRef;
+  final String customerName;
+  final String customerPhone;
+  final String itemCode;
+  final String itemName;
+  final String uom;
+  final String warehouse;
+
+  factory CustomerItemOption.fromJson(Map<String, dynamic> json) {
+    return CustomerItemOption(
+      customerRef: json['customer_ref'] as String? ?? '',
+      customerName: json['customer_name'] as String? ?? '',
+      customerPhone: json['customer_phone'] as String? ?? '',
+      itemCode: json['item_code'] as String? ?? '',
+      itemName: json['item_name'] as String? ?? '',
+      uom: json['uom'] as String? ?? '',
+      warehouse: json['warehouse'] as String? ?? '',
+    );
+  }
+}
+
 class WerkaCustomerIssueRecord {
   const WerkaCustomerIssueRecord({
     required this.entryID,

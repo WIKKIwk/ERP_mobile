@@ -111,6 +111,28 @@ extension MobileApiWerka on MobileApi {
         .toList();
   }
 
+  Future<List<CustomerItemOption>> werkaCustomerItemOptions({
+    String query = '',
+  }) async {
+    final response = await _sendAuthorized(
+      () => http.get(
+        Uri.parse('$baseUrl/v1/mobile/werka/customer-item-options').replace(
+          queryParameters: query.trim().isEmpty ? null : {'q': query.trim()},
+        ),
+        headers: _headers(requireToken()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Werka customer item options failed');
+    }
+    final List<dynamic> json = jsonDecode(response.body) as List<dynamic>;
+    return json
+        .map(
+          (item) => CustomerItemOption.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
   Future<DispatchRecord> createWerkaUnannouncedDraft({
     required String supplierRef,
     required String itemCode,
