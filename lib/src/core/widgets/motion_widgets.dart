@@ -17,24 +17,38 @@ class SmoothAppear extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (AppMotion.reduceMotion(context)) {
+      return child;
+    }
+
+    final resolvedDuration = AppMotion.adaptiveDuration(context, duration);
+    final resolvedDelay = AppMotion.adaptiveDuration(
+      context,
+      delay,
+      reducedDuration: Duration.zero,
+    );
+    final resolvedOffset = AppMotion.adaptiveOffset(context, offset);
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: duration + delay,
+      duration: resolvedDuration + resolvedDelay,
       curve: AppMotion.emphasizedDecelerate,
       builder: (context, value, animatedChild) {
-        final double delayedValue = delay == Duration.zero
+        final double delayedValue = resolvedDelay == Duration.zero
             ? value
-            : ((value * (duration + delay).inMilliseconds) -
-                        delay.inMilliseconds)
-                    .clamp(0, duration.inMilliseconds)
+            : ((value * (resolvedDuration + resolvedDelay).inMilliseconds) -
+                        resolvedDelay.inMilliseconds)
+                    .clamp(0, resolvedDuration.inMilliseconds)
                     .toDouble() /
-                duration.inMilliseconds;
+                resolvedDuration.inMilliseconds;
 
         return Opacity(
           opacity: delayedValue,
           child: Transform.translate(
             offset: Offset(
-                offset.dx * (1 - delayedValue), offset.dy * (1 - delayedValue)),
+              resolvedOffset.dx * (1 - delayedValue),
+              resolvedOffset.dy * (1 - delayedValue),
+            ),
             child: animatedChild,
           ),
         );
@@ -62,18 +76,30 @@ class SoftReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (AppMotion.reduceMotion(context)) {
+      return child;
+    }
+
+    final resolvedDuration = AppMotion.adaptiveDuration(context, duration);
+    final resolvedDelay = AppMotion.adaptiveDuration(
+      context,
+      delay,
+      reducedDuration: Duration.zero,
+    );
+    final resolvedOffset = AppMotion.adaptiveOffset(context, offset);
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: duration + delay,
+      duration: resolvedDuration + resolvedDelay,
       curve: AppMotion.emphasized,
       builder: (context, value, animatedChild) {
-        final double delayedValue = delay == Duration.zero
+        final double delayedValue = resolvedDelay == Duration.zero
             ? value
-            : ((value * (duration + delay).inMilliseconds) -
-                        delay.inMilliseconds)
-                    .clamp(0, duration.inMilliseconds)
+            : ((value * (resolvedDuration + resolvedDelay).inMilliseconds) -
+                        resolvedDelay.inMilliseconds)
+                    .clamp(0, resolvedDuration.inMilliseconds)
                     .toDouble() /
-                duration.inMilliseconds;
+                resolvedDuration.inMilliseconds;
         final eased = AppMotion.emphasizedDecelerate.transform(delayedValue);
         final scale = beginScale + ((1 - beginScale) * eased);
 
@@ -81,8 +107,8 @@ class SoftReveal extends StatelessWidget {
           opacity: eased,
           child: Transform.translate(
             offset: Offset(
-              offset.dx * (1 - eased),
-              offset.dy * (1 - eased),
+              resolvedOffset.dx * (1 - eased),
+              resolvedOffset.dy * (1 - eased),
             ),
             child: Transform.scale(
               scale: scale,
@@ -123,9 +149,15 @@ class _PressableScaleState extends State<PressableScale> {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedScale = AppMotion.adaptivePressScale(context, widget.scale);
+
     return AnimatedScale(
-      scale: pressed ? widget.scale : 1,
-      duration: AppMotion.fast,
+      scale: pressed ? resolvedScale : 1,
+      duration: AppMotion.adaptiveDuration(
+        context,
+        AppMotion.fast,
+        reducedDuration: Duration.zero,
+      ),
       curve: AppMotion.smooth,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(widget.borderRadius),

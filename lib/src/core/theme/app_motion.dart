@@ -18,4 +18,58 @@ class AppMotion {
   static const Curve pageIn = Easing.emphasizedDecelerate;
   static const Curve pageOut = Easing.emphasizedAccelerate;
   static const Curve spring = Curves.easeOutBack;
+
+  static bool reduceMotion(BuildContext context) {
+    return MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+  }
+
+  static bool isCupertinoPlatform(BuildContext context) {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
+  static Duration adaptiveDuration(
+    BuildContext context,
+    Duration base, {
+    Duration reducedDuration = Duration.zero,
+    double cupertinoFactor = 0.88,
+  }) {
+    if (reduceMotion(context)) {
+      return reducedDuration;
+    }
+    if (isCupertinoPlatform(context)) {
+      return Duration(
+        microseconds: (base.inMicroseconds * cupertinoFactor).round(),
+      );
+    }
+    return base;
+  }
+
+  static Offset adaptiveOffset(
+    BuildContext context,
+    Offset base, {
+    double cupertinoFactor = 0.72,
+  }) {
+    if (reduceMotion(context)) {
+      return Offset.zero;
+    }
+    if (isCupertinoPlatform(context)) {
+      return Offset(base.dx * cupertinoFactor, base.dy * cupertinoFactor);
+    }
+    return base;
+  }
+
+  static double adaptivePressScale(
+    BuildContext context,
+    double base, {
+    double cupertinoFactor = 0.7,
+  }) {
+    if (reduceMotion(context)) {
+      return 1;
+    }
+    if (isCupertinoPlatform(context)) {
+      return 1 - ((1 - base) * cupertinoFactor);
+    }
+    return base;
+  }
 }

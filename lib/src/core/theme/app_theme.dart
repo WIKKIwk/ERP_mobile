@@ -715,12 +715,13 @@ class AppTheme {
 
   static PageTransitionsTheme _pageTransitionsTheme() {
     const builder = _FadeOnlyPageTransitionsBuilder();
+    const cupertinoBuilder = CupertinoPageTransitionsBuilder();
     return const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: builder,
-        TargetPlatform.iOS: builder,
+        TargetPlatform.iOS: cupertinoBuilder,
         TargetPlatform.linux: builder,
-        TargetPlatform.macOS: builder,
+        TargetPlatform.macOS: cupertinoBuilder,
         TargetPlatform.windows: builder,
         TargetPlatform.fuchsia: builder,
       },
