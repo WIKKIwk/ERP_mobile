@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 Future<bool?> showM3ConfirmDialog({
@@ -7,9 +9,11 @@ Future<bool?> showM3ConfirmDialog({
   required String cancelLabel,
   required String confirmLabel,
   bool destructive = false,
+  bool blurBackground = false,
 }) {
   return showDialog<bool>(
     context: context,
+    barrierColor: blurBackground ? Colors.black.withValues(alpha: 0.28) : null,
     builder: (dialogContext) {
       final theme = Theme.of(dialogContext);
       final scheme = theme.colorScheme;
@@ -25,7 +29,7 @@ Future<bool?> showM3ConfirmDialog({
         side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.95)),
       );
 
-      return Dialog(
+      Widget dialog = Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         backgroundColor: scheme.surfaceContainerHigh,
         shape: RoundedRectangleBorder(
@@ -76,6 +80,15 @@ Future<bool?> showM3ConfirmDialog({
           ),
         ),
       );
+
+      if (blurBackground) {
+        dialog = BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: dialog,
+        );
+      }
+
+      return dialog;
     },
   );
 }

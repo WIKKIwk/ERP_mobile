@@ -11,6 +11,7 @@ Future<void> showLogoutPrompt(BuildContext context) async {
     message: context.l10n.logoutPrompt,
     cancelLabel: context.l10n.no,
     confirmLabel: context.l10n.yes,
+    blurBackground: true,
   );
   if (confirmed != true || !context.mounted) {
     return;
