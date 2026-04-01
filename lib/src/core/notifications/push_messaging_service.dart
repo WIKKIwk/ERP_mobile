@@ -15,7 +15,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       defaultTargetPlatform != TargetPlatform.iOS) {
     return;
   }
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (error, stackTrace) {
+    debugPrint('push background init skipped: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 }
 
 class PushMessagingService {
@@ -23,6 +28,7 @@ class PushMessagingService {
 
   static final PushMessagingService instance = PushMessagingService._();
   bool _initialized = false;
+  bool _firebaseReady = false;
 
   bool get _supportsRemotePush =>
       defaultTargetPlatform == TargetPlatform.android ||
@@ -48,7 +54,15 @@ class PushMessagingService {
     }
 
     debugPrint('push initialize start platform=$_platformName');
-    await Firebase.initializeApp();
+    try {
+      await Firebase.initializeApp();
+      _firebaseReady = true;
+    } catch (error, stackTrace) {
+      debugPrint('push initialize skipped: firebase unavailable -> $error');
+      debugPrintStack(stackTrace: stackTrace);
+      _initialized = true;
+      return;
+    }
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission();
@@ -141,6 +155,10 @@ class PushMessagingService {
       debugPrint('push sync skipped: unsupported platform or not logged in');
       return;
     }
+    if (!_firebaseReady) {
+      debugPrint('push sync skipped: firebase is not ready');
+      return;
+    }
     final messaging = FirebaseMessaging.instance;
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       final apnsToken = await messaging.getAPNSToken();
@@ -168,6 +186,10 @@ class PushMessagingService {
   Future<void> unregisterCurrentToken() async {
     if (!_supportsRemotePush || !AppSession.instance.isLoggedIn) {
       debugPrint('push unregister skipped: unsupported platform or not logged in');
+      return;
+    }
+    if (!_firebaseReady) {
+      debugPrint('push unregister skipped: firebase is not ready');
       return;
     }
     final token = await FirebaseMessaging.instance.getToken();
