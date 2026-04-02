@@ -41,6 +41,9 @@ class CustomerDock extends StatelessWidget {
           liftCenter: false,
           leading: [
             DockButton(
+              nativeId: 'customer_home',
+              nativeSymbol: 'house',
+              nativeSelectedSymbol: 'house.fill',
               icon: Icons.home_outlined,
               selectedIcon: Icons.home_filled,
               active: activeTab == CustomerDockTab.home,
@@ -61,6 +64,9 @@ class CustomerDock extends StatelessWidget {
             ),
           ],
           center: DockButton(
+            nativeId: 'customer_notifications',
+            nativeSymbol: 'bell',
+            nativeSelectedSymbol: 'bell.fill',
             icon: Icons.notifications_outlined,
             selectedIcon: Icons.notifications,
             active: activeTab == CustomerDockTab.notifications,
@@ -83,6 +89,9 @@ class CustomerDock extends StatelessWidget {
           ),
           trailing: [
             DockButton(
+              nativeId: 'customer_profile',
+              nativeSymbol: 'person.crop.circle',
+              nativeSelectedSymbol: 'person.crop.circle.fill',
               icon: Icons.account_circle_outlined,
               selectedIcon: Icons.account_circle,
               active: activeTab == CustomerDockTab.profile,

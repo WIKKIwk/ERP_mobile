@@ -40,6 +40,9 @@ class SupplierDock extends StatelessWidget {
           tightToEdges: tightToEdges,
           leading: [
             DockButton(
+              nativeId: 'supplier_home',
+              nativeSymbol: 'house',
+              nativeSelectedSymbol: 'house.fill',
               icon: Icons.home_outlined,
               selectedIcon: Icons.home_rounded,
               active: activeTab == SupplierDockTab.home,
@@ -55,6 +58,9 @@ class SupplierDock extends StatelessWidget {
               },
             ),
             DockButton(
+              nativeId: 'supplier_notifications',
+              nativeSymbol: 'bell',
+              nativeSelectedSymbol: 'bell.fill',
               icon: Icons.notifications_outlined,
               selectedIcon: Icons.notifications_rounded,
               active: activeTab == SupplierDockTab.notifications,
@@ -72,6 +78,9 @@ class SupplierDock extends StatelessWidget {
             ),
           ],
           center: DockButton(
+            nativeId: 'supplier_create',
+            nativeSymbol: 'plus',
+            nativeSelectedSymbol: 'plus',
             icon: Icons.add_rounded,
             selectedIcon: Icons.add_rounded,
             primary: true,
@@ -85,6 +94,9 @@ class SupplierDock extends StatelessWidget {
           ),
           trailing: [
             DockButton(
+              nativeId: 'supplier_recent',
+              nativeSymbol: 'clock',
+              nativeSelectedSymbol: 'clock.fill',
               icon: Icons.history_outlined,
               selectedIcon: Icons.history_rounded,
               active: activeTab == SupplierDockTab.recent,
@@ -100,6 +112,9 @@ class SupplierDock extends StatelessWidget {
               },
             ),
             DockButton(
+              nativeId: 'supplier_profile',
+              nativeSymbol: 'person.crop.circle',
+              nativeSelectedSymbol: 'person.crop.circle.fill',
               icon: Icons.account_circle_outlined,
               selectedIcon: Icons.account_circle_rounded,
               active: activeTab == SupplierDockTab.profile,

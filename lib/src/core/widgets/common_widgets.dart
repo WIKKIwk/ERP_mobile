@@ -1,4 +1,5 @@
 import '../../features/shared/models/app_models.dart';
+import '../native_dock_bridge.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import 'dart:async';
@@ -185,86 +186,137 @@ class ActionDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double width = MediaQuery.sizeOf(context).width;
-    final _DockDeviceClass deviceClass = width <= 375
-        ? _DockDeviceClass.small
-        : width <= 430
-            ? _DockDeviceClass.medium
-            : _DockDeviceClass.large;
-    final List<Widget> buttons = [
-      ...leading,
-      center,
-      ...trailing,
-    ];
+    return AnimatedBuilder(
+      animation: NativeDockBridge.instance,
+      builder: (context, _) {
+        final double width = MediaQuery.sizeOf(context).width;
+        final _DockDeviceClass deviceClass = width <= 375
+            ? _DockDeviceClass.small
+            : width <= 430
+                ? _DockDeviceClass.medium
+                : _DockDeviceClass.large;
+        final List<Widget> buttons = [
+          ...leading,
+          center,
+          ...trailing,
+        ];
 
-    final double hostHeight = _hostHeightForDevice(deviceClass);
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final bool isDark = AppTheme.isDark(context);
+        final double hostHeight = _hostHeightForDevice(deviceClass);
+        final nativeItems = _buildNativeItems(buttons);
+        final shouldUseNativeDock =
+            NativeDockBridge.isSupportedPlatform &&
+            nativeItems != null &&
+            NativeDockBridge.instance.isReady;
 
-    return SizedBox(
-      height: hostHeight,
-      child: Stack(
-        children: [
-          Positioned(
-            left: tightToEdges ? 0 : 12,
-            right: tightToEdges ? 0 : 12,
-            bottom: 0,
-            child: Container(
-              height: compact ? hostHeight - 16 : hostHeight - 12,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? scheme.surfaceContainerLow
-                    : scheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: AppTheme.cardBorder(context)),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? const Color(0x24000000)
-                        : const Color(0x120E1525),
-                    blurRadius: isDark ? 18 : 14,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
+        if (NativeDockBridge.isSupportedPlatform && nativeItems != null) {
+          NativeDockBridge.instance.register(
+            NativeDockState(
+              visible: true,
+              compact: compact,
+              tightToEdges: tightToEdges,
+              items: nativeItems,
             ),
-          ),
-          Positioned(
-            left: tightToEdges ? 8 : 20,
-            right: tightToEdges ? 8 : 20,
-            bottom: compact ? 5 : 7,
-            child: Row(
-              children: List<Widget>.generate(
-                buttons.length,
-                (index) => Expanded(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: centered && !tightToEdges
-                            ? 4
-                            : switch (deviceClass) {
-                                _DockDeviceClass.small => tightToEdges ? 0 : 1,
-                                _DockDeviceClass.medium =>
-                                  tightToEdges ? 1 : 2,
-                                _DockDeviceClass.large =>
-                                  tightToEdges ? 1 : 3,
-                              },
+          );
+        }
+
+        if (shouldUseNativeDock) {
+          return SizedBox(height: hostHeight);
+        }
+
+        final theme = Theme.of(context);
+        final scheme = theme.colorScheme;
+        final bool isDark = AppTheme.isDark(context);
+
+        return SizedBox(
+          height: hostHeight,
+          child: Stack(
+            children: [
+              Positioned(
+                left: tightToEdges ? 0 : 12,
+                right: tightToEdges ? 0 : 12,
+                bottom: 0,
+                child: Container(
+                  height: compact ? hostHeight - 16 : hostHeight - 12,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? scheme.surfaceContainerLow
+                        : scheme.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: AppTheme.cardBorder(context)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark
+                            ? const Color(0x24000000)
+                            : const Color(0x120E1525),
+                        blurRadius: isDark ? 18 : 14,
+                        offset: const Offset(0, 8),
                       ),
-                      child: Transform.translate(
-                        offset: const Offset(0, 0),
-                        child: buttons[index],
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: tightToEdges ? 8 : 20,
+                right: tightToEdges ? 8 : 20,
+                bottom: compact ? 5 : 7,
+                child: Row(
+                  children: List<Widget>.generate(
+                    buttons.length,
+                    (index) => Expanded(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: centered && !tightToEdges
+                                ? 4
+                                : switch (deviceClass) {
+                                    _DockDeviceClass.small =>
+                                      tightToEdges ? 0 : 1,
+                                    _DockDeviceClass.medium =>
+                                      tightToEdges ? 1 : 2,
+                                    _DockDeviceClass.large =>
+                                      tightToEdges ? 1 : 3,
+                                  },
+                          ),
+                          child: Transform.translate(
+                            offset: const Offset(0, 0),
+                            child: buttons[index],
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  List<NativeDockItem>? _buildNativeItems(List<Widget> widgets) {
+    final items = <NativeDockItem>[];
+    for (final widget in widgets) {
+      if (widget is! DockButton ||
+          widget.nativeId == null ||
+          widget.nativeSymbol == null) {
+        return null;
+      }
+      items.add(
+        NativeDockItem(
+          id: widget.nativeId!,
+          symbol: widget.nativeSymbol!,
+          selectedSymbol: widget.nativeSelectedSymbol,
+          active: widget.active,
+          primary: widget.primary,
+          showBadge: widget.showBadge,
+          onTap: widget.onTap,
+          onHoldComplete: widget.onHoldComplete,
+        ),
+      );
+    }
+    return items;
   }
 }
 
@@ -282,6 +334,9 @@ class DockButton extends StatefulWidget {
     this.holdDuration = const Duration(seconds: 1),
     this.compact = false,
     this.showBadge = false,
+    this.nativeId,
+    this.nativeSymbol,
+    this.nativeSelectedSymbol,
   });
 
   final IconData? icon;
@@ -295,6 +350,9 @@ class DockButton extends StatefulWidget {
   final Duration holdDuration;
   final bool compact;
   final bool showBadge;
+  final String? nativeId;
+  final String? nativeSymbol;
+  final String? nativeSelectedSymbol;
 
   @override
   State<DockButton> createState() => _DockButtonState();

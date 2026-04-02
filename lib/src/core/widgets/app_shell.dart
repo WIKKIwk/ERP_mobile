@@ -1,6 +1,7 @@
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../native_back_button_bridge.dart';
+import '../native_dock_bridge.dart';
 import 'app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 
@@ -33,6 +34,9 @@ class AppShell extends StatelessWidget {
     final theme = Theme.of(context);
     final shouldHideLeading =
         leading != null && NativeBackButtonBridge.shouldUseNativeBackButton(context);
+    if (bottom == null) {
+      NativeDockBridge.instance.clearFromBuild();
+    }
 
     return Scaffold(
       extendBody: true,

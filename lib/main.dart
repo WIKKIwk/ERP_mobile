@@ -3,6 +3,7 @@ import 'src/app/app.dart';
 import 'src/core/app_preview.dart';
 import 'src/core/localization/locale_controller.dart';
 import 'src/core/native_back_button_bridge.dart';
+import 'src/core/native_dock_bridge.dart';
 import 'src/core/notifications/local_notification_service.dart';
 import 'src/core/notifications/push_messaging_service.dart';
 import 'src/core/notifications/notification_unread_store.dart';
@@ -17,6 +18,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _runStartupStep('native back button bridge', () async {
     await NativeBackButtonBridge.instance.initialize();
+  });
+  await _runStartupStep('native dock bridge', () async {
+    await NativeDockBridge.instance.initialize();
   });
   await _runStartupStep(
     'local notifications',

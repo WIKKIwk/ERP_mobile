@@ -38,6 +38,9 @@ class WerkaDock extends StatelessWidget {
           tightToEdges: tightToEdges,
           leading: [
             DockButton(
+              nativeId: 'werka_home',
+              nativeSymbol: 'house',
+              nativeSelectedSymbol: 'house.fill',
               icon: Icons.home_outlined,
               selectedIcon: Icons.home_rounded,
               active: activeTab == WerkaDockTab.home,
@@ -53,6 +56,9 @@ class WerkaDock extends StatelessWidget {
               },
             ),
             DockButton(
+              nativeId: 'werka_notifications',
+              nativeSymbol: 'bell',
+              nativeSelectedSymbol: 'bell.fill',
               icon: Icons.notifications_outlined,
               selectedIcon: Icons.notifications_rounded,
               active: activeTab == WerkaDockTab.notifications,
@@ -70,6 +76,9 @@ class WerkaDock extends StatelessWidget {
             ),
           ],
           center: DockButton(
+            nativeId: 'werka_create',
+            nativeSymbol: 'plus',
+            nativeSelectedSymbol: 'plus',
             icon: Icons.add_rounded,
             selectedIcon: Icons.add_rounded,
             primary: true,
@@ -80,6 +89,9 @@ class WerkaDock extends StatelessWidget {
           ),
           trailing: [
             DockButton(
+              nativeId: 'werka_recent',
+              nativeSymbol: 'clock',
+              nativeSelectedSymbol: 'clock.fill',
               icon: Icons.history_rounded,
               selectedIcon: Icons.history_rounded,
               active: activeTab == WerkaDockTab.recent,
@@ -95,6 +107,9 @@ class WerkaDock extends StatelessWidget {
               },
             ),
             DockButton(
+              nativeId: 'werka_profile',
+              nativeSymbol: 'person.crop.circle',
+              nativeSelectedSymbol: 'person.crop.circle.fill',
               icon: Icons.account_circle_outlined,
               selectedIcon: Icons.account_circle_rounded,
               active: activeTab == WerkaDockTab.profile,

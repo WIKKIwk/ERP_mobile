@@ -30,6 +30,9 @@ class AdminDock extends StatelessWidget {
       tightToEdges: tightToEdges,
       leading: [
         DockButton(
+          nativeId: 'admin_home',
+          nativeSymbol: 'house',
+          nativeSelectedSymbol: 'house.fill',
           icon: Icons.home_outlined,
           selectedIcon: Icons.home_rounded,
           active: activeTab == AdminDockTab.home,
@@ -41,6 +44,9 @@ class AdminDock extends StatelessWidget {
           },
         ),
         DockButton(
+          nativeId: 'admin_suppliers',
+          nativeSymbol: 'person.3',
+          nativeSelectedSymbol: 'person.3.fill',
           icon: Icons.groups_outlined,
           selectedIcon: Icons.groups_rounded,
           active: activeTab == AdminDockTab.suppliers,
@@ -55,6 +61,9 @@ class AdminDock extends StatelessWidget {
         ),
       ],
       center: DockButton(
+        nativeId: 'admin_create',
+        nativeSymbol: 'plus',
+        nativeSelectedSymbol: 'plus',
         icon: Icons.add_rounded,
         selectedIcon: Icons.add_rounded,
         primary: true,
@@ -69,6 +78,9 @@ class AdminDock extends StatelessWidget {
       ),
       trailing: [
         DockButton(
+          nativeId: 'admin_activity',
+          nativeSymbol: 'clock',
+          nativeSelectedSymbol: 'clock.fill',
           icon: Icons.history_outlined,
           selectedIcon: Icons.history_rounded,
           active: activeTab == AdminDockTab.activity,
@@ -82,6 +94,9 @@ class AdminDock extends StatelessWidget {
           },
         ),
         DockButton(
+          nativeId: 'admin_profile',
+          nativeSymbol: 'person.crop.circle',
+          nativeSelectedSymbol: 'person.crop.circle.fill',
           icon: Icons.account_circle_outlined,
           selectedIcon: Icons.account_circle_rounded,
           active: activeTab == AdminDockTab.profile,

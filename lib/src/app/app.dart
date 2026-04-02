@@ -3,6 +3,7 @@ import '../core/app_preview.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/localization/locale_controller.dart';
 import '../core/native_back_button_bridge.dart';
+import '../core/native_dock_bridge.dart';
 import '../core/network/network_requirement_runtime.dart';
 import '../core/notifications/notification_runtime.dart';
 import '../core/security/app_lock_gate.dart';
@@ -27,7 +28,10 @@ class ErpnextStockMobileApp extends StatelessWidget {
           title: AppLocalizations(LocaleController.instance.locale).appTitle,
           debugShowCheckedModeBanner: false,
           navigatorKey: NativeBackButtonBridge.instance.navigatorKey,
-          navigatorObservers: [NativeBackButtonBridge.instance],
+          navigatorObservers: [
+            NativeBackButtonBridge.instance,
+            NativeDockBridge.instance,
+          ],
           locale: AppPreview.enabled
               ? DevicePreview.locale(context)
               : LocaleController.instance.locale,
