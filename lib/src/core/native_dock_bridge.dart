@@ -62,19 +62,19 @@ class NativeDockBridge extends NavigatorObserver with ChangeNotifier {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
-    clearFromBuild();
+    _refreshVisibleRoute();
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    clearFromBuild();
+    _refreshVisibleRoute();
   }
 
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didRemove(route, previousRoute);
-    clearFromBuild();
+    _refreshVisibleRoute();
   }
 
   @override
@@ -83,7 +83,14 @@ class NativeDockBridge extends NavigatorObserver with ChangeNotifier {
     Route<dynamic>? oldRoute,
   }) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    _refreshVisibleRoute();
+  }
+
+  void _refreshVisibleRoute() {
     clearFromBuild();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   void _scheduleSync() {
