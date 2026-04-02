@@ -68,7 +68,7 @@ class WerkaCustomerDeliveryDetailScreen extends StatelessWidget {
       (label: l10n.statusLabel, value: _statusLabel(l10n)),
       (label: l10n.dateLabel, value: record.createdLabel),
     ];
-    final showFlutterBackButton = !useNativeBackButton(context);
+    useNativeNavigationTitle(context, l10n.customerShipmentTitle);
     return Scaffold(
       extendBody: true,
       backgroundColor: AppTheme.shellStart(context),
@@ -76,25 +76,7 @@ class WerkaCustomerDeliveryDetailScreen extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              child: Row(
-                children: [
-                  if (showFlutterBackButton) ...[
-                    NativeBackButtonSlot(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                    const SizedBox(width: 14),
-                  ],
-                  Expanded(
-                    child: Text(
-                      l10n.customerShipmentTitle,
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            NativeNavigationTitleHeader(title: l10n.customerShipmentTitle),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(10, 0, 12, 110),

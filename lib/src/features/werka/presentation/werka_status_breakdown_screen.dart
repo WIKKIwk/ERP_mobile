@@ -75,7 +75,7 @@ class _WerkaStatusBreakdownScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final showFlutterBackButton = !useNativeBackButton(context);
+    useNativeNavigationTitle(context, _title);
     return Scaffold(
       extendBody: true,
       backgroundColor: AppTheme.shellStart(context),
@@ -83,25 +83,7 @@ class _WerkaStatusBreakdownScreenState
         bottom: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              child: Row(
-                children: [
-                  if (showFlutterBackButton) ...[
-                    NativeBackButtonSlot(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                    const SizedBox(width: 14),
-                  ],
-                  Expanded(
-                    child: Text(
-                      _title,
-                      style: theme.textTheme.headlineMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            NativeNavigationTitleHeader(title: _title),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),

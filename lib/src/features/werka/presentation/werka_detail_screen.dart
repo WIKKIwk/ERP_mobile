@@ -163,7 +163,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final showFlutterBackButton = !useNativeBackButton(context);
+    useNativeNavigationTitle(context, 'Qabul qilish');
     final detailRows = <({String label, String value})>[
       (label: 'Supplier', value: widget.record.supplierName),
       (
@@ -182,25 +182,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
         bottom: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              child: Row(
-                children: [
-                  if (showFlutterBackButton) ...[
-                    NativeBackButtonSlot(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                    const SizedBox(width: 14),
-                  ],
-                  Expanded(
-                    child: Text(
-                      'Qabul qilish',
-                      style: textTheme.headlineMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const NativeNavigationTitleHeader(title: 'Qabul qilish'),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(10, 0, 12, 110),

@@ -62,8 +62,7 @@ class _CustomerStatusDetailScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final showFlutterBackButton = !useNativeBackButton(context);
-    final headerLeftPadding = showFlutterBackButton ? 20.0 : 84.0;
+    useNativeNavigationTitle(context, _title);
     return Scaffold(
       extendBody: true,
       backgroundColor: AppTheme.shellStart(context),
@@ -71,31 +70,7 @@ class _CustomerStatusDetailScreenState
         bottom: false,
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(headerLeftPadding, 18, 20, 18),
-              child: Row(
-                children: [
-                  if (showFlutterBackButton) ...[
-                    NativeBackButtonSlot(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                    const SizedBox(width: 14),
-                  ],
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          _title,
-                          style: theme.textTheme.headlineMedium,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            NativeNavigationTitleHeader(title: _title),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 16, 0),

@@ -37,6 +37,12 @@ class NativeBackButtonBridge extends NavigatorObserver {
     return visible;
   }
 
+  static bool useNativeNavigationTitle(BuildContext context, String title) {
+    final useNative = shouldUseNativeBackButton(context);
+    instance._syncTitleFromBuild(useNative ? title : null);
+    return useNative;
+  }
+
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
@@ -87,6 +93,21 @@ class NativeBackButtonBridge extends NavigatorObserver {
   Future<void> _setVisible(bool visible) async {
     try {
       await _channel.invokeMethod('setBackButtonVisible', visible);
+    } catch (_) {}
+  }
+
+  void _syncTitleFromBuild(String? title) {
+    if (!_initialized) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_setTitle(title));
+    });
+  }
+
+  Future<void> _setTitle(String? title) async {
+    try {
+      await _channel.invokeMethod('setBackButtonTitle', title);
     } catch (_) {}
   }
 

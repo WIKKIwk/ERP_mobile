@@ -34,6 +34,9 @@ final class NativeBackNavigationController: UINavigationController {
     messenger: flutterBinaryMessenger,
     onVisibilityChanged: { [weak self] visible in
       self?.setBackButtonVisible(visible)
+    },
+    onTitleChanged: { [weak self] title in
+      self?.setNavigationTitle(title)
     }
   )
 
@@ -71,6 +74,11 @@ final class NativeBackNavigationController: UINavigationController {
     }
   }
 
+  private func setNavigationTitle(_ title: String?) {
+    topViewController?.navigationItem.title = title
+    navigationBar.topItem?.title = title
+  }
+
   private func makeBackBarButtonItem() -> UIBarButtonItem {
     let configuration = UIImage.SymbolConfiguration(pointSize: 17, weight: .semibold)
     let image = UIImage(systemName: "chevron.backward", withConfiguration: configuration)
@@ -105,16 +113,19 @@ final class NativeBackNavigationController: UINavigationController {
 private final class NativeBackButtonChannelBridge: NSObject {
   private let channel: FlutterMethodChannel
   private let onVisibilityChanged: (Bool) -> Void
+  private let onTitleChanged: (String?) -> Void
 
   init(
     messenger: FlutterBinaryMessenger,
-    onVisibilityChanged: @escaping (Bool) -> Void
+    onVisibilityChanged: @escaping (Bool) -> Void,
+    onTitleChanged: @escaping (String?) -> Void
   ) {
     self.channel = FlutterMethodChannel(
       name: "accord/native_back_button",
       binaryMessenger: messenger
     )
     self.onVisibilityChanged = onVisibilityChanged
+    self.onTitleChanged = onTitleChanged
     super.init()
     channel.setMethodCallHandler(handleMethodCall)
     channel.invokeMethod("nativeBackButtonReady", arguments: nil)
@@ -130,6 +141,12 @@ private final class NativeBackButtonChannelBridge: NSObject {
       let visible = (call.arguments as? Bool) ?? false
       DispatchQueue.main.async {
         self.onVisibilityChanged(visible)
+      }
+      result(nil)
+    case "setBackButtonTitle":
+      let title = call.arguments as? String
+      DispatchQueue.main.async {
+        self.onTitleChanged(title)
       }
       result(nil)
     default:

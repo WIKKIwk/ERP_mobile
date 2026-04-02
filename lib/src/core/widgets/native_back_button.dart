@@ -5,6 +5,47 @@ bool useNativeBackButton(BuildContext context) {
   return NativeBackButtonBridge.shouldUseNativeBackButton(context);
 }
 
+bool useNativeNavigationTitle(BuildContext context, String title) {
+  return NativeBackButtonBridge.useNativeNavigationTitle(context, title);
+}
+
+class NativeNavigationTitleHeader extends StatelessWidget {
+  const NativeNavigationTitleHeader({
+    super.key,
+    required this.title,
+    this.padding = const EdgeInsets.fromLTRB(20, 18, 20, 18),
+  });
+
+  final String title;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final showFlutterBackButton = !useNativeNavigationTitle(context, title);
+    if (!showFlutterBackButton) {
+      return const SizedBox(height: 8);
+    }
+    final theme = Theme.of(context);
+    return Padding(
+      padding: padding,
+      child: Row(
+        children: [
+          NativeBackButtonSlot(
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.headlineMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class NativeBackButtonSlot extends StatelessWidget {
   const NativeBackButtonSlot({
     super.key,
