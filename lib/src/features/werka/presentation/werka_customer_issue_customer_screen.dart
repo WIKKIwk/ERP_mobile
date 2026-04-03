@@ -85,6 +85,19 @@ class _WerkaCustomerIssueCustomerScreenState
     );
   }
 
+  void _clearSelectedItem() {
+    setState(() {
+      _selectedItem = null;
+      _qtyController.clear();
+    });
+  }
+
+  void _clearSelectedCustomer() {
+    setState(() {
+      _selectedCustomer = null;
+    });
+  }
+
   Future<void> _pickCustomer() async {
     final picked = await showModalBottomSheet<CustomerDirectoryEntry>(
       context: context,
@@ -355,30 +368,54 @@ class _WerkaCustomerIssueCustomerScreenState
                     const SizedBox(height: 18),
                     Text(l10n.itemLabel, style: theme.textTheme.bodySmall),
                     const SizedBox(height: 6),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: _submitting ? null : _pickItem,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(_selectedItem?.name ?? l10n.selectItem),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _submitting ? null : _pickItem,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child:
+                                  Text(_selectedItem?.name ?? l10n.selectItem),
+                            ),
+                          ),
                         ),
-                      ),
+                        if (_selectedItem != null) ...[
+                          const SizedBox(width: 8),
+                          IconButton.filledTonal(
+                            tooltip: 'Clear item',
+                            onPressed: _submitting ? null : _clearSelectedItem,
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 14),
                     Text(l10n.customerLabel, style: theme.textTheme.bodySmall),
                     const SizedBox(height: 6),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: _submitting ? null : _pickCustomer,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            _selectedCustomer?.name ?? l10n.selectCustomer,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _submitting ? null : _pickCustomer,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                _selectedCustomer?.name ?? l10n.selectCustomer,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        if (_selectedCustomer != null) ...[
+                          const SizedBox(width: 8),
+                          IconButton.filledTonal(
+                            tooltip: 'Clear customer',
+                            onPressed:
+                                _submitting ? null : _clearSelectedCustomer,
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ],
                     ),
                     if (_selectedCustomer != null &&
                         _selectedItem == null &&
