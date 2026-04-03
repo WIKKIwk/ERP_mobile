@@ -1,3 +1,4 @@
+import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
 import '../../../core/app_preview.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -5,6 +6,7 @@ import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/notifications/werka_runtime_store.dart';
 import '../../../core/search/search_normalizer.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/native_back_button.dart';
 import '../../shared/models/app_models.dart';
 import 'dart:math';
@@ -58,6 +60,20 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
 
   Future<void> _pickCustomer() async {
     if (_previewMode) {
+      final previewCustomers = _selectedItem == null
+          ? _previewCustomers
+          : _previewOptions
+              .where((item) => item.itemCode == _selectedItem!.code)
+              .map(_customerFromOption)
+              .fold<List<CustomerDirectoryEntry>>(<CustomerDirectoryEntry>[], (
+              result,
+              customer,
+            ) {
+              if (result.any((item) => item.ref == customer.ref)) {
+                return result;
+              }
+              return [...result, customer];
+            });
       final picked = await showModalBottomSheet<CustomerDirectoryEntry>(
         context: context,
         useSafeArea: true,
@@ -68,7 +84,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
           return M3PickerSheet<CustomerDirectoryEntry>(
             title: context.l10n.selectCustomer,
             hintText: context.l10n.searchCustomer,
-            items: _previewCustomers,
+            items: previewCustomers,
             itemTitle: (item) => item.name,
             itemSubtitle: (item) => item.phone,
             matchesQuery: (item, query) => searchMatches(query, [
@@ -84,8 +100,9 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
       }
       setState(() {
         _selectedCustomer = picked;
-        _selectedItem = null;
-        _qtyController.clear();
+        if (_selectedItem == null) {
+          _qtyController.clear();
+        }
       });
       return;
     }
@@ -100,11 +117,19 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
         return M3AsyncPickerSheet<CustomerDirectoryEntry>(
           title: context.l10n.selectCustomer,
           hintText: context.l10n.searchCustomer,
-          loadPage: (query, offset, limit) => MobileApi.instance.werkaCustomers(
-            query: query,
-            offset: offset,
-            limit: limit,
-          ),
+          loadPage: (query, offset, limit) => _selectedItem != null
+              ? MobileApi.instance.werkaCustomersForItem(
+                  itemCode: _selectedItem!.code,
+                  itemName: _selectedItem!.name,
+                  query: query,
+                  offset: offset,
+                  limit: limit,
+                )
+              : MobileApi.instance.werkaCustomers(
+                  query: query,
+                  offset: offset,
+                  limit: limit,
+                ),
           itemTitle: (item) => item.name,
           itemSubtitle: (item) => item.phone,
           onSelected: (item) => Navigator.of(context).pop(item),
@@ -116,8 +141,9 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
     }
     setState(() {
       _selectedCustomer = picked;
-      _selectedItem = null;
-      _qtyController.clear();
+      if (_selectedItem == null) {
+        _qtyController.clear();
+      }
     });
   }
 
@@ -604,22 +630,13 @@ class _WerkaBatchDispatchReviewScreenState
         return;
       }
       setState(() => _submitting = false);
-      await showDialog<void>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(context.l10n.batchSubmitResultTitle),
-            content: Text(
-              context.l10n.batchCreatedCountLabel(_lines.length),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(context.l10n.confirmTitle),
-              ),
-            ],
-          );
-        },
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (context) => _WerkaBatchSuccessScreen(
+            createdCount: _lines.length,
+            failedCount: 0,
+          ),
+        ),
       );
       return;
     }
@@ -666,6 +683,18 @@ class _WerkaBatchDispatchReviewScreenState
     setState(() => _submitting = false);
 
     final l10n = context.l10n;
+    if (failed.isEmpty) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (context) => _WerkaBatchSuccessScreen(
+            createdCount: createdCount,
+            failedCount: 0,
+          ),
+        ),
+      );
+      return;
+    }
+
     await showDialog<void>(
       context: context,
       builder: (context) {
@@ -676,16 +705,14 @@ class _WerkaBatchDispatchReviewScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(l10n.batchCreatedCountLabel(createdCount)),
-              if (failed.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(l10n.batchFailedCountLabel(failed.length)),
-              ],
+              const SizedBox(height: 8),
+              Text(l10n.batchFailedCountLabel(failed.length)),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.confirmTitle),
+              child: Text(l10n.closeAction),
             ),
           ],
         );
@@ -866,7 +893,7 @@ class _WerkaBatchDispatchReviewScreenState
                 FilledButton(
                   onPressed: canSubmit ? _submit : null,
                   child: Text(
-                    _submitting ? l10n.pinSaving : l10n.confirmTitle,
+                    _submitting ? l10n.sending : l10n.confirmTitle,
                   ),
                 ),
               ],
@@ -945,6 +972,94 @@ class _SummaryChip extends StatelessWidget {
         style: theme.textTheme.bodyMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),
+      ),
+    );
+  }
+}
+
+class _WerkaBatchSuccessScreen extends StatelessWidget {
+  const _WerkaBatchSuccessScreen({
+    required this.createdCount,
+    required this.failedCount,
+  });
+
+  final int createdCount;
+  final int failedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return AppShell(
+      title: l10n.sentSuccess,
+      subtitle: '',
+      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
+      bottom: const WerkaDock(activeTab: null),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 140),
+          Card.filled(
+            margin: EdgeInsets.zero,
+            color: scheme.surfaceContainerLow,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+              side: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.7),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 88,
+                    width: 88,
+                    decoration: BoxDecoration(
+                      color: scheme.secondaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.verified_rounded,
+                      size: 44,
+                      color: scheme.onSecondaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    l10n.batchCreatedCountLabel(createdCount),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    failedCount > 0
+                        ? l10n.batchFailedCountLabel(failedCount)
+                        : l10n.batchSentLine(createdCount),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.werkaCreateHub,
+                (route) => route.isFirst,
+              ),
+              child: Text(l10n.createFlowBack),
+            ),
+          ),
+        ],
       ),
     );
   }

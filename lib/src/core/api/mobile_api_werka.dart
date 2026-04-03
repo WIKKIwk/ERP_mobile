@@ -58,6 +58,72 @@ extension MobileApiWerka on MobileApi {
         query: query.trim(), limit: limit, offset: offset);
   }
 
+  Future<List<CustomerDirectoryEntry>> werkaCustomersForItem({
+    required String itemCode,
+    String itemName = '',
+    String query = '',
+    int limit = 200,
+    int offset = 0,
+  }) async {
+    final trimmedCode = itemCode.trim();
+    final trimmedName = itemName.trim();
+    final candidates = <CustomerDirectoryEntry>[];
+    final seen = <String>{};
+
+    Future<void> collect(String lookup) async {
+      if (lookup.trim().isEmpty) {
+        return;
+      }
+      final options = await werkaCustomerItemOptions(
+        query: lookup,
+        limit: 200,
+        offset: 0,
+      );
+      for (final option in options) {
+        if (trimmedCode.isNotEmpty &&
+            option.itemCode.trim().toLowerCase() != trimmedCode.toLowerCase()) {
+          continue;
+        }
+        final customer = CustomerDirectoryEntry(
+          ref: option.customerRef,
+          name: option.customerName,
+          phone: option.customerPhone,
+        );
+        final key = customer.ref.trim();
+        if (!seen.add(key)) {
+          continue;
+        }
+        candidates.add(customer);
+      }
+    }
+
+    await collect(trimmedCode);
+    if (candidates.isEmpty && trimmedName.isNotEmpty) {
+      await collect(trimmedName);
+    }
+
+    final filtered = query.trim().isEmpty
+        ? candidates
+        : candidates
+            .where(
+              (customer) =>
+                  _matchesCustomer(customer, query.trim().toLowerCase()),
+            )
+            .toList();
+
+    filtered.sort(
+      (left, right) =>
+          left.name.toLowerCase().compareTo(right.name.toLowerCase()),
+    );
+
+    if (offset >= filtered.length) {
+      return const <CustomerDirectoryEntry>[];
+    }
+    final end =
+        (offset + limit) > filtered.length ? filtered.length : offset + limit;
+    return filtered.sublist(offset, end);
+  }
+
   Future<List<CustomerDirectoryEntry>> _fetchWerkaCustomers({
     required String query,
     required int limit,

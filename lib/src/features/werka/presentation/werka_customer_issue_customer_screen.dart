@@ -96,11 +96,19 @@ class _WerkaCustomerIssueCustomerScreenState
         return M3AsyncPickerSheet<CustomerDirectoryEntry>(
           title: context.l10n.selectCustomer,
           hintText: context.l10n.searchCustomer,
-          loadPage: (query, offset, limit) => MobileApi.instance.werkaCustomers(
-            query: query,
-            offset: offset,
-            limit: limit,
-          ),
+          loadPage: (query, offset, limit) => _selectedItem != null
+              ? MobileApi.instance.werkaCustomersForItem(
+                  itemCode: _selectedItem!.code,
+                  itemName: _selectedItem!.name,
+                  query: query,
+                  offset: offset,
+                  limit: limit,
+                )
+              : MobileApi.instance.werkaCustomers(
+                  query: query,
+                  offset: offset,
+                  limit: limit,
+                ),
           itemTitle: (item) => item.name,
           itemSubtitle: (item) => item.phone,
           onSelected: (item) => Navigator.of(context).pop(item),
@@ -112,7 +120,6 @@ class _WerkaCustomerIssueCustomerScreenState
     }
     setState(() {
       _selectedCustomer = picked;
-      _selectedItem = null;
     });
   }
 

@@ -187,6 +187,7 @@ class AppLocalizations {
         'Нужно минимум 2 товара.',
       );
   String get batchSubmitResultTitle => _t('Natija', 'Result', 'Результат');
+  String get closeAction => _t('Yopish', 'Close', 'Закрыть');
   String get notificationsTitle =>
       _t('Bildirishnomalar', 'Notifications', 'Уведомления');
   String get noNotifications => _t('Hali bildirishnomalar yo‘q.',
@@ -313,6 +314,11 @@ class AppLocalizations {
         '$count ta jo‘natma xato bo‘ldi',
         '$count shipments failed',
         '$count отправок завершились ошибкой',
+      );
+  String batchSentLine(int count) => _t(
+        '$count ta jo‘natma yuborildi',
+        '$count shipments sent',
+        'Отправлено $count отправок',
       );
   String customerShipmentPendingNote() => isUzbek
       ? 'Bu jo‘natma omborchi tomonidan haridorga yuborilgan. Qaytarish yoki tasdiqlash haridor tomonidan qilinadi.'
