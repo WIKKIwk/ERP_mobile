@@ -3,6 +3,7 @@ import '../../../core/api/mobile_api.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/notifications/werka_runtime_store.dart';
+import '../../../core/search/search_activity_store.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/native_back_button.dart';
 import '../../shared/models/app_models.dart';
@@ -116,6 +117,7 @@ class _WerkaUnannouncedSupplierScreenState
           title: context.l10n.selectItem,
           supportingText: _selectedSupplier!.name,
           hintText: context.l10n.searchItem,
+          pageSize: 100,
           loadPage: (query, offset, limit) =>
               MobileApi.instance.werkaSupplierItems(
             supplierRef: _selectedSupplier!.ref,
@@ -216,6 +218,7 @@ class _WerkaUnannouncedSupplierScreenState
         itemCode: _selectedItem!.code,
         qty: qty,
       );
+      await SearchActivityStore.instance.recordItemSelection(record.itemCode);
       WerkaRuntimeStore.instance.recordCreatedPending(record);
       RefreshHub.instance.emit('werka');
       if (!mounted) {

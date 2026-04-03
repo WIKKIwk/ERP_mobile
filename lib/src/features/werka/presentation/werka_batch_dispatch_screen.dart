@@ -4,6 +4,7 @@ import '../../../core/app_preview.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/notifications/werka_runtime_store.dart';
+import '../../../core/search/search_activity_store.dart';
 import '../../../core/search/search_normalizer.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
@@ -13,6 +14,33 @@ import 'dart:math';
 import 'widgets/m3_picker_sheet.dart';
 import 'widgets/werka_dock.dart';
 import 'package:flutter/material.dart';
+
+int _compareSupplierItemsByName(SupplierItem left, SupplierItem right) {
+  final nameCompare =
+      left.name.toLowerCase().compareTo(right.name.toLowerCase());
+  if (nameCompare != 0) {
+    return nameCompare;
+  }
+  return left.code.toLowerCase().compareTo(right.code.toLowerCase());
+}
+
+int _compareCustomerItemOptionsByName(
+  CustomerItemOption left,
+  CustomerItemOption right,
+) {
+  final itemCompare =
+      left.itemName.toLowerCase().compareTo(right.itemName.toLowerCase());
+  if (itemCompare != 0) {
+    return itemCompare;
+  }
+  final customerCompare = left.customerName.toLowerCase().compareTo(
+        right.customerName.toLowerCase(),
+      );
+  if (customerCompare != 0) {
+    return customerCompare;
+  }
+  return left.itemCode.toLowerCase().compareTo(right.itemCode.toLowerCase());
+}
 
 class WerkaBatchDispatchScreen extends StatefulWidget {
   const WerkaBatchDispatchScreen({super.key});
@@ -163,10 +191,16 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
   Future<void> _pickItem() async {
     if (_previewMode) {
       if (_selectedCustomer != null) {
-        final items = _previewOptions
-            .where((item) => item.customerRef == _selectedCustomer!.ref)
-            .map(_itemFromOption)
-            .toList();
+        final items = await SearchActivityStore.instance.sortByItemCode(
+          _previewOptions
+              .where((item) => item.customerRef == _selectedCustomer!.ref)
+              .map(_itemFromOption),
+          itemCode: (item) => item.code,
+          fallback: _compareSupplierItemsByName,
+        );
+        if (!mounted) {
+          return;
+        }
         final picked = await showModalBottomSheet<SupplierItem>(
           context: context,
           useSafeArea: true,
@@ -200,6 +234,14 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
         return;
       }
 
+      final options = await SearchActivityStore.instance.sortByItemCode(
+        _previewOptions,
+        itemCode: (item) => item.itemCode,
+        fallback: _compareCustomerItemOptionsByName,
+      );
+      if (!mounted) {
+        return;
+      }
       final picked = await showModalBottomSheet<CustomerItemOption>(
         context: context,
         useSafeArea: true,
@@ -210,7 +252,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
           return M3PickerSheet<CustomerItemOption>(
             title: context.l10n.selectItem,
             hintText: context.l10n.searchItem,
-            items: _previewOptions,
+            items: options,
             itemTitle: (item) => item.itemName,
             itemSubtitle: (item) => '${item.customerName} • ${item.itemCode}',
             matchesQuery: (item, query) => searchMatches(query, [
@@ -245,6 +287,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
             title: context.l10n.selectItem,
             supportingText: _selectedCustomer!.name,
             hintText: context.l10n.searchItem,
+            pageSize: 100,
             loadPage: (query, offset, limit) =>
                 MobileApi.instance.werkaCustomerItems(
               customerRef: _selectedCustomer!.ref,
@@ -278,6 +321,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
         return M3AsyncPickerSheet<CustomerItemOption>(
           title: context.l10n.selectItem,
           hintText: context.l10n.searchItem,
+          pageSize: 200,
           loadPage: (query, offset, limit) =>
               MobileApi.instance.werkaCustomerItemOptions(
             query: query,
@@ -699,6 +743,12 @@ class _WerkaBatchDispatchReviewScreenState
         if (failedIndices.contains(i)) _lines[i],
     ];
     final createdCount = result.created.length;
+
+    await SearchActivityStore.instance.recordItemSelections(
+      result.created
+          .map((item) => item.record?.itemCode ?? '')
+          .where((item) => item.trim().isNotEmpty),
+    );
 
     for (final created in result.created) {
       final record = created.record;

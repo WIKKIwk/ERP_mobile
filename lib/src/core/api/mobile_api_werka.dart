@@ -177,9 +177,14 @@ extension MobileApiWerka on MobileApi {
       throw Exception('Werka supplier items failed');
     }
     final List<dynamic> json = jsonDecode(response.body) as List<dynamic>;
-    return json
+    final items = json
         .map((item) => SupplierItem.fromJson(item as Map<String, dynamic>))
         .toList();
+    return SearchActivityStore.instance.sortByItemCode(
+      items,
+      itemCode: (item) => item.code,
+      fallback: _compareSupplierItems,
+    );
   }
 
   Future<List<SupplierItem>> werkaCustomerItems({
@@ -205,9 +210,14 @@ extension MobileApiWerka on MobileApi {
       throw Exception('Werka customer items failed');
     }
     final List<dynamic> json = jsonDecode(response.body) as List<dynamic>;
-    return json
+    final items = json
         .map((item) => SupplierItem.fromJson(item as Map<String, dynamic>))
         .toList();
+    return SearchActivityStore.instance.sortByItemCode(
+      items,
+      itemCode: (item) => item.code,
+      fallback: _compareSupplierItems,
+    );
   }
 
   Future<List<CustomerItemOption>> werkaCustomerItemOptions({
@@ -241,11 +251,16 @@ extension MobileApiWerka on MobileApi {
     );
     if (response.statusCode == 200) {
       final List<dynamic> json = jsonDecode(response.body) as List<dynamic>;
-      return json
+      final options = json
           .map(
             (item) => CustomerItemOption.fromJson(item as Map<String, dynamic>),
           )
           .toList();
+      return SearchActivityStore.instance.sortByItemCode(
+        options,
+        itemCode: (item) => item.itemCode,
+        fallback: _compareCustomerItemOptions,
+      );
     }
     return _fallbackWerkaCustomerItemOptions(query: query);
   }
@@ -503,24 +518,11 @@ extension MobileApiWerka on MobileApi {
       }
     }
 
-    filtered.sort((left, right) {
-      final itemCompare =
-          left.itemName.toLowerCase().compareTo(right.itemName.toLowerCase());
-      if (itemCompare != 0) {
-        return itemCompare;
-      }
-      final customerCompare = left.customerName
-          .toLowerCase()
-          .compareTo(right.customerName.toLowerCase());
-      if (customerCompare != 0) {
-        return customerCompare;
-      }
-      return left.itemCode
-          .toLowerCase()
-          .compareTo(right.itemCode.toLowerCase());
-    });
-
-    return filtered;
+    return SearchActivityStore.instance.sortByItemCode(
+      filtered,
+      itemCode: (item) => item.itemCode,
+      fallback: _compareCustomerItemOptions,
+    );
   }
 
   bool _matchesCustomer(
@@ -545,5 +547,33 @@ extension MobileApiWerka on MobileApi {
       option.customerPhone,
       option.customerRef,
     ]);
+  }
+
+  int _compareSupplierItems(SupplierItem left, SupplierItem right) {
+    final nameCompare = left.name.toLowerCase().compareTo(
+          right.name.toLowerCase(),
+        );
+    if (nameCompare != 0) {
+      return nameCompare;
+    }
+    return left.code.toLowerCase().compareTo(right.code.toLowerCase());
+  }
+
+  int _compareCustomerItemOptions(
+    CustomerItemOption left,
+    CustomerItemOption right,
+  ) {
+    final itemCompare =
+        left.itemName.toLowerCase().compareTo(right.itemName.toLowerCase());
+    if (itemCompare != 0) {
+      return itemCompare;
+    }
+    final customerCompare = left.customerName.toLowerCase().compareTo(
+          right.customerName.toLowerCase(),
+        );
+    if (customerCompare != 0) {
+      return customerCompare;
+    }
+    return left.itemCode.toLowerCase().compareTo(right.itemCode.toLowerCase());
   }
 }

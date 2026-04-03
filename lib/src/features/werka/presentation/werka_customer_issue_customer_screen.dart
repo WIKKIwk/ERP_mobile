@@ -3,6 +3,7 @@ import '../../../core/api/mobile_api.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/notifications/werka_runtime_store.dart';
+import '../../../core/search/search_activity_store.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/native_back_button.dart';
 import '../../shared/models/app_models.dart';
@@ -153,6 +154,7 @@ class _WerkaCustomerIssueCustomerScreenState
             title: context.l10n.selectItem,
             supportingText: _selectedCustomer!.name,
             hintText: context.l10n.searchItem,
+            pageSize: 100,
             loadPage: (query, offset, limit) =>
                 MobileApi.instance.werkaCustomerItems(
               customerRef: _selectedCustomer!.ref,
@@ -183,6 +185,7 @@ class _WerkaCustomerIssueCustomerScreenState
         return M3AsyncPickerSheet<CustomerItemOption>(
           title: context.l10n.selectItem,
           hintText: context.l10n.searchItem,
+          pageSize: 200,
           loadPage: (query, offset, limit) =>
               MobileApi.instance.werkaCustomerItemOptions(
             query: query,
@@ -286,6 +289,7 @@ class _WerkaCustomerIssueCustomerScreenState
         itemCode: _selectedItem!.code,
         qty: qty,
       );
+      await SearchActivityStore.instance.recordItemSelection(created.itemCode);
       if (!mounted) {
         return;
       }
