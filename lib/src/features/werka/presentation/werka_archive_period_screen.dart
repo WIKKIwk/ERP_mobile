@@ -47,6 +47,13 @@ class _WerkaArchivePeriodScreenState extends State<WerkaArchivePeriodScreen> {
       );
       return;
     }
+    if (period == WerkaArchivePeriod.yearly) {
+      Navigator.of(context).pushNamed(
+        AppRoutes.werkaArchiveYearlyCalendar,
+        arguments: widget.kind,
+      );
+      return;
+    }
     Navigator.of(context).pushNamed(
       AppRoutes.werkaArchiveList,
       arguments: WerkaArchiveListArgs(

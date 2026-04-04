@@ -238,6 +238,11 @@ class AppLocalizations {
         'Months with data are highlighted.',
         'Месяцы с данными выделены.',
       );
+  String get archiveYearCalendarHint => _t(
+        'Maʼlumot bor yillar belgilangan.',
+        'Years with data are highlighted.',
+        'Годы с данными выделены.',
+      );
   String get archiveCalendarEmptyYear => _t(
         'Bu yilda yozuv topilmadi.',
         'No records found in this year.',
