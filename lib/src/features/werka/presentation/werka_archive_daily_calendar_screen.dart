@@ -45,8 +45,16 @@ class _WerkaArchiveDailyCalendarScreenState
     final now = DateTime.now();
     _displayMonth = DateTime(now.year, now.month, 1);
     _selectedDate = DateUtils.dateOnly(now);
-    _calendarOpen = true;
+    _calendarOpen = false;
     _loadMonth();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _calendarOpen = true;
+      });
+    });
   }
 
   Future<WerkaArchiveResponse> _archiveLoader({
