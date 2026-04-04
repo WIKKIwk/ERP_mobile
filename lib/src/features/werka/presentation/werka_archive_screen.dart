@@ -30,8 +30,7 @@ class WerkaArchiveScreen extends StatelessWidget {
             title: context.l10n.archiveSentTitle,
             icon: Icons.outbox_outlined,
             onTap: () => Navigator.of(context).pushNamed(
-              AppRoutes.werkaArchiveDailyCalendar,
-              arguments: WerkaArchiveKind.sent,
+              AppRoutes.werkaArchiveSentHub,
             ),
           ),
           const SizedBox(height: 14),

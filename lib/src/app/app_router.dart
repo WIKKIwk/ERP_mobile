@@ -35,6 +35,7 @@ import '../features/supplier/presentation/supplier_recent_screen.dart';
 import '../features/supplier/presentation/supplier_success_screen.dart';
 import '../features/werka/presentation/werka_detail_screen.dart';
 import '../features/werka/presentation/werka_archive_screen.dart';
+import '../features/werka/presentation/werka_archive_sent_hub_screen.dart';
 import '../features/werka/presentation/werka_archive_daily_calendar_screen.dart';
 import '../features/werka/presentation/werka_archive_monthly_calendar_screen.dart';
 import '../features/werka/presentation/werka_archive_yearly_calendar_screen.dart';
@@ -77,6 +78,7 @@ class AppRoutes {
   static const String werkaUnannouncedSupplier = '/werka-unannounced-supplier';
   static const String werkaNotifications = '/werka-notifications';
   static const String werkaArchive = '/werka-archive';
+  static const String werkaArchiveSentHub = '/werka-archive-sent-hub';
   static const String werkaArchiveDailyCalendar = '/werka-archive-daily-calendar';
   static const String werkaArchiveMonthlyCalendar = '/werka-archive-monthly-calendar';
   static const String werkaArchiveYearlyCalendar = '/werka-archive-yearly-calendar';
@@ -246,6 +248,8 @@ class AppRouter {
         return _buildRoute(settings, const WerkaNotificationsScreen());
       case AppRoutes.werkaArchive:
         return _buildRoute(settings, const WerkaArchiveScreen());
+      case AppRoutes.werkaArchiveSentHub:
+        return _buildRoute(settings, const WerkaArchiveSentHubScreen());
       case AppRoutes.werkaArchiveDailyCalendar:
         final WerkaArchiveKind kind = settings.arguments is WerkaArchiveKind
             ? settings.arguments as WerkaArchiveKind

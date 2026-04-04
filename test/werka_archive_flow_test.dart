@@ -3,6 +3,7 @@ import 'package:erpnext_stock_mobile/src/core/localization/app_localizations.dar
 import 'package:erpnext_stock_mobile/src/features/shared/models/app_models.dart';
 import 'package:erpnext_stock_mobile/src/features/werka/presentation/werka_archive_daily_calendar_screen.dart';
 import 'package:erpnext_stock_mobile/src/features/werka/presentation/werka_archive_monthly_calendar_screen.dart';
+import 'package:erpnext_stock_mobile/src/features/werka/presentation/werka_archive_sent_hub_screen.dart';
 import 'package:erpnext_stock_mobile/src/features/werka/presentation/werka_archive_yearly_calendar_screen.dart';
 import 'package:erpnext_stock_mobile/src/features/werka/presentation/werka_archive_screen.dart';
 import 'package:erpnext_stock_mobile/src/features/werka/presentation/werka_archive_list_screen.dart';
@@ -65,7 +66,7 @@ void main() {
     expect(find.byType(WerkaArchiveMonthlyCalendarScreen), findsOneWidget);
   });
 
-  testWidgets('archive screen opens sent daily calendar flow without exception',
+  testWidgets('archive screen opens sent archive hub without exception',
       (tester) async {
     await tester.pumpWidget(
       _wrap(
@@ -79,7 +80,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(WerkaArchiveDailyCalendarScreen), findsOneWidget);
+    expect(find.byType(WerkaArchiveSentHubScreen), findsOneWidget);
   });
 
   testWidgets('period screen opens daily calendar without exception',
