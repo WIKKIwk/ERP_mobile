@@ -30,7 +30,7 @@ class WerkaArchiveScreen extends StatelessWidget {
             title: context.l10n.archiveSentTitle,
             icon: Icons.outbox_outlined,
             onTap: () => Navigator.of(context).pushNamed(
-              AppRoutes.werkaArchivePeriods,
+              AppRoutes.werkaArchiveDailyCalendar,
               arguments: WerkaArchiveKind.sent,
             ),
           ),

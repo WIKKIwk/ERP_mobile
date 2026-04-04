@@ -65,7 +65,7 @@ void main() {
     expect(find.byType(WerkaArchiveMonthlyCalendarScreen), findsOneWidget);
   });
 
-  testWidgets('archive screen opens sent monthly flow without exception',
+  testWidgets('archive screen opens sent daily calendar flow without exception',
       (tester) async {
     await tester.pumpWidget(
       _wrap(
@@ -75,13 +75,11 @@ void main() {
 
     await tester.pumpAndSettle();
     await tester.tap(find.text('Jo\'natilgan'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Oylik'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(WerkaArchiveMonthlyCalendarScreen), findsOneWidget);
+    expect(find.byType(WerkaArchiveDailyCalendarScreen), findsOneWidget);
   });
 
   testWidgets('period screen opens daily calendar without exception',
