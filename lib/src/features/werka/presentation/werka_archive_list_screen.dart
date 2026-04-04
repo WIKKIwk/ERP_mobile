@@ -240,6 +240,7 @@ class _WerkaArchiveListScreenState extends State<WerkaArchiveListScreen> {
   Widget _buildBody(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final showDailyFilter = widget.args.period == WerkaArchivePeriod.daily;
     if (_loading && _data == null) {
       return const Center(child: AppLoadingIndicator());
     }
@@ -252,6 +253,22 @@ class _WerkaArchiveListScreenState extends State<WerkaArchiveListScreen> {
       return ListView(
         padding: const EdgeInsets.fromLTRB(4, 0, 4, 110),
         children: [
+          if (showDailyFilter) ...[
+            _ArchiveFilterCard(
+              title: context.l10n.archiveDateTitle,
+              value: _selectedDateLabel(context),
+              actionLabel: context.l10n.archiveSelectDateAction,
+              onTap: _toggleDailyCalendar,
+            ),
+            if (_showDateCalendar) ...[
+              const SizedBox(height: 10),
+              _DailyCalendarCard(
+                initialDate: _from ?? DateUtils.dateOnly(DateTime.now()),
+                onChanged: _setDailyDate,
+              ),
+            ],
+            const SizedBox(height: 14),
+          ],
           Card.filled(
             margin: EdgeInsets.zero,
             color: scheme.surfaceContainerLow,
@@ -275,7 +292,7 @@ class _WerkaArchiveListScreenState extends State<WerkaArchiveListScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(4, 0, 4, 110),
         children: [
-          if (widget.args.period == WerkaArchivePeriod.daily) ...[
+          if (showDailyFilter) ...[
             _ArchiveFilterCard(
               title: context.l10n.archiveDateTitle,
               value: _selectedDateLabel(context),
