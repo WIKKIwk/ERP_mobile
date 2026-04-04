@@ -42,12 +42,15 @@ class _WerkaArchiveListScreenState extends State<WerkaArchiveListScreen> {
   WerkaArchiveResponse? _data;
   late DateTime? _from;
   late DateTime? _to;
+  bool _showDateCalendar = false;
+  int _monthPickerYear = DateTime.now().year;
 
   @override
   void initState() {
     super.initState();
     _from = widget.args.from;
     _to = widget.args.to;
+    _monthPickerYear = (_from ?? DateTime.now()).year;
     _load();
   }
 
@@ -276,9 +279,28 @@ class _WerkaArchiveListScreenState extends State<WerkaArchiveListScreen> {
                   ? context.l10n.archiveSelectDateAction
                   : context.l10n.archiveSelectMonthAction,
               onTap: widget.args.period == WerkaArchivePeriod.daily
-                  ? _pickDailyDate
-                  : _pickMonthlyDate,
+                  ? _toggleDailyCalendar
+                  : _toggleMonthlyPicker,
             ),
+            if (widget.args.period == WerkaArchivePeriod.daily &&
+                _showDateCalendar) ...[
+              const SizedBox(height: 10),
+              _DailyCalendarCard(
+                initialDate: _from ?? DateUtils.dateOnly(DateTime.now()),
+                onChanged: _setDailyDate,
+              ),
+            ],
+            if (widget.args.period == WerkaArchivePeriod.monthly &&
+                _showDateCalendar) ...[
+              const SizedBox(height: 10),
+              _MonthPickerCard(
+                year: _monthPickerYear,
+                selectedMonth: _from?.month,
+                onPrevYear: () => setState(() => _monthPickerYear--),
+                onNextYear: () => setState(() => _monthPickerYear++),
+                onMonthSelected: _setMonthlyDate,
+              ),
+            ],
             const SizedBox(height: 14),
           ],
           Card.filled(
@@ -385,42 +407,33 @@ class _WerkaArchiveListScreenState extends State<WerkaArchiveListScreen> {
     return localizations.formatMonthYear(value);
   }
 
-  Future<void> _pickDailyDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _from ?? DateUtils.dateOnly(now),
-      firstDate: DateTime(now.year - 5),
-      lastDate: DateTime(now.year + 1, 12, 31),
-      helpText: context.l10n.archiveDateTitle,
-    );
-    if (picked == null || !mounted) {
-      return;
-    }
+  void _toggleDailyCalendar() {
+    setState(() {
+      _showDateCalendar = !_showDateCalendar;
+    });
+  }
+
+  Future<void> _setDailyDate(DateTime picked) async {
     final selected = DateUtils.dateOnly(picked);
     setState(() {
       _from = selected;
       _to = selected;
+      _showDateCalendar = false;
     });
     await _load();
   }
 
-  Future<void> _pickMonthlyDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _from ?? DateTime(now.year, now.month, 1),
-      firstDate: DateTime(now.year - 5),
-      lastDate: DateTime(now.year + 1, 12, 31),
-      initialDatePickerMode: DatePickerMode.year,
-      helpText: context.l10n.archiveMonthTitle,
-    );
-    if (picked == null || !mounted) {
-      return;
-    }
+  void _toggleMonthlyPicker() {
     setState(() {
-      _from = DateTime(picked.year, picked.month, 1);
-      _to = DateTime(picked.year, picked.month + 1, 0);
+      _showDateCalendar = !_showDateCalendar;
+    });
+  }
+
+  Future<void> _setMonthlyDate(int month) async {
+    setState(() {
+      _from = DateTime(_monthPickerYear, month, 1);
+      _to = DateTime(_monthPickerYear, month + 1, 0);
+      _showDateCalendar = false;
     });
     await _load();
   }
@@ -472,6 +485,109 @@ class _ArchiveFilterCard extends StatelessWidget {
               onPressed: onTap,
               icon: const Icon(Icons.calendar_month_outlined),
               label: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DailyCalendarCard extends StatelessWidget {
+  const _DailyCalendarCard({
+    required this.initialDate,
+    required this.onChanged,
+  });
+
+  final DateTime initialDate;
+  final ValueChanged<DateTime> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: scheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: CalendarDatePicker(
+          initialDate: initialDate,
+          firstDate: DateTime(DateTime.now().year - 5),
+          lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+          onDateChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+class _MonthPickerCard extends StatelessWidget {
+  const _MonthPickerCard({
+    required this.year,
+    required this.selectedMonth,
+    required this.onPrevYear,
+    required this.onNextYear,
+    required this.onMonthSelected,
+  });
+
+  final int year;
+  final int? selectedMonth;
+  final VoidCallback onPrevYear;
+  final VoidCallback onNextYear;
+  final ValueChanged<int> onMonthSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final months = List<int>.generate(12, (index) => index + 1);
+    final localizations = MaterialLocalizations.of(context);
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: scheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  onPressed: onPrevYear,
+                  icon: const Icon(Icons.chevron_left_rounded),
+                ),
+                Expanded(
+                  child: Text(
+                    '$year',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
+                IconButton(
+                  onPressed: onNextYear,
+                  icon: const Icon(Icons.chevron_right_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final month in months)
+                  ChoiceChip(
+                    label: Text(
+                      localizations.formatMonthYear(DateTime(year, month, 1)).split(' ').first,
+                    ),
+                    selected: selectedMonth == month,
+                    onSelected: (_) => onMonthSelected(month),
+                  ),
+              ],
             ),
           ],
         ),
