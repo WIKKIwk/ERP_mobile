@@ -250,6 +250,16 @@ class _WerkaArchiveSentHubScreenState extends State<WerkaArchiveSentHubScreen> {
 
   String _selectedYearLabel() => '$_startYear - ${_startYear + 11}';
 
+  double _dailyCalendarHeight(BuildContext context) {
+    final localizations = MaterialLocalizations.of(context);
+    final year = _displayMonth.year;
+    final month = _displayMonth.month;
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    final firstDayOffset = DateUtils.firstDayOffset(year, month, localizations);
+    final rowCount = ((firstDayOffset + daysInMonth + 6) ~/ 7);
+    return (rowCount + 1) * 48.0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -292,24 +302,26 @@ class _WerkaArchiveSentHubScreenState extends State<WerkaArchiveSentHubScreen> {
             open: _dailyOpen,
             topGap: 0,
             onToggle: () => _toggleSection(WerkaArchivePeriod.daily),
-            child: Padding(
-              padding: EdgeInsets.zero,
-              child: CalendarDatePicker(
-                initialDate: _selectedDate,
-                firstDate: DateTime(DateTime.now().year - 5),
-                lastDate: DateTime(DateTime.now().year + 1, 12, 31),
-                currentDate: DateTime.now(),
-                onDisplayedMonthChanged: (value) async {
-                  final nextMonth = DateTime(value.year, value.month, 1);
-                  if (nextMonth == _displayMonth) return;
-                  setState(() => _displayMonth = nextMonth);
-                  await _loadDaily();
-                },
-                onDateChanged: (value) {
-                  final date = DateUtils.dateOnly(value);
-                  setState(() => _selectedDate = date);
-                  _openList(period: WerkaArchivePeriod.daily, from: date, to: date);
-                },
+            child: SizedBox(
+              height: _dailyCalendarHeight(context),
+              child: ClipRect(
+                child: CalendarDatePicker(
+                  initialDate: _selectedDate,
+                  firstDate: DateTime(DateTime.now().year - 5),
+                  lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+                  currentDate: DateTime.now(),
+                  onDisplayedMonthChanged: (value) async {
+                    final nextMonth = DateTime(value.year, value.month, 1);
+                    if (nextMonth == _displayMonth) return;
+                    setState(() => _displayMonth = nextMonth);
+                    await _loadDaily();
+                  },
+                  onDateChanged: (value) {
+                    final date = DateUtils.dateOnly(value);
+                    setState(() => _selectedDate = date);
+                    _openList(period: WerkaArchivePeriod.daily, from: date, to: date);
+                  },
+                ),
               ),
             ),
           ),
