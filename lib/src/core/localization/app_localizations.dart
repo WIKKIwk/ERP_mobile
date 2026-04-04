@@ -233,6 +233,16 @@ class AppLocalizations {
         'No records found in this month.',
         'За этот месяц записей не найдено.',
       );
+  String get archiveMonthCalendarHint => _t(
+        'Maʼlumot bor oylar belgilangan.',
+        'Months with data are highlighted.',
+        'Месяцы с данными выделены.',
+      );
+  String get archiveCalendarEmptyYear => _t(
+        'Bu yilda yozuv topilmadi.',
+        'No records found in this year.',
+        'За этот год записей не найдено.',
+      );
   String get archiveStartDateLabel => _t(
         'Boshlanish sana',
         'Start date',
