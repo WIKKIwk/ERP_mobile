@@ -17,40 +17,41 @@ class WerkaArchiveScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(4, 0, 4, 110),
         children: [
-          _ArchiveModuleCard(
-            title: context.l10n.archiveReceivedTitle,
-            icon: Icons.inventory_2_outlined,
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRoutes.werkaArchivePeriods,
-              arguments: WerkaArchiveKind.received,
-            ),
+          _ArchiveModuleGroup(
+            rows: [
+              _ArchiveModuleRowData(
+                title: context.l10n.archiveReceivedTitle,
+                icon: Icons.inventory_2_outlined,
+                onTap: () => Navigator.of(context).pushNamed(
+                  AppRoutes.werkaArchivePeriods,
+                  arguments: WerkaArchiveKind.received,
+                ),
+              ),
+              _ArchiveModuleRowData(
+                title: context.l10n.archiveSentTitle,
+                icon: Icons.outbox_outlined,
+                onTap: () => Navigator.of(context).pushNamed(
+                  AppRoutes.werkaArchiveSentHub,
+                ),
+              ),
+              _ArchiveModuleRowData(
+                title: context.l10n.archiveReturnedTitle,
+                icon: Icons.assignment_return_outlined,
+                onTap: () => Navigator.of(context).pushNamed(
+                  AppRoutes.werkaArchivePeriods,
+                  arguments: WerkaArchiveKind.returned,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
-          _ArchiveModuleCard(
-            title: context.l10n.archiveSentTitle,
-            icon: Icons.outbox_outlined,
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRoutes.werkaArchiveSentHub,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _ArchiveModuleCard(
-            title: context.l10n.archiveReturnedTitle,
-            icon: Icons.assignment_return_outlined,
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRoutes.werkaArchivePeriods,
-              arguments: WerkaArchiveKind.returned,
-            ),
-          ),
-          const SizedBox(height: 14),
         ],
       ),
     );
   }
 }
 
-class _ArchiveModuleCard extends StatelessWidget {
-  const _ArchiveModuleCard({
+class _ArchiveModuleRowData {
+  const _ArchiveModuleRowData({
     required this.title,
     required this.icon,
     required this.onTap,
@@ -59,19 +60,80 @@ class _ArchiveModuleCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final VoidCallback onTap;
+}
+
+class _ArchiveModuleGroup extends StatelessWidget {
+  const _ArchiveModuleGroup({
+    required this.rows,
+  });
+
+  final List<_ArchiveModuleRowData> rows;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
     return Card.filled(
       margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       color: scheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(28),
       ),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: Column(
+        children: [
+          for (int index = 0; index < rows.length; index++) ...[
+            _ArchiveModuleRow(
+              title: rows[index].title,
+              icon: rows[index].icon,
+              onTap: rows[index].onTap,
+              isFirst: index == 0,
+              isLast: index == rows.length - 1,
+            ),
+            if (index != rows.length - 1)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: 18,
+                endIndent: 18,
+                color: scheme.outlineVariant.withValues(alpha: 0.55),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ArchiveModuleRow extends StatelessWidget {
+  const _ArchiveModuleRow({
+    required this.title,
+    required this.icon,
+    required this.onTap,
+    this.isFirst = false,
+    this.isLast = false,
+  });
+
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isFirst;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(isFirst ? 28 : 0),
+        topRight: Radius.circular(isFirst ? 28 : 0),
+        bottomLeft: Radius.circular(isLast ? 28 : 0),
+        bottomRight: Radius.circular(isLast ? 28 : 0),
+      ),
+    );
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        customBorder: shape,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(18),
