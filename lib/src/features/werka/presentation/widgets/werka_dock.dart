@@ -99,8 +99,8 @@ class WerkaDock extends StatelessWidget {
               nativeSelectedSymbol: 'checklist.checked',
               nativeRouteName: AppRoutes.werkaArchive,
               nativeReplaceStack: true,
-              icon: Icons.data_object_outlined,
-              selectedIcon: Icons.data_object_rounded,
+              icon: Icons.data_array_outlined,
+              selectedIcon: Icons.data_array_rounded,
               active: activeTab == WerkaDockTab.archive,
               compact: compact,
               onTap: () {

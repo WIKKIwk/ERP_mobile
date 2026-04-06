@@ -25,7 +25,7 @@ class WerkaArchiveScreen extends StatelessWidget {
               rows: [
                 _ArchiveModuleRowData(
                   title: context.l10n.archiveReceivedTitle,
-                  icon: Icons.data_object_rounded,
+                  icon: Icons.inventory_2_outlined,
                   onTap: () => Navigator.of(context).pushNamed(
                     AppRoutes.werkaArchivePeriods,
                     arguments: WerkaArchiveKind.received,
@@ -33,14 +33,14 @@ class WerkaArchiveScreen extends StatelessWidget {
                 ),
                 _ArchiveModuleRowData(
                   title: context.l10n.archiveSentTitle,
-                  icon: Icons.data_object_rounded,
+                  icon: Icons.outbox_outlined,
                   onTap: () => Navigator.of(context).pushNamed(
                     AppRoutes.werkaArchiveSentHub,
                   ),
                 ),
                 _ArchiveModuleRowData(
                   title: context.l10n.archiveReturnedTitle,
-                  icon: Icons.data_object_rounded,
+                  icon: Icons.assignment_return_outlined,
                   onTap: () => Navigator.of(context).pushNamed(
                     AppRoutes.werkaArchivePeriods,
                     arguments: WerkaArchiveKind.returned,
