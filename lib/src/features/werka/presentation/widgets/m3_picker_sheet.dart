@@ -94,27 +94,32 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
       duration: AppMotion.medium,
       curve: AppMotion.standardDecelerate,
       padding: EdgeInsets.only(bottom: keyboardInset),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: media.size.height * 0.66,
-          ),
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerLow,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(32),
-            ),
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.7),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).maybePop(),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: GestureDetector(
+            onTap: () {},
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: media.size.height * 0.66,
+              ),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLow,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.7),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 Center(
                   child: Container(
                     width: 36,
@@ -173,119 +178,127 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
                   },
                 ),
                 const SizedBox(height: 14),
-                Flexible(
-                  child: visibleCount == 0
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Text(
-                              l10n.noRecordsYet,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        )
-                      : Material(
-                          color: scheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(24),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: visibleItems.length,
-                            itemBuilder: (context, index) {
-                              final item = visibleItems[index];
-                              final subtitle = widget.itemSubtitle(item).trim();
-                              final isFirst = index == 0;
-                              final isLast = index == visibleItems.length - 1;
-
-                              return ClipRect(
-                                child: AnimatedSize(
-                                  duration: AppMotion.slow,
-                                  curve: AppMotion.emphasizedDecelerate,
-                                  alignment: Alignment.topCenter,
-                                  child: AnimatedOpacity(
-                                    duration: AppMotion.medium,
-                                    curve: AppMotion.standardDecelerate,
-                                    opacity: 1,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: InkWell(
-                                            borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(
-                                                isFirst ? 24 : 0,
-                                              ),
-                                              topRight: Radius.circular(
-                                                isFirst ? 24 : 0,
-                                              ),
-                                              bottomLeft: Radius.circular(
-                                                isLast ? 24 : 0,
-                                              ),
-                                              bottomRight: Radius.circular(
-                                                isLast ? 24 : 0,
-                                              ),
-                                            ),
-                                            onTap: () =>
-                                                widget.onSelected(item),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 18,
-                                                vertical: 16,
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    widget.itemTitle(item),
-                                                    style: theme
-                                                        .textTheme.titleLarge
-                                                        ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                  if (subtitle.isNotEmpty) ...[
-                                                    const SizedBox(height: 6),
-                                                    Text(
-                                                      subtitle,
-                                                      style: theme
-                                                          .textTheme.bodySmall
-                                                          ?.copyWith(
-                                                        color: scheme
-                                                            .onSurfaceVariant,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        if (!isLast)
-                                          Divider(
-                                            height: 1,
-                                            thickness: 1,
-                                            indent: 18,
-                                            endIndent: 18,
-                                            color: scheme.outlineVariant
-                                                .withValues(alpha: 0.5),
-                                          ),
-                                      ],
-                                    ),
+                    Flexible(
+                      child: visibleCount == 0
+                          ? Center(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
+                                child: Text(
+                                  l10n.noRecordsYet,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: scheme.onSurfaceVariant,
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
+                              ),
+                            )
+                          : Material(
+                              color: scheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(24),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: visibleItems.length,
+                                itemBuilder: (context, index) {
+                                  final item = visibleItems[index];
+                                  final subtitle =
+                                      widget.itemSubtitle(item).trim();
+                                  final isFirst = index == 0;
+                                  final isLast =
+                                      index == visibleItems.length - 1;
+
+                                  return ClipRect(
+                                    child: AnimatedSize(
+                                      duration: AppMotion.slow,
+                                      curve: AppMotion.emphasizedDecelerate,
+                                      alignment: Alignment.topCenter,
+                                      child: AnimatedOpacity(
+                                        duration: AppMotion.medium,
+                                        curve: AppMotion.standardDecelerate,
+                                        opacity: 1,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            SizedBox(
+                                              width: double.infinity,
+                                              child: InkWell(
+                                                borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(
+                                                    isFirst ? 24 : 0,
+                                                  ),
+                                                  topRight: Radius.circular(
+                                                    isFirst ? 24 : 0,
+                                                  ),
+                                                  bottomLeft: Radius.circular(
+                                                    isLast ? 24 : 0,
+                                                  ),
+                                                  bottomRight: Radius.circular(
+                                                    isLast ? 24 : 0,
+                                                  ),
+                                                ),
+                                                onTap: () =>
+                                                    widget.onSelected(item),
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    horizontal: 18,
+                                                    vertical: 16,
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        widget.itemTitle(item),
+                                                        style: theme.textTheme
+                                                            .titleLarge
+                                                            ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                      if (subtitle
+                                                          .isNotEmpty) ...[
+                                                        const SizedBox(
+                                                            height: 6),
+                                                        Text(
+                                                          subtitle,
+                                                          style: theme.textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
+                                                            color: scheme
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            if (!isLast)
+                                              Divider(
+                                                height: 1,
+                                                thickness: 1,
+                                                indent: 18,
+                                                endIndent: 18,
+                                                color: scheme.outlineVariant
+                                                    .withValues(alpha: 0.5),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -552,27 +565,32 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
       duration: AppMotion.medium,
       curve: AppMotion.standardDecelerate,
       padding: EdgeInsets.only(bottom: keyboardInset),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: media.size.height * 0.66,
-          ),
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerLow,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(32),
-            ),
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.7),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).maybePop(),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: GestureDetector(
+            onTap: () {},
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: media.size.height * 0.66,
+              ),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLow,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.7),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 Center(
                   child: Container(
                     width: 36,
@@ -629,8 +647,10 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
                   onChanged: _scheduleReload,
                 ),
                 const SizedBox(height: 14),
-                Flexible(child: body),
-              ],
+                    Flexible(child: body),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
