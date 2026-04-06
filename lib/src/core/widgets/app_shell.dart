@@ -49,12 +49,10 @@ class AppShell extends StatelessWidget {
     if (bottom == null && !preserveNativeDock) {
       NativeDockBridge.instance.clearFromBuild();
     }
-    final route = ModalRoute.of(context);
-    final showBottom = bottom != null && (route?.isCurrent ?? true);
 
     return Scaffold(
       extendBody: true,
-      bottomNavigationBar: !showBottom
+      bottomNavigationBar: bottom == null
           ? null
           : SafeArea(
               top: false,
