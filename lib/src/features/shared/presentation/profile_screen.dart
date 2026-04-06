@@ -669,65 +669,35 @@ class _LanguagePreferenceRow extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   child: GestureDetector(
                     onTap: () {},
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerLow,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(28),
-                        ),
-                        border: Border.all(
-                          color: scheme.outlineVariant.withValues(alpha: 0.7),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.languageTitle,
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 14),
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(l10n.uzbek),
-                              trailing: currentLocale.languageCode == 'uz'
-                                  ? Icon(
-                                      Icons.check_rounded,
-                                      color: scheme.primary,
-                                    )
-                                  : null,
-                              onTap: () => Navigator.of(context)
-                                  .pop(const Locale('uz')),
-                            ),
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(l10n.english),
-                              trailing: currentLocale.languageCode == 'en'
-                                  ? Icon(
-                                      Icons.check_rounded,
-                                      color: scheme.primary,
-                                    )
-                                  : null,
-                              onTap: () => Navigator.of(context)
-                                  .pop(const Locale('en')),
-                            ),
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(l10n.russian),
-                              trailing: currentLocale.languageCode == 'ru'
-                                  ? Icon(
-                                      Icons.check_rounded,
-                                      color: scheme.primary,
-                                    )
-                                  : null,
-                              onTap: () => Navigator.of(context)
-                                  .pop(const Locale('ru')),
-                            ),
-                          ],
-                        ),
+                    child: _ProfileSelectionSheet(
+                      title: l10n.languageTitle,
+                      subtitle: l10n.languageBody,
+                      child: Column(
+                        children: [
+                          _ProfileSelectionOption(
+                            title: l10n.uzbek,
+                            subtitle: 'Uzbek',
+                            active: currentLocale.languageCode == 'uz',
+                            onTap: () =>
+                                Navigator.of(context).pop(const Locale('uz')),
+                          ),
+                          const SizedBox(height: 10),
+                          _ProfileSelectionOption(
+                            title: l10n.english,
+                            subtitle: 'English',
+                            active: currentLocale.languageCode == 'en',
+                            onTap: () =>
+                                Navigator.of(context).pop(const Locale('en')),
+                          ),
+                          const SizedBox(height: 10),
+                          _ProfileSelectionOption(
+                            title: l10n.russian,
+                            subtitle: 'Russian',
+                            active: currentLocale.languageCode == 'ru',
+                            onTap: () =>
+                                Navigator.of(context).pop(const Locale('ru')),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -815,126 +785,97 @@ class _ThemePreferenceRow extends StatelessWidget {
                 alignment: Alignment.bottomCenter,
                 child: GestureDetector(
                   onTap: () {},
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerLow,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(28),
+                  child: _ProfileSelectionSheet(
+                    title: l10n.themeTitle,
+                    subtitle: l10n.themeBody,
+                    maxHeight: mediaQuery.size.height * 0.72,
+                    bottomPadding: mediaQuery.padding.bottom + 24,
+                    child: Column(
+                      children: [
+                        _ThemeSelectionOption(
+                          title: l10n.themeClassicLabel,
+                          active: variant == AppThemeVariant.classic,
+                          swatches: const [
+                            Color(0xFF324670),
+                            Color(0xFFD8E2FF),
+                            Color(0xFF53627F),
+                          ],
+                          onTap: () => Navigator.of(context)
+                              .pop(AppThemeVariant.classic),
                         ),
-                        border: Border.all(
-                          color: scheme.outlineVariant.withValues(alpha: 0.7),
+                        const SizedBox(height: 10),
+                        _ThemeSelectionOption(
+                          title: l10n.themeEarthLabel,
+                          active: variant == AppThemeVariant.earthy,
+                          swatches: const [
+                            Color(0xFF8A7650),
+                            Color(0xFFDBCEA5),
+                            Color(0xFF8E977D),
+                          ],
+                          onTap: () => Navigator.of(context)
+                              .pop(AppThemeVariant.earthy),
                         ),
-                      ),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: mediaQuery.size.height * 0.72,
+                        const SizedBox(height: 10),
+                        _ThemeSelectionOption(
+                          title: l10n.themeBlushLabel,
+                          active: variant == AppThemeVariant.blush,
+                          swatches: const [
+                            Color(0xFFF5AFAF),
+                            Color(0xFFF9DFDF),
+                            Color(0xFFFBEFEF),
+                          ],
+                          onTap: () => Navigator.of(context)
+                              .pop(AppThemeVariant.blush),
                         ),
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.fromLTRB(
-                            20,
-                            16,
-                            20,
-                            mediaQuery.padding.bottom + 24,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.themeTitle,
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: 14),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.themeClassicLabel),
-                                trailing: variant == AppThemeVariant.classic
-                                    ? Icon(
-                                        Icons.check_rounded,
-                                        color: scheme.primary,
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context)
-                                    .pop(AppThemeVariant.classic),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.themeEarthLabel),
-                                trailing: variant == AppThemeVariant.earthy
-                                    ? Icon(
-                                        Icons.check_rounded,
-                                        color: scheme.primary,
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context)
-                                    .pop(AppThemeVariant.earthy),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.themeBlushLabel),
-                                trailing: variant == AppThemeVariant.blush
-                                    ? Icon(
-                                        Icons.check_rounded,
-                                        color: scheme.primary,
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context)
-                                    .pop(AppThemeVariant.blush),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.themeMossLabel),
-                                trailing: variant == AppThemeVariant.moss
-                                    ? Icon(
-                                        Icons.check_rounded,
-                                        color: scheme.primary,
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context)
-                                    .pop(AppThemeVariant.moss),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.themeLavenderLabel),
-                                trailing: variant == AppThemeVariant.lavender
-                                    ? Icon(
-                                        Icons.check_rounded,
-                                        color: scheme.primary,
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context)
-                                    .pop(AppThemeVariant.lavender),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.themeSlateLabel),
-                                trailing: variant == AppThemeVariant.slate
-                                    ? Icon(
-                                        Icons.check_rounded,
-                                        color: scheme.primary,
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context)
-                                    .pop(AppThemeVariant.slate),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.themeOceanLabel),
-                                trailing: variant == AppThemeVariant.ocean
-                                    ? Icon(
-                                        Icons.check_rounded,
-                                        color: scheme.primary,
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context)
-                                    .pop(AppThemeVariant.ocean),
-                              ),
-                            ],
-                          ),
+                        const SizedBox(height: 10),
+                        _ThemeSelectionOption(
+                          title: l10n.themeMossLabel,
+                          active: variant == AppThemeVariant.moss,
+                          swatches: const [
+                            Color(0xFF84B179),
+                            Color(0xFFC7EABB),
+                            Color(0xFFA2CB8B),
+                          ],
+                          onTap: () =>
+                              Navigator.of(context).pop(AppThemeVariant.moss),
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                        _ThemeSelectionOption(
+                          title: l10n.themeLavenderLabel,
+                          active: variant == AppThemeVariant.lavender,
+                          swatches: const [
+                            Color(0xFF4D4C7D),
+                            Color(0xFFD8B9C3),
+                            Color(0xFF827397),
+                          ],
+                          onTap: () => Navigator.of(context)
+                              .pop(AppThemeVariant.lavender),
+                        ),
+                        const SizedBox(height: 10),
+                        _ThemeSelectionOption(
+                          title: l10n.themeSlateLabel,
+                          active: variant == AppThemeVariant.slate,
+                          swatches: const [
+                            Color(0xFF30364F),
+                            Color(0xFFACBAC4),
+                            Color(0xFFE1D9BC),
+                          ],
+                          onTap: () =>
+                              Navigator.of(context).pop(AppThemeVariant.slate),
+                        ),
+                        const SizedBox(height: 10),
+                        _ThemeSelectionOption(
+                          title: l10n.themeOceanLabel,
+                          active: variant == AppThemeVariant.ocean,
+                          swatches: const [
+                            Color(0xFF1C4D8D),
+                            Color(0xFF4988C4),
+                            Color(0xFFBDE8F5),
+                          ],
+                          onTap: () =>
+                              Navigator.of(context).pop(AppThemeVariant.ocean),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1013,6 +954,215 @@ class _ThemeIconToggle extends StatelessWidget {
           : 'assets/icons/sun-fill.svg',
       onTap: () => ThemeController.instance.setThemeMode(
         isDark ? ThemeMode.light : ThemeMode.dark,
+      ),
+    );
+  }
+}
+
+class _ProfileSelectionSheet extends StatelessWidget {
+  const _ProfileSelectionSheet({
+    required this.title,
+    required this.subtitle,
+    required this.child,
+    this.maxHeight,
+    this.bottomPadding = 24,
+  });
+
+  final String title;
+  final String subtitle;
+  final Widget child;
+  final double? maxHeight;
+  final double bottomPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(28),
+        ),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.7),
+        ),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: maxHeight ?? double.infinity,
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, bottomPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: scheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                style: theme.textTheme.titleLarge,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileSelectionOption extends StatelessWidget {
+  const _ProfileSelectionOption({
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+    this.active = false,
+    this.trailing,
+  });
+
+  final String title;
+  final String? subtitle;
+  final bool active;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Material(
+      color: active
+          ? scheme.secondaryContainer.withValues(alpha: 0.9)
+          : scheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: active
+                            ? scheme.onSecondaryContainer
+                            : scheme.onSurface,
+                      ),
+                    ),
+                    if ((subtitle ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: active
+                              ? scheme.onSecondaryContainer
+                                  .withValues(alpha: 0.74)
+                              : scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 12),
+                trailing!,
+              ],
+              const SizedBox(width: 12),
+              AnimatedContainer(
+                duration: AppMotion.medium,
+                curve: AppMotion.smooth,
+                height: 24,
+                width: 24,
+                decoration: BoxDecoration(
+                  color: active ? scheme.primary : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: active
+                      ? null
+                      : Border.all(color: scheme.outlineVariant),
+                ),
+                child: active
+                    ? Icon(
+                        Icons.check_rounded,
+                        size: 16,
+                        color: scheme.onPrimary,
+                      )
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeSelectionOption extends StatelessWidget {
+  const _ThemeSelectionOption({
+    required this.title,
+    required this.swatches,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String title;
+  final List<Color> swatches;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfileSelectionOption(
+      title: title,
+      subtitle: null,
+      active: active,
+      onTap: onTap,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final swatch in swatches) ...[
+            Container(
+              height: 14,
+              width: 14,
+              decoration: BoxDecoration(
+                color: swatch,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outlineVariant
+                      .withValues(alpha: 0.45),
+                ),
+              ),
+            ),
+            if (swatch != swatches.last) const SizedBox(width: 6),
+          ],
+        ],
       ),
     );
   }
