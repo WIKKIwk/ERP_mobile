@@ -510,7 +510,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                           controller: nicknameController,
                           onChanged: (_) => setState(() {}),
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                           cursorColor: Theme.of(context).colorScheme.primary,
                           decoration: InputDecoration(
