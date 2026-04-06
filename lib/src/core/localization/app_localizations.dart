@@ -287,10 +287,50 @@ class AppLocalizations {
       _t('Yuklab olish', 'Download', 'Скачать');
   String get archiveDownloadingPdf =>
       _t('PDF yuklanmoqda...', 'Downloading PDF...', 'PDF загружается...');
+  String get archivePdfReadyTitle => _t(
+        'PDF tayyor',
+        'PDF is ready',
+        'PDF готов',
+      );
+  String get archivePdfReadyMessage => _t(
+        'Uni Files ga saqlashingiz yoki share qilishingiz mumkin.',
+        'You can save it to Files or share it.',
+        'Вы можете сохранить его в Files или поделиться им.',
+      );
+  String get archiveSaveToFilesAction => _t(
+        'Files ga saqlash',
+        'Save to Files',
+        'Сохранить в Files',
+      );
+  String get archiveShareAction => _t(
+        'Ulashish',
+        'Share',
+        'Поделиться',
+      );
+  String get archiveSavePhotoAction => _t(
+        'Rasmga saqlash',
+        'Save photo',
+        'Сохранить как фото',
+      );
+  String get archivePdfPhotoNotSupported => _t(
+        'PDF ni rasm sifatida saqlash hozircha qo‘llab-quvvatlanmaydi.',
+        'Saving this PDF as a photo is not supported yet.',
+        'Сохранение этого PDF как фото пока не поддерживается.',
+      );
   String archivePdfSavedAt(String location) => _t(
         'PDF saqlandi: $location',
         'PDF saved: $location',
         'PDF сохранён: $location',
+      );
+  String get archivePdfSavedToFiles => _t(
+        'PDF Files ga saqlandi.',
+        'PDF saved to Files.',
+        'PDF сохранён в Files.',
+      );
+  String get archivePdfSavedOnIPhone => _t(
+        'PDF Files ilovasiga saqlandi: On My iPhone > Erpnext Stock Mobile',
+        'PDF saved in Files: On My iPhone > Erpnext Stock Mobile',
+        'PDF сохранён в Files: На моём iPhone > Erpnext Stock Mobile',
       );
   String get archivePdfDownloadStartedWeb => _t(
         'PDF yuklab olish boshlandi.',
