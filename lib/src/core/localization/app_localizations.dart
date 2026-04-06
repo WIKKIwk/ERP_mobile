@@ -33,7 +33,7 @@ class AppLocalizations {
   String get appTitle => _t('Accord', 'Accord', 'Accord');
   String get profileTitle => _t('Profil', 'Profile', 'Профиль');
   String get werkaAccount =>
-      _t('Omborchi akkaunti', 'Werka account', 'Аккаунт кладовщика');
+      _t('Omborchi akkaunti', 'Wmanager account', 'Аккаунт кладовщика');
   String get supplierAccount =>
       _t('Ta\'minotchi akkaunti', 'Supplier account', 'Аккаунт поставщика');
   String get customerAccount =>
@@ -516,7 +516,7 @@ class AppLocalizations {
         'Сервер отключен. Повторите попытку.',
       );
 
-  String get werkaRoleName => _t('Omborchi', 'Werka', 'Кладовщик');
+  String get werkaRoleName => _t('Omborchi', 'Wmanager', 'Кладовщик');
   String get customerRoleName => _t('Haridor', 'Customer', 'Покупатель');
   String get supplierRoleName => _t('Ta\'minotchi', 'Supplier', 'Поставщик');
   String get adminRoleName => _t('Admin', 'Admin', 'Админ');
