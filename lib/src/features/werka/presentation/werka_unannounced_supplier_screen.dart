@@ -72,6 +72,8 @@ class _WerkaUnannouncedSupplierScreenState
   Future<void> _pickSupplier() async {
     final picked = await showModalBottomSheet<SupplierDirectoryEntry>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -108,6 +110,8 @@ class _WerkaUnannouncedSupplierScreenState
 
     final picked = await showModalBottomSheet<SupplierItem>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

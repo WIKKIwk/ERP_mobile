@@ -155,6 +155,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
             ));
       final picked = await showModalBottomSheet<CustomerDirectoryEntry>(
         context: context,
+        isDismissible: true,
+        enableDrag: true,
         useSafeArea: true,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -188,6 +190,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
 
     final picked = await showModalBottomSheet<CustomerDirectoryEntry>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -241,6 +245,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
         }
         final picked = await showModalBottomSheet<SupplierItem>(
           context: context,
+          isDismissible: true,
+          enableDrag: true,
           useSafeArea: true,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
@@ -282,6 +288,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
       }
       final picked = await showModalBottomSheet<CustomerItemOption>(
         context: context,
+        isDismissible: true,
+        enableDrag: true,
         useSafeArea: true,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -320,6 +328,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
     if (_selectedCustomer != null) {
       final picked = await showModalBottomSheet<SupplierItem>(
         context: context,
+        isDismissible: true,
+        enableDrag: true,
         useSafeArea: true,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -355,6 +365,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
 
     final picked = await showModalBottomSheet<CustomerItemOption>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
