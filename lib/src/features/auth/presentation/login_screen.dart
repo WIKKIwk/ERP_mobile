@@ -96,9 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
               : profile.role == UserRole.customer
                   ? AppRoutes.customerHome
                   : AppRoutes.adminHome;
-      Navigator.of(context).pushNamedAndRemoveUntil(
+      _openPostLoginRoute(
+        context,
         AppPreview.initialRouteOverride ?? route,
-        (route) => false,
       );
     }).catchError((error) {
       if (!context.mounted) {
@@ -120,6 +120,65 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     });
+  }
+
+  void _openPostLoginRoute(BuildContext context, String routeName) {
+    final PageRoute<dynamic> targetRoute = AppRouter.onGenerateRoute(
+      RouteSettings(name: routeName),
+    ) as PageRoute<dynamic>;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder<dynamic>(
+        settings: targetRoute.settings,
+        transitionDuration: const Duration(milliseconds: 420),
+        reverseTransitionDuration: const Duration(milliseconds: 260),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return targetRoute.buildPage(
+            context,
+            animation,
+            secondaryAnimation,
+          );
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final Animation<double> fade = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+          final Animation<Offset> lift = Tween<Offset>(
+            begin: const Offset(0, 0.035),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            ),
+          );
+          final Animation<double> scale = Tween<double>(
+            begin: 0.992,
+            end: 1,
+          ).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            ),
+          );
+          return FadeTransition(
+            opacity: fade,
+            child: SlideTransition(
+              position: lift,
+              child: ScaleTransition(
+                scale: scale,
+                child: child,
+              ),
+            ),
+          );
+        },
+      ),
+      (route) => false,
+    );
   }
 
   @override
