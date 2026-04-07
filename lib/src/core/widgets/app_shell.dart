@@ -52,6 +52,7 @@ class AppShell extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: backgroundColor ?? theme.scaffoldBackgroundColor,
       extendBody: true,
       bottomNavigationBar: bottom == null
           ? null
