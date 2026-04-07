@@ -104,7 +104,14 @@ class _AppEntryScreenState extends State<AppEntryScreen> {
     }
 
     if (_showLogin) {
-      return const LoginScreen();
+      return LoginScreen(
+        onBack: () {
+          setState(() {
+            _showLogin = false;
+            _showWelcome = true;
+          });
+        },
+      );
     }
 
     return AppShell(

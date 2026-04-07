@@ -10,7 +10,12 @@ import '../../shared/models/app_models.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({
+    super.key,
+    this.onBack,
+  });
+
+  final VoidCallback? onBack;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -93,118 +98,142 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final darkTheme = theme.copyWith(
+      colorScheme: theme.colorScheme.copyWith(
+        surface: const Color(0xFF000000),
+        surfaceContainerLowest: const Color(0xFF000000),
+        surfaceContainerLow: const Color(0xFF121611),
+        surfaceContainer: const Color(0xFF171C15),
+        surfaceContainerHigh: const Color(0xFF1E251B),
+        surfaceContainerHighest: const Color(0xFF242C21),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF000000),
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        filled: true,
+        fillColor: const Color(0xFF263123),
+      ),
+    );
 
-    return AppShell(
-      title: '',
-      subtitle: '',
-      contentPadding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final double topSpacing = constraints.maxHeight >= 760 ? 12 : 4;
-          return SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: 396,
-                  minHeight: constraints.maxHeight,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(0, topSpacing, 0, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SmoothAppear(
-                        delay: const Duration(milliseconds: 20),
-                        offset: const Offset(0, 12),
-                        child: Text(
-                          'Sign in',
-                          style: theme.textTheme.displaySmall?.copyWith(
-                            fontSize: 40,
-                            letterSpacing: -1.4,
-                            height: 1.02,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      SmoothAppear(
-                        delay: const Duration(milliseconds: 170),
-                        offset: const Offset(0, 12),
-                        child: AutofillGroup(
-                          child: Column(
-                            children: [
-                              TextField(
-                                controller: phoneController,
-                                focusNode: phoneFocusNode,
-                                textInputAction: TextInputAction.next,
-                                keyboardType: TextInputType.phone,
-                                autocorrect: false,
-                                enableSuggestions: true,
-                                autofillHints: const [
-                                  AutofillHints.telephoneNumber,
-                                ],
-                                decoration: const InputDecoration(
-                                  labelText: 'Telefon raqam',
-                                  hintText: '+998901234567',
-                                  prefixIcon: Icon(Icons.phone_outlined),
-                                ),
-                              ),
-                              const SizedBox(height: 14),
-                              TextField(
-                                controller: codeController,
-                                focusNode: codeFocusNode,
-                                textInputAction: TextInputAction.done,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                onSubmitted: (_) {
-                                  if (!loading) {
-                                    submitLogin(context);
-                                  }
-                                },
-                                decoration: const InputDecoration(
-                                  labelText: 'Code',
-                                  hintText: '10XXXXXXXXXX',
-                                  prefixIcon: Icon(Icons.password_outlined),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (errorText != null) ...[
-                        const SizedBox(height: 14),
+    return Theme(
+      data: darkTheme,
+      child: AppShell(
+        title: '',
+        subtitle: '',
+        leading: widget.onBack == null
+            ? null
+            : AppShellIconAction(
+                icon: Icons.arrow_back_rounded,
+                onTap: widget.onBack!,
+              ),
+        contentPadding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double topSpacing = constraints.maxHeight >= 760 ? 54 : 34;
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: 396,
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(0, topSpacing, 0, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                         SmoothAppear(
-                          delay: const Duration(milliseconds: 210),
-                          offset: const Offset(0, 8),
-                          child: _LoginErrorBanner(message: errorText!),
+                          delay: const Duration(milliseconds: 20),
+                          offset: const Offset(0, 12),
+                          child: Text(
+                            'Sign in',
+                            style: theme.textTheme.displaySmall?.copyWith(
+                              fontSize: 40,
+                              letterSpacing: -1.4,
+                              height: 1.02,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        SmoothAppear(
+                          delay: const Duration(milliseconds: 170),
+                          offset: const Offset(0, 12),
+                          child: AutofillGroup(
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: phoneController,
+                                  focusNode: phoneFocusNode,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.phone,
+                                  autocorrect: false,
+                                  enableSuggestions: true,
+                                  autofillHints: const [
+                                    AutofillHints.telephoneNumber,
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Telefon raqam',
+                                    hintText: '+998901234567',
+                                    prefixIcon: Icon(Icons.phone_outlined),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                TextField(
+                                  controller: codeController,
+                                  focusNode: codeFocusNode,
+                                  textInputAction: TextInputAction.done,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  onSubmitted: (_) {
+                                    if (!loading) {
+                                      submitLogin(context);
+                                    }
+                                  },
+                                  decoration: const InputDecoration(
+                                    labelText: 'Code',
+                                    hintText: '10XXXXXXXXXX',
+                                    prefixIcon: Icon(Icons.password_outlined),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (errorText != null) ...[
+                          const SizedBox(height: 14),
+                          SmoothAppear(
+                            delay: const Duration(milliseconds: 210),
+                            offset: const Offset(0, 8),
+                            child: _LoginErrorBanner(message: errorText!),
+                          ),
+                        ],
+                        const SizedBox(height: 22),
+                        SmoothAppear(
+                          delay: const Duration(milliseconds: 220),
+                          offset: const Offset(0, 10),
+                          child: FilledButton(
+                            onPressed:
+                                loading ? null : () => submitLogin(context),
+                            child: loading
+                                ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                    ),
+                                  )
+                                : const Text('Login'),
+                          ),
                         ),
                       ],
-                      const SizedBox(height: 22),
-                      SmoothAppear(
-                        delay: const Duration(milliseconds: 220),
-                        offset: const Offset(0, 10),
-                        child: FilledButton(
-                          onPressed:
-                              loading ? null : () => submitLogin(context),
-                          child: loading
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                  ),
-                                )
-                              : const Text('Login'),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
