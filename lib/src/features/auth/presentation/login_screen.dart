@@ -1,6 +1,8 @@
 import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
 import '../../../core/app_preview.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../../../core/network/network_required_dialog.dart';
 import '../../../core/notifications/push_messaging_service.dart';
 import '../../../core/security/security_controller.dart';
@@ -63,11 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (loading) {
       return;
     }
+    final l10n = AppLocalizations.of(context);
     final String phone = phoneController.text.trim();
     final String code = codeController.text.trim();
 
     if (phone.isEmpty || code.isEmpty) {
-      setState(() => errorText = 'Telefon raqam va code ni kiriting');
+      setState(() => errorText = l10n.loginRequiredFields);
       return;
     }
     setState(() {
@@ -99,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
       setState(() {
-        errorText = 'Login muvaffaqiyatsiz';
+        errorText = l10n.loginFailed;
         loading = false;
       });
       final text = '$error';
@@ -110,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
           text.contains('timed out')) {
         showNetworkRequiredDialog(
           context,
-          message: 'Iltimos internetga ulaning.',
+          message: l10n.connectInternetPrompt,
         );
       }
     });
@@ -119,10 +122,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: ThemeController.instance,
+      animation: Listenable.merge([
+        ThemeController.instance,
+        LocaleController.instance,
+      ]),
       builder: (context, _) {
         final theme = Theme.of(context);
         final scheme = theme.colorScheme;
+        final l10n = AppLocalizations.of(context);
         final darkTheme = theme.copyWith(
           colorScheme: scheme.copyWith(
             surface: const Color(0xFF000000),
@@ -188,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final double topSpacing =
-                    constraints.maxHeight >= 760 ? 96 : 64;
+                    constraints.maxHeight >= 760 ? 84 : 56;
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   child: Align(
@@ -208,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               delay: const Duration(milliseconds: 20),
                               offset: const Offset(0, 12),
                               child: Text(
-                                'Sign in',
+                                l10n.signInTitle,
                                 style: theme.textTheme.displaySmall?.copyWith(
                                   fontSize: 40,
                                   letterSpacing: -1.4,
@@ -233,10 +240,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                       autofillHints: const [
                                         AutofillHints.telephoneNumber,
                                       ],
-                                      decoration: const InputDecoration(
-                                        labelText: 'Telefon raqam',
+                                      decoration: InputDecoration(
+                                        labelText: l10n.phoneLabel,
                                         hintText: '+998901234567',
-                                        prefixIcon: Icon(Icons.phone_outlined),
+                                        prefixIcon:
+                                            const Icon(Icons.phone_outlined),
                                       ),
                                     ),
                                     const SizedBox(height: 14),
@@ -251,11 +259,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                           submitLogin(context);
                                         }
                                       },
-                                      decoration: const InputDecoration(
-                                        labelText: 'Code',
+                                      decoration: InputDecoration(
+                                        labelText: l10n.codeLabel,
                                         hintText: '10XXXXXXXXXX',
-                                        prefixIcon:
-                                            Icon(Icons.password_outlined),
+                                        prefixIcon: const Icon(
+                                          Icons.password_outlined,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -300,7 +309,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 strokeWidth: 2.2,
                                               ),
                                             )
-                                          : const Text('Login'),
+                                          : Text(l10n.loginAction),
                                     ),
                                   ),
                                 ),

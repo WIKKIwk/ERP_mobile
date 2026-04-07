@@ -36,7 +36,25 @@ class AppLocalizations {
         'Welcome to Accord mobile app',
         'Добро пожаловать в мобильное приложение Accord',
       );
+  String get signInTitle => _t('Kirish', 'Sign in', 'Вход');
   String get getStarted => _t('Boshlash', 'Get started', 'Начать');
+  String get loginAction => _t('Kirish', 'Login', 'Войти');
+  String get codeLabel => _t('Kod', 'Code', 'Код');
+  String get loginRequiredFields => _t(
+        'Telefon raqam va kodni kiriting',
+        'Enter phone number and code',
+        'Введите номер телефона и код',
+      );
+  String get loginFailed => _t(
+        'Kirish muvaffaqiyatsiz',
+        'Login failed',
+        'Не удалось войти',
+      );
+  String get connectInternetPrompt => _t(
+        'Iltimos internetga ulaning.',
+        'Please connect to the internet.',
+        'Пожалуйста, подключитесь к интернету.',
+      );
   String get profileTitle => _t('Profil', 'Profile', 'Профиль');
   String get werkaAccount =>
       _t('Omborchi akkaunti', 'Wmanager account', 'Аккаунт кладовщика');
