@@ -18,7 +18,7 @@ final _ShapeProfile _ambientCookieProfile = _ShapeProfile.fromPath(
   MaterialShapes.cookie12Sided.toPath(),
 );
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({
     super.key,
     required this.onGetStarted,
@@ -27,18 +27,104 @@ class WelcomeScreen extends StatelessWidget {
   final Future<void> Function() onGetStarted;
 
   @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
+  static const List<Locale> _headlineLocales = <Locale>[
+    Locale('uz'),
+    Locale('en'),
+    Locale('ru'),
+  ];
+
+  late final AnimationController _headlineController =
+      AnimationController(vsync: this)
+        ..addStatusListener(_handleHeadlineStatus);
+
+  Timer? _headlineTimer;
+  int _headlineIndex = 0;
+  String _headlinePhase = 'idle';
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleHeadlineCycle();
+  }
+
+  @override
+  void dispose() {
+    _headlineTimer?.cancel();
+    _headlineController.dispose();
+    super.dispose();
+  }
+
+  void _scheduleHeadlineCycle() {
+    _headlineTimer?.cancel();
+    _headlineTimer = Timer(const Duration(seconds: 5), _startHeadlineExit);
+  }
+
+  void _startHeadlineExit() {
+    if (!mounted || _headlinePhase != 'idle') {
+      return;
+    }
+    setState(() {
+      _headlinePhase = 'exiting';
+    });
+    _headlineController.duration = const Duration(milliseconds: 300);
+    _headlineController.forward(from: 0);
+  }
+
+  void _handleHeadlineStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed || !mounted) {
+      return;
+    }
+
+    if (_headlinePhase == 'exiting') {
+      _headlineController.stop();
+      _headlineController.value = 0;
+      setState(() {
+        _headlineIndex = (_headlineIndex + 1) % _headlineLocales.length;
+        _headlinePhase = 'entering';
+      });
+      Future<void>.delayed(const Duration(milliseconds: 70), () {
+        if (!mounted || _headlinePhase != 'entering') {
+          return;
+        }
+        _headlineController.duration = const Duration(milliseconds: 420);
+        _headlineController.forward(from: 0);
+      });
+      return;
+    }
+
+    if (_headlinePhase == 'entering') {
+      _headlineController.stop();
+      _headlineController.value = 0;
+      setState(() {
+        _headlinePhase = 'idle';
+      });
+      _scheduleHeadlineCycle();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final mediaQuery = MediaQuery.of(context);
+    final Locale displayLocale = _headlineLocales[_headlineIndex];
+    final AppLocalizations displayL10n = AppLocalizations(displayLocale);
+    final double headlineFontSize = 46;
+    final double headlineLineHeight = 1.02 * headlineFontSize;
+    final double headlineHeight = headlineLineHeight * 3.15;
 
     return AnimatedBuilder(
       animation: Listenable.merge([
         LocaleController.instance,
         ThemeController.instance,
+        _headlineController,
       ]),
       builder: (context, _) {
-        final l10n = AppLocalizations.of(context);
         final currentLocale = LocaleController.instance.locale;
         final currentVariant = ThemeController.instance.variant;
 
@@ -73,13 +159,18 @@ class WelcomeScreen extends StatelessWidget {
                         SmoothAppear(
                           delay: const Duration(milliseconds: 40),
                           offset: const Offset(0, 16),
-                          child: _CyclingWelcomeHeadline(
-                            textStyle: GoogleFonts.manrope(
-                              fontSize: 46,
-                              height: 1.02,
-                              letterSpacing: -1.7,
-                              fontWeight: FontWeight.w400,
-                              color: scheme.onSurface,
+                          child: SizedBox(
+                            height: headlineHeight,
+                            child: _buildAnimatedText(
+                              displayL10n.welcomeToAccord,
+                              style: GoogleFonts.manrope(
+                                fontSize: headlineFontSize,
+                                height: 1.02,
+                                letterSpacing: -1.7,
+                                fontWeight: FontWeight.w400,
+                                color: scheme.onSurface,
+                              ),
+                              maxLines: 3,
                             ),
                           ),
                         ),
@@ -89,8 +180,22 @@ class WelcomeScreen extends StatelessWidget {
                           offset: const Offset(0, 14),
                           child: _WelcomeSelectionRow(
                             icon: Icons.language_rounded,
-                            label: l10n.languageTitle,
-                            value: _localeLabel(l10n, currentLocale),
+                            label: _buildAnimatedText(
+                              displayL10n.languageTitle,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontSize: 21,
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                            value: _buildAnimatedText(
+                              _localeLabel(displayL10n, currentLocale),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontSize: 16,
+                                color: scheme.onSurface.withValues(alpha: 0.72),
+                              ),
+                              textAlign: TextAlign.end,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             onTap: () => _pickLocale(context, currentLocale),
                           ),
                         ),
@@ -100,8 +205,22 @@ class WelcomeScreen extends StatelessWidget {
                           offset: const Offset(0, 14),
                           child: _WelcomeSelectionRow(
                             icon: Icons.palette_outlined,
-                            label: l10n.themeTitle,
-                            value: _themeLabel(l10n, currentVariant),
+                            label: _buildAnimatedText(
+                              displayL10n.themeTitle,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontSize: 21,
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                            value: _buildAnimatedText(
+                              _themeLabel(displayL10n, currentVariant),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontSize: 16,
+                                color: scheme.onSurface.withValues(alpha: 0.72),
+                              ),
+                              textAlign: TextAlign.end,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             onTap: () => _pickTheme(context, currentVariant),
                           ),
                         ),
@@ -112,7 +231,7 @@ class WelcomeScreen extends StatelessWidget {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: FilledButton(
-                              onPressed: onGetStarted,
+                              onPressed: widget.onGetStarted,
                               style: FilledButton.styleFrom(
                                 minimumSize: const Size(0, 46),
                                 padding: const EdgeInsets.symmetric(
@@ -125,8 +244,8 @@ class WelcomeScreen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                               ),
-                              child: Text(
-                                l10n.getStarted,
+                              child: _buildAnimatedText(
+                                displayL10n.getStarted,
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   color: scheme.onPrimary,
                                   fontWeight: FontWeight.w700,
@@ -144,6 +263,28 @@ class WelcomeScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAnimatedText(
+    String text, {
+    required TextStyle? style,
+    int maxLines = 1,
+    TextAlign? textAlign,
+    TextOverflow? overflow,
+  }) {
+    return _HeadlineMotionText(
+      phase: _headlinePhase,
+      progress: _headlineController.value,
+      child: Text(
+        text,
+        key: ValueKey<String>('$_headlineIndex-$_headlinePhase-$text'),
+        maxLines: maxLines,
+        softWrap: maxLines != 1,
+        overflow: overflow,
+        textAlign: textAlign,
+        style: style,
+      ),
     );
   }
 
@@ -272,125 +413,6 @@ class WelcomeScreen extends StatelessWidget {
       AppThemeVariant.slate => l10n.themeSlateLabel,
       AppThemeVariant.ocean => l10n.themeOceanLabel,
     };
-  }
-}
-
-class _CyclingWelcomeHeadline extends StatefulWidget {
-  const _CyclingWelcomeHeadline({
-    required this.textStyle,
-  });
-
-  final TextStyle textStyle;
-
-  @override
-  State<_CyclingWelcomeHeadline> createState() =>
-      _CyclingWelcomeHeadlineState();
-}
-
-class _CyclingWelcomeHeadlineState extends State<_CyclingWelcomeHeadline>
-    with SingleTickerProviderStateMixin {
-  static const List<Locale> _headlineLocales = <Locale>[
-    Locale('uz'),
-    Locale('en'),
-    Locale('ru'),
-  ];
-
-  late final AnimationController _controller = AnimationController(vsync: this)
-    ..addStatusListener(_handleAnimationStatus);
-  Timer? _timer;
-  int _index = 0;
-  String _phase = 'idle';
-
-  @override
-  void initState() {
-    super.initState();
-    _scheduleNextCycle();
-  }
-
-  void _scheduleNextCycle() {
-    _timer?.cancel();
-    _timer = Timer(const Duration(seconds: 5), _startExit);
-  }
-
-  void _startExit() {
-    if (!mounted || _phase != 'idle') {
-      return;
-    }
-    setState(() {
-      _phase = 'exiting';
-    });
-    _controller.duration = const Duration(milliseconds: 300);
-    _controller.forward(from: 0);
-  }
-
-  void _handleAnimationStatus(AnimationStatus status) {
-    if (status != AnimationStatus.completed || !mounted) {
-      return;
-    }
-
-    if (_phase == 'exiting') {
-      _controller.stop();
-      _controller.value = 0;
-      setState(() {
-        _index = (_index + 1) % _headlineLocales.length;
-        _phase = 'entering';
-      });
-      Future<void>.delayed(const Duration(milliseconds: 70), () {
-        if (!mounted || _phase != 'entering') {
-          return;
-        }
-        _controller.duration = const Duration(milliseconds: 420);
-        _controller.forward(from: 0);
-      });
-      return;
-    }
-
-    if (_phase == 'entering') {
-      _controller.stop();
-      _controller.value = 0;
-      setState(() {
-        _phase = 'idle';
-      });
-      _scheduleNextCycle();
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Locale locale = _headlineLocales[_index];
-    final String headline = AppLocalizations(locale).welcomeToAccord;
-    final double fontSize = widget.textStyle.fontSize ?? 46;
-    final double lineHeight = (widget.textStyle.height ?? 1.02) * fontSize;
-    final double headlineHeight = lineHeight * 3.15;
-
-    return SizedBox(
-      height: headlineHeight,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          return _HeadlineMotionText(
-            phase: _phase,
-            progress: _controller.value,
-            child: Text(
-              headline,
-              key: ValueKey<String>(
-                '${locale.languageCode}-$_phase',
-              ),
-              maxLines: 3,
-              softWrap: true,
-              style: widget.textStyle,
-            ),
-          );
-        },
-      ),
-    );
   }
 }
 
@@ -1058,8 +1080,8 @@ class _WelcomeSelectionRow extends StatelessWidget {
   });
 
   final IconData icon;
-  final String label;
-  final String value;
+  final Widget label;
+  final Widget value;
   final VoidCallback onTap;
 
   @override
@@ -1084,25 +1106,11 @@ class _WelcomeSelectionRow extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(
-                  label,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontSize: 21,
-                    color: scheme.onSurface,
-                  ),
-                ),
+                child: label,
               ),
               const SizedBox(width: 12),
               Flexible(
-                child: Text(
-                  value,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontSize: 16,
-                    color: scheme.onSurface.withValues(alpha: 0.72),
-                  ),
-                ),
+                child: value,
               ),
               const SizedBox(width: 8),
               Icon(
