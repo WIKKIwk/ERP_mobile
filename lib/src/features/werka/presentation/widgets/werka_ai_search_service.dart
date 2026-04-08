@@ -158,50 +158,35 @@ class WerkaAiSearchService {
     }
     final rawText = (parts.first['text'] as String? ?? '').trim();
     final parsed = _decodeJsonObject(rawText);
-    final shortQuery =
-        _sanitizeSearchQuery(parsed?['short_query'] as String? ?? '');
-    final uzQuery = _sanitizeSearchQuery(parsed?['uz_query'] as String? ?? '');
-    final enQuery = _sanitizeSearchQuery(parsed?['en_query'] as String? ?? '');
-    final ruQuery = _sanitizeSearchQuery(parsed?['ru_query'] as String? ?? '');
-    final searchQuery =
-        _sanitizeSearchQuery(parsed?['search_query'] as String? ?? '');
-    final keywordQueries = _extractKeywordQueries(parsed);
-    final displayQuery = _pickDisplayQuery(
-      locale,
-      shortQuery: shortQuery,
-      uzQuery: uzQuery,
-      enQuery: enQuery,
-      ruQuery: ruQuery,
-      fallbackQuery: searchQuery,
+    final searchQuery = _normalizeServerFriendlyQuery(
+      _sanitizeSearchQuery(parsed?['search_query'] as String? ?? ''),
     );
+    final altQuery = _normalizeServerFriendlyQuery(
+      _sanitizeSearchQuery(parsed?['alt_query'] as String? ?? ''),
+    );
+    final visibleBrand =
+        _sanitizeSearchQuery(parsed?['visible_brand'] as String? ?? '');
+    final displayQuery = searchQuery.isNotEmpty
+        ? searchQuery
+        : _pickFallbackDisplayQuery(
+            visibleBrand: visibleBrand,
+            altQuery: altQuery,
+          );
     final backgroundQueries = _rankQueries(<String>[
       displayQuery,
-      shortQuery,
-      uzQuery,
-      enQuery,
-      ruQuery,
-      searchQuery,
+      altQuery,
+      visibleBrand,
       ..._expandPhrasePrefixes(<String>[
         displayQuery,
-        shortQuery,
-        uzQuery,
-        enQuery,
-        ruQuery,
-        searchQuery,
-      ]),
-      ...keywordQueries,
-      ..._expandQueryTokens(<String>[
-        displayQuery,
-        shortQuery,
-        uzQuery,
-        enQuery,
-        ruQuery,
-        ...keywordQueries,
+        altQuery,
+        visibleBrand,
       ]),
     ]);
-    final resolvedDisplayQuery = displayQuery.isNotEmpty
+    final resolvedDisplayQuery = _normalizeServerFriendlyQuery(
+      displayQuery.isNotEmpty
         ? displayQuery
-        : (backgroundQueries.isNotEmpty ? backgroundQueries.first : '');
+        : (backgroundQueries.isNotEmpty ? backgroundQueries.first : ''),
+    );
     debugPrint(
       'ai search suggestion '
       'display="$resolvedDisplayQuery" '
@@ -212,7 +197,7 @@ class WerkaAiSearchService {
       displayQuery: resolvedDisplayQuery,
       backgroundQueries: backgroundQueries,
       visibleText: _sanitizeSearchQuery(
-        parsed?['visible_text'] as String? ?? '',
+        parsed?['visible_text'] as String? ?? visibleBrand,
       ),
     );
   }
@@ -284,45 +269,50 @@ class WerkaAiSearchService {
     return value;
   }
 
-  List<String> _extractKeywordQueries(Map<String, dynamic>? parsed) {
-    if (parsed == null) {
-      return const <String>[];
+  String _normalizeServerFriendlyQuery(String raw) {
+    final value = _sanitizeSearchQuery(raw);
+    if (value.isEmpty) {
+      return '';
     }
-    final queries = <String>[];
-    final keywords = parsed['keywords'];
-    if (keywords is List) {
-      for (final keyword in keywords) {
-        queries.add(_sanitizeSearchQuery('$keyword'));
+    final lower = value.toLowerCase();
+    final tokens = lower
+        .split(RegExp(r'[^a-z0-9а-яёўқғҳ]+'))
+        .where((token) => token.trim().isNotEmpty)
+        .where((token) => !_brandNoiseTokens.contains(token))
+        .toList(growable: false);
+    if (tokens.isNotEmpty && tokens.length <= 2) {
+      final compact = tokens.join(' ');
+      if (compact == 'nivea') {
+        return 'nivea';
+      }
+      if (compact == 'musaffo') {
+        return 'musaffo';
       }
     }
-    return _uniqueQueries(queries);
+    if (lower.contains('hot lunch') || lower.contains('xot lanch')) {
+      return lower.contains('xot lanch') ? 'xot lanch' : 'hot lunch';
+    }
+    if (lower.contains('musaffo') || lower.contains('мусаффо')) {
+      return 'musaffo';
+    }
+    if (lower.contains('simba') && lower.contains('chips')) {
+      return 'simba chips';
+    }
+    if (lower.contains('mini') &&
+        (lower.contains('rulet') || lower.contains('рулет'))) {
+      return 'mini rulet';
+    }
+    if (lower.contains('nivea') || lower.contains('нивеа')) {
+      return 'nivea';
+    }
+    return value;
   }
 
-  String _pickDisplayQuery(
-    Locale locale, {
-    required String shortQuery,
-    required String uzQuery,
-    required String enQuery,
-    required String ruQuery,
-    required String fallbackQuery,
+  String _pickFallbackDisplayQuery({
+    required String visibleBrand,
+    required String altQuery,
   }) {
-    final code = locale.languageCode.toLowerCase();
-    if (code == 'ru' && ruQuery.isNotEmpty) {
-      return ruQuery;
-    }
-    if (code == 'en' && enQuery.isNotEmpty) {
-      return enQuery;
-    }
-    if (code == 'uz' && uzQuery.isNotEmpty) {
-      return uzQuery;
-    }
-    if (shortQuery.isNotEmpty) {
-      return shortQuery;
-    }
-    if (fallbackQuery.isNotEmpty) {
-      return fallbackQuery;
-    }
-    final fallbacks = _uniqueQueries(<String>[uzQuery, enQuery, ruQuery]);
+    final fallbacks = _uniqueQueries(<String>[visibleBrand, altQuery]);
     return fallbacks.isNotEmpty ? fallbacks.first : '';
   }
 
@@ -378,25 +368,6 @@ class WerkaAiSearchService {
     return unique;
   }
 
-  List<String> _expandQueryTokens(Iterable<String> values) {
-    final tokens = <String>[];
-    for (final value in values) {
-      final normalizedValue = value.replaceAll(RegExp(r"[`'ʻʼ’]"), '');
-      for (final token in normalizedValue.split(
-        RegExp(r'[^A-Za-z0-9А-Яа-яЁёЎўҚқҒғҲҳ]+'),
-      )) {
-        final trimmed = _sanitizeSearchQuery(token);
-        if (trimmed.length < 3 ||
-            trimmed.contains(RegExp(r'\d')) ||
-            _stopTokens.contains(trimmed.toLowerCase())) {
-          continue;
-        }
-        tokens.add(trimmed);
-      }
-    }
-    return _uniqueQueries(tokens);
-  }
-
   int _queryTokenCount(String value) {
     return value
         .split(RegExp(r'[^A-Za-z0-9А-Яа-яЁёЎўҚқҒғҲҳ]+'))
@@ -416,23 +387,26 @@ class WerkaAiSearchService {
   }
 
   static const String _prompt =
-      'You are generating retail search queries from packaging for a live server product search. '
-      'Goal: maximize retrieval of the correct item family from the server. '
-      'Prefer transliterated Uzbek/Russian market spellings that an operator would type manually, '
-      'for example xot lanch, kuritsa, ostriy, qulipne, simba chips. '
-      'Use visible product family and flavor first; brand alone is weak unless that is all that is visible. '
-      'Return strict JSON with keys short_query, uz_query, en_query, ru_query, visible_text, confidence, keywords. '
-      'keywords must be a short array of extra search words or short phrases that can help retrieval.';
+      'Look at the package image and identify only the main brand or product family name that a warehouse worker should type for search. '
+      'If there is a clear standalone brand, return only that brand. '
+      'Do not include care words, category words, flavor, size, or descriptors such as cream, care, soap, sovun, milk, dairy, spicy. '
+      'Prefer the shortest searchable family query and server-friendly retail spelling or transliteration. '
+      'Examples: HOTLUNCH spicy chicken -> hot lunch, Musaffo -> musaffo, Simba Chips -> simba chips, Yashkino Mini-Rulet -> mini rulet, Nivea Creme Care -> nivea. '
+      'Return strict JSON with keys search_query, alt_query, visible_brand, visible_text, confidence.';
 
-  static const Set<String> _stopTokens = {
-    'and',
-    'the',
-    'with',
-    'for',
-    'hot',
-    'lunch',
-    'tez',
-    'tayyorlanadigan',
-    'instant',
+  static const Set<String> _brandNoiseTokens = {
+    'cream',
+    'care',
+    'soap',
+    'sovun',
+    'milk',
+    'dairy',
+    'soft',
+    'creme',
+    'molochnaya',
+    'mahsulotlari',
+    'products',
+    'product',
+    'spicy',
   };
 }
