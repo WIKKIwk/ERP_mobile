@@ -30,6 +30,8 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Face ID is used to unlock the app securely and speed up sign-in for this device.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>The app needs camera access so Werka can capture a product photo and generate a search query.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Saved archive pages are added to Photos so you can review and share them later.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

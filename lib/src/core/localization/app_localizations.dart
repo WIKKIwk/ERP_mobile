@@ -165,6 +165,25 @@ class AppLocalizations {
       _t('Mahsulot tanlang', 'Select item', 'Выберите товар');
   String get searchItem =>
       _t('Mahsulot qidiring', 'Search item', 'Поиск товара');
+  String get aiSearchTakePhoto =>
+      _t('Rasmga olish', 'Take photo', 'Сделать фото');
+  String get aiSearchChoosePhoto =>
+      _t('Gallereyadan tanlash', 'Choose from gallery', 'Выбрать из галереи');
+  String get aiSearchNotConfigured => _t(
+        'AI qidiruv sozlanmagan.',
+        'AI search is not configured.',
+        'AI-поиск не настроен.',
+      );
+  String get aiSearchNoResult => _t(
+        'AI rasm bo‘yicha qidiruv so‘zini topolmadi.',
+        'AI could not infer a search query from the image.',
+        'AI не смог подобрать поисковый запрос по изображению.',
+      );
+  String aiSearchFailed(String error) => _t(
+        'AI qidiruv bajarilmadi: $error',
+        'AI search failed: $error',
+        'AI-поиск не выполнен: $error',
+      );
   String get createHubTitle => _t('Qayd', 'Create', 'Создать');
   String get unannouncedTitle =>
       _t('Aytilmagan mahsulot', 'Unannounced item', 'Незаявленный товар');

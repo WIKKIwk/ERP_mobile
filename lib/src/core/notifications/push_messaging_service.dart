@@ -31,7 +31,8 @@ class PushMessagingService {
 
   bool get _shouldInitializePushOnThisDevice =>
       defaultTargetPlatform == TargetPlatform.android ||
-      (defaultTargetPlatform == TargetPlatform.iOS && !PlatformHelper.isIOSSimulator);
+      (defaultTargetPlatform == TargetPlatform.iOS &&
+          !PlatformHelper.isIOSSimulator);
 
   String get _platformName {
     switch (defaultTargetPlatform) {
@@ -48,7 +49,9 @@ class PushMessagingService {
   }
 
   Future<void> initialize() async {
-    if (_initialized || !_supportsRemotePush || !_shouldInitializePushOnThisDevice) {
+    if (_initialized ||
+        !_supportsRemotePush ||
+        !_shouldInitializePushOnThisDevice) {
       return;
     }
 
@@ -142,8 +145,16 @@ class PushMessagingService {
       'role=${profile?.role.name ?? 'none'} '
       'ref=${profile?.ref ?? ''}',
     );
-    if (!_supportsRemotePush || !AppSession.instance.isLoggedIn) {
-      debugPrint('push sync skipped: unsupported platform or not logged in');
+    if (!_supportsRemotePush ||
+        !_shouldInitializePushOnThisDevice ||
+        !AppSession.instance.isLoggedIn) {
+      debugPrint(
+        'push sync skipped: unsupported platform, simulator, or not logged in',
+      );
+      return;
+    }
+    if (Firebase.apps.isEmpty) {
+      debugPrint('push sync skipped: Firebase is not initialized');
       return;
     }
     final messaging = FirebaseMessaging.instance;
@@ -171,8 +182,16 @@ class PushMessagingService {
   }
 
   Future<void> unregisterCurrentToken() async {
-    if (!_supportsRemotePush || !AppSession.instance.isLoggedIn) {
-      debugPrint('push unregister skipped: unsupported platform or not logged in');
+    if (!_supportsRemotePush ||
+        !_shouldInitializePushOnThisDevice ||
+        !AppSession.instance.isLoggedIn) {
+      debugPrint(
+        'push unregister skipped: unsupported platform, simulator, or not logged in',
+      );
+      return;
+    }
+    if (Firebase.apps.isEmpty) {
+      debugPrint('push unregister skipped: Firebase is not initialized');
       return;
     }
     final token = await FirebaseMessaging.instance.getToken();

@@ -121,6 +121,7 @@ class _WerkaUnannouncedSupplierScreenState
           title: context.l10n.selectItem,
           supportingText: _selectedSupplier!.name,
           hintText: context.l10n.searchItem,
+          showScanIcon: true,
           pageSize: 100,
           loadPage: (query, offset, limit) =>
               MobileApi.instance.werkaSupplierItems(
@@ -290,7 +291,8 @@ class _WerkaUnannouncedSupplierScreenState
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          _selectedSupplier?.name ?? context.l10n.selectSupplier,
+                          _selectedSupplier?.name ??
+                              context.l10n.selectSupplier,
                         ),
                       ),
                     ),

@@ -180,6 +180,7 @@ class _WerkaCustomerIssueCustomerScreenState
             title: context.l10n.selectItem,
             supportingText: _selectedCustomer!.name,
             hintText: context.l10n.searchItem,
+            showScanIcon: true,
             pageSize: 100,
             loadPage: (query, offset, limit) =>
                 MobileApi.instance.werkaCustomerItems(
@@ -213,6 +214,7 @@ class _WerkaCustomerIssueCustomerScreenState
         return M3AsyncPickerSheet<CustomerItemOption>(
           title: context.l10n.selectItem,
           hintText: context.l10n.searchItem,
+          showScanIcon: true,
           pageSize: 200,
           loadPage: (query, offset, limit) =>
               MobileApi.instance.werkaCustomerItemOptions(
@@ -448,7 +450,8 @@ class _WerkaCustomerIssueCustomerScreenState
                         const SizedBox(width: 8),
                         IconButton.filledTonal(
                           tooltip: 'Clear customer',
-                          onPressed: _submitting ? null : _clearSelectedCustomer,
+                          onPressed:
+                              _submitting ? null : _clearSelectedCustomer,
                           icon: const Icon(Icons.close_rounded),
                         ),
                       ],

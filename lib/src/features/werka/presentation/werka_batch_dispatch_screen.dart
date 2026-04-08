@@ -259,6 +259,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
               title: context.l10n.selectItem,
               supportingText: _selectedCustomer!.name,
               hintText: context.l10n.searchItem,
+              showScanIcon: true,
               items: items,
               itemTitle: (item) => item.name,
               itemSubtitle: (item) => item.code,
@@ -301,6 +302,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
           return M3PickerSheet<CustomerItemOption>(
             title: context.l10n.selectItem,
             hintText: context.l10n.searchItem,
+            showScanIcon: true,
             items: options,
             itemTitle: (item) => item.itemName,
             itemSubtitle: (item) => '${item.customerName} • ${item.itemCode}',
@@ -342,6 +344,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
             title: context.l10n.selectItem,
             supportingText: _selectedCustomer!.name,
             hintText: context.l10n.searchItem,
+            showScanIcon: true,
             pageSize: 100,
             loadPage: (query, offset, limit) =>
                 MobileApi.instance.werkaCustomerItems(
@@ -378,6 +381,7 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
         return M3AsyncPickerSheet<CustomerItemOption>(
           title: context.l10n.selectItem,
           hintText: context.l10n.searchItem,
+          showScanIcon: true,
           pageSize: 200,
           loadPage: (query, offset, limit) =>
               MobileApi.instance.werkaCustomerItemOptions(
@@ -668,7 +672,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: _hasCurrentValidLine ? _saveCurrentLine : null,
+                        onPressed:
+                            _hasCurrentValidLine ? _saveCurrentLine : null,
                         child: Text(l10n.nextItemAction),
                       ),
                     )
@@ -677,9 +682,8 @@ class _WerkaBatchDispatchScreenState extends State<WerkaBatchDispatchScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: _hasCurrentValidLine
-                                ? _saveCurrentLine
-                                : null,
+                            onPressed:
+                                _hasCurrentValidLine ? _saveCurrentLine : null,
                             child: Text(l10n.addAnotherAction),
                           ),
                         ),

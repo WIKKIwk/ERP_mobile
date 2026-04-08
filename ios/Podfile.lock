@@ -98,6 +98,8 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
+  - image_picker_ios (0.0.1):
+    - Flutter
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -126,6 +128,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - gal (from `.symlinks/plugins/gal/darwin`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - pdfx (from `.symlinks/plugins/pdfx/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -160,6 +163,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   gal:
     :path: ".symlinks/plugins/gal/darwin"
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
   local_auth_darwin:
     :path: ".symlinks/plugins/local_auth_darwin/darwin"
   pdfx:
@@ -185,6 +190,7 @@ SPEC CHECKSUMS:
   gal: 6a522c75909f1244732d4596d11d6a2f86ff37a5
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  image_picker_ios: 4f2f91b01abdb52842a8e277617df877e40f905b
   local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   pdfx: 7b876b09de8b7a0bf444a4f82b439ffcff4ee1ec

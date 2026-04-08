@@ -32,11 +32,46 @@ bool searchMatches(String query, Iterable<String> values) {
     return true;
   }
 
-  for (final value in values) {
-    if (normalizeForSearch(value).contains(needle)) {
+  final normalizedValues = values
+      .map(normalizeForSearch)
+      .where((value) => value.isNotEmpty)
+      .toList();
+  for (final value in normalizedValues) {
+    if (value.contains(needle)) {
       return true;
     }
   }
+
+  final queryTokens = needle
+      .split(RegExp(r'[^a-z0-9]+'))
+      .where((token) => token.length >= 2)
+      .toList(growable: false);
+  if (queryTokens.isEmpty) {
+    return false;
+  }
+
+  for (final token in queryTokens) {
+    final matched = normalizedValues.any((value) {
+      if (value.contains(token)) {
+        return true;
+      }
+      final compactValue = _compactForSearch(value);
+      final compactToken = _compactForSearch(token);
+      if (compactToken.isEmpty) {
+        return false;
+      }
+      return compactValue.contains(compactToken) ||
+          _containsFuzzy(compactValue, compactToken, maxDistance: 1);
+    });
+    if (!matched) {
+      return false;
+    }
+  }
+
+  if (queryTokens.length >= 2) {
+    return true;
+  }
+
   return false;
 }
 
@@ -58,6 +93,18 @@ int compareSearchRelevance({
     secondary: rightSecondary,
   );
   return rightScore.compareTo(leftScore);
+}
+
+int searchRelevanceScore({
+  required String query,
+  required String primary,
+  Iterable<String> secondary = const <String>[],
+}) {
+  return _scoreSearchRelevance(
+    query,
+    primary: primary,
+    secondary: secondary,
+  );
 }
 
 int _scoreSearchRelevance(
