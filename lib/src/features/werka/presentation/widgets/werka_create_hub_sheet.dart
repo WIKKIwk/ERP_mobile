@@ -82,7 +82,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
   static const double _toggleBottom = 112.0;
   static const double _toggleCollapsedSize = 58.0;
   static const double _toggleExpandedSize = 84.0;
-  static const double _menuGap = 24.0;
+  static const double _menuGap = 34.0;
   static const double _menuSpacing = 10.0;
 
   late final AnimationController _controller = AnimationController(
@@ -120,7 +120,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.inventory_2_outlined,
         animation: CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.00, 0.68, curve: Curves.easeOutCubic),
+          curve: const Interval(0.00, 0.46, curve: Curves.easeOutCubic),
         ),
         onTap: () => widget.onOpenRoute(AppRoutes.werkaUnannouncedSupplier),
       ),
@@ -130,7 +130,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.send_outlined,
         animation: CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.07, 0.75, curve: Curves.easeOutCubic),
+          curve: const Interval(0.08, 0.54, curve: Curves.easeOutCubic),
         ),
         onTap: () => widget.onOpenRoute(AppRoutes.werkaCustomerIssueCustomer),
       ),
@@ -140,7 +140,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.playlist_add_check_rounded,
         animation: CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.14, 0.82, curve: Curves.easeOutCubic),
+          curve: const Interval(0.16, 0.62, curve: Curves.easeOutCubic),
         ),
         onTap: () => widget.onOpenRoute(AppRoutes.werkaBatchDispatch),
       ),
@@ -241,26 +241,64 @@ class _WerkaFloatingActionItem extends StatelessWidget {
         final settle = Curves.easeOutCubic.transform(value);
         final xOffset = TweenSequence<double>([
           TweenSequenceItem(
-            tween: Tween<double>(begin: 40, end: -6).chain(
+            tween: Tween<double>(begin: 84, end: 0).chain(
               CurveTween(curve: Curves.easeOutCubic),
             ),
-            weight: 68,
+            weight: 74,
           ),
           TweenSequenceItem(
-            tween: Tween<double>(begin: -6, end: 3).chain(
-              CurveTween(curve: Curves.easeOutSine),
+            tween: Tween<double>(begin: 0.0, end: -8.0).chain(
+              CurveTween(curve: Curves.easeOutQuad),
             ),
-            weight: 16,
+            weight: 13,
           ),
           TweenSequenceItem(
-            tween: Tween<double>(begin: 3, end: 0).chain(
-              CurveTween(curve: Curves.easeOutSine),
+            tween: Tween<double>(begin: -8.0, end: 0.0).chain(
+              CurveTween(curve: Curves.easeOutQuad),
             ),
-            weight: 16,
+            weight: 13,
           ),
         ]).transform(settle);
-        final yOffset = _lerpDouble(18, 0, settle);
-        final scale = _lerpDouble(0.94, 1.0, settle);
+        final yOffset = TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 32, end: 0).chain(
+              CurveTween(curve: Curves.easeOutCubic),
+            ),
+            weight: 74,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 0.0, end: -4.0).chain(
+              CurveTween(curve: Curves.easeOutQuad),
+            ),
+            weight: 13,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: -4.0, end: 0.0).chain(
+              CurveTween(curve: Curves.easeOutQuad),
+            ),
+            weight: 13,
+          ),
+        ]).transform(settle);
+        final scale = TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 0.92, end: 1.0).chain(
+              CurveTween(curve: Curves.easeOutCubic),
+            ),
+            weight: 80,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 1.0, end: 1.015).chain(
+              CurveTween(curve: Curves.easeOutQuad),
+            ),
+            weight: 10,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 1.015, end: 1.0).chain(
+              CurveTween(curve: Curves.easeOutQuad),
+            ),
+            weight: 10,
+          ),
+        ]).transform(settle);
         return Opacity(
           opacity: value,
           child: Transform.translate(
