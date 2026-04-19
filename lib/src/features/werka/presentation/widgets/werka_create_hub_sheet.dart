@@ -82,7 +82,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
   static const double _toggleBottom = 112.0;
   static const double _toggleCollapsedSize = 58.0;
   static const double _toggleExpandedSize = 84.0;
-  static const double _menuGap = 14.0;
+  static const double _menuGap = 24.0;
   static const double _menuSpacing = 10.0;
 
   late final AnimationController _controller = AnimationController(
@@ -120,7 +120,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.inventory_2_outlined,
         animation: CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.05, 0.72, curve: Curves.easeOutCubic),
+          curve: const Interval(0.00, 0.68, curve: Curves.easeOutCubic),
         ),
         onTap: () => widget.onOpenRoute(AppRoutes.werkaUnannouncedSupplier),
       ),
@@ -130,7 +130,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.send_outlined,
         animation: CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.14, 0.84, curve: Curves.easeOutCubic),
+          curve: const Interval(0.07, 0.75, curve: Curves.easeOutCubic),
         ),
         onTap: () => widget.onOpenRoute(AppRoutes.werkaCustomerIssueCustomer),
       ),
@@ -140,7 +140,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.playlist_add_check_rounded,
         animation: CurvedAnimation(
           parent: _controller,
-          curve: const Interval(0.24, 1.0, curve: Curves.easeOutCubic),
+          curve: const Interval(0.14, 0.82, curve: Curves.easeOutCubic),
         ),
         onTap: () => widget.onOpenRoute(AppRoutes.werkaBatchDispatch),
       ),
@@ -174,7 +174,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
                 return Opacity(
                   opacity: value,
                   child: Transform.translate(
-                    offset: Offset(12 * (1 - value), 12 * (1 - value)),
+                    offset: Offset(22 * (1 - value), 18 * (1 - value)),
                     child: child,
                   ),
                 );
@@ -238,12 +238,35 @@ class _WerkaFloatingActionItem extends StatelessWidget {
       animation: animation,
       builder: (context, child) {
         final value = animation.value.clamp(0.0, 1.0);
+        final settle = Curves.easeOutCubic.transform(value);
+        final xOffset = TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 40, end: -6).chain(
+              CurveTween(curve: Curves.easeOutCubic),
+            ),
+            weight: 68,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: -6, end: 3).chain(
+              CurveTween(curve: Curves.easeOutSine),
+            ),
+            weight: 16,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 3, end: 0).chain(
+              CurveTween(curve: Curves.easeOutSine),
+            ),
+            weight: 16,
+          ),
+        ]).transform(settle);
+        final yOffset = _lerpDouble(18, 0, settle);
+        final scale = _lerpDouble(0.94, 1.0, settle);
         return Opacity(
           opacity: value,
           child: Transform.translate(
-            offset: Offset(18 * (1 - value), 14 * (1 - value)),
+            offset: Offset(xOffset, yOffset),
             child: Transform.scale(
-              scale: 0.98 + (0.02 * value),
+              scale: scale,
               alignment: Alignment.bottomRight,
               child: child,
             ),
