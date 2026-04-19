@@ -362,15 +362,16 @@ class _WerkaCreateHubToggleButton extends StatelessWidget {
       animation: animation,
       builder: (context, child) {
         final value = animation.value.clamp(0.0, 1.0);
-        final size = _lerpDouble(expandedSize, collapsedSize, value);
-        final radius = _lerpDouble(expandedBorderRadius, size / 2, value);
+        final scale =
+            _lerpDouble(1.0, collapsedSize / expandedSize, value);
+        final radius =
+            _lerpDouble(expandedBorderRadius, expandedSize / 2, value);
         return SizedBox(
           width: expandedSize,
           height: expandedSize,
           child: Center(
-            child: SizedBox(
-              width: size,
-              height: size,
+            child: Transform.scale(
+              scale: scale,
               child: Material(
                 color: color,
                 elevation: 8,
