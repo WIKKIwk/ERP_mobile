@@ -46,7 +46,7 @@ class SupplierDock extends StatelessWidget {
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: tightToEdges ? 0 : 8),
           child: AppNavigationBar(
-            height: compact ? 68 : 72,
+            height: compact ? 60 : 64,
             selectionVisible: selectionVisible,
             selectedIndex: selectedIndex,
             destinations: [

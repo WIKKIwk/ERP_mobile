@@ -222,7 +222,7 @@ final class NativeBackNavigationController: UINavigationController {
       dockController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       dockController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
       dockController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-      dockController.view.heightAnchor.constraint(equalToConstant: 126),
+      dockController.view.heightAnchor.constraint(equalToConstant: 112),
     ])
     dockController.didMove(toParent: self)
   }

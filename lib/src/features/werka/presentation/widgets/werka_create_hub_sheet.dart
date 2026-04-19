@@ -1,6 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
-
 import '../../../../app/app_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -77,8 +75,8 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
   )..forward();
   late final AnimationController _toggleController = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 100),
-    reverseDuration: const Duration(milliseconds: 80),
+    duration: const Duration(milliseconds: 30),
+    reverseDuration: const Duration(milliseconds: 125),
   )..forward();
 
   @override
@@ -105,6 +103,10 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+    final Color backdropColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.42)
+        : Colors.white.withValues(alpha: 0.34);
     final size = MediaQuery.sizeOf(context);
     final menuWidth = math.min(320.0, size.width - 32.0);
     final menuAnimation = CurvedAnimation(
@@ -114,8 +116,8 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
     );
     final toggleAnimation = CurvedAnimation(
       parent: _toggleController,
-      curve: Curves.easeOutExpo,
-      reverseCurve: Curves.easeInCubic,
+      curve: Easing.standardDecelerate,
+      reverseCurve: Easing.standardAccelerate,
     );
     final items = [
       _WerkaFloatingActionItem(
@@ -150,13 +152,11 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
                 animation: menuAnimation,
                 builder: (context, _) {
                   final value = menuAnimation.value;
-                  return BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: 5 * value,
-                      sigmaY: 5 * value,
-                    ),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.38 * value),
+                  return Container(
+                    color: Color.lerp(
+                      Colors.transparent,
+                      backdropColor,
+                      value,
                     ),
                   );
                 },
@@ -340,28 +340,14 @@ class _WerkaCreateHubToggleButton extends StatelessWidget {
       animation: animation,
       builder: (context, child) {
         final value = animation.value.clamp(0.0, 1.0);
-        final shapeValue =
-            Curves.easeOutExpo.transform((value * 2.25).clamp(0.0, 1.0));
-        final buttonScale = _tweenSequence(
-          value,
-          const [
-            _TweenStep<double>(1.0, 0.78, Curves.easeOutCubic, 0.74),
-            _TweenStep<double>(0.78, 0.66, Curves.easeOutQuad, 0.16),
-            _TweenStep<double>(0.66, 0.67, Curves.easeOutBack, 0.10),
-          ],
-        );
-        final iconProgress = _tweenSequence(
-          value,
-          const [
-            _TweenStep<double>(0.0, 0.94, Curves.easeOutCubic, 0.76),
-            _TweenStep<double>(0.94, 1.05, Curves.easeOutQuad, 0.14),
-            _TweenStep<double>(1.05, 1.0, Curves.easeOutQuad, 0.10),
-          ],
-        );
+        final morphProgress =
+            Easing.standardDecelerate.transform((value * 2.1).clamp(0.0, 1.0));
+        final iconProgress = Easing.standardDecelerate.transform(value);
+        final buttonScale = _lerpDouble(1.0, 0.74, morphProgress);
         final radius = _lerpDouble(
           expandedBorderRadius,
           expandedSize / 2,
-          shapeValue,
+          morphProgress,
         );
         return SizedBox(
           width: expandedSize,
