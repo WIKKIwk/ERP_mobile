@@ -79,7 +79,7 @@ class _WerkaHomeScreenState extends State<WerkaHomeScreen>
             onPressed: () => Navigator.of(context).pushNamed(
               AppRoutes.profile,
             ),
-            icon: const Icon(Icons.account_circle_outlined, size: 21),
+            icon: const Icon(Icons.account_circle_outlined, size: 23),
           ),
         ),
       ],
