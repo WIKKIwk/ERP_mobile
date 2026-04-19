@@ -78,7 +78,7 @@ class _WerkaCreateHubOverlay extends StatefulWidget {
 }
 
 class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const double _toggleBottom = 112.0;
   static const double _toggleCollapsedSize = 58.0;
   static const double _toggleExpandedSize = 84.0;
