@@ -1,9 +1,6 @@
 import '../../../app/app_router.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/notifications/refresh_hub.dart';
-import '../../../core/notifications/notification_unread_store.dart';
-import '../../../core/theme/app_motion.dart';
-import '../../../core/session/app_session.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_retry_state.dart';
 import '../../../core/widgets/motion_widgets.dart';
@@ -70,38 +67,11 @@ class _WerkaHomeScreenState extends State<WerkaHomeScreen>
       subtitle: '',
       nativeTopBar: true,
       actions: [
-        AnimatedBuilder(
-          animation: NotificationUnreadStore.instance,
-          builder: (context, _) {
-            final showBadge =
-                NotificationUnreadStore.instance.hasUnreadForProfile(
-              AppSession.instance.profile,
-            );
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                IconButton.filledTonal(
-                  onPressed: () => Navigator.of(context).pushNamed(
-                    AppRoutes.werkaNotifications,
-                  ),
-                  icon: const Icon(Icons.notifications_none_rounded),
-                ),
-                if (showBadge)
-                  Positioned(
-                    right: 9,
-                    top: 9,
-                    child: Container(
-                      height: 9,
-                      width: 9,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE53935),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
+        IconButton.filledTonal(
+          onPressed: () => Navigator.of(context).pushNamed(
+            AppRoutes.profile,
+          ),
+          icon: const Icon(Icons.account_circle_outlined),
         ),
       ],
       bottom: const WerkaDock(activeTab: WerkaDockTab.home),
