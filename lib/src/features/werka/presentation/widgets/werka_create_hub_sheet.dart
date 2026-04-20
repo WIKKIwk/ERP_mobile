@@ -3,16 +3,15 @@ import 'dart:math' as math;
 
 import '../../../../app/app_router.dart';
 import '../../../../core/localization/app_localizations.dart';
-import '../../../../core/theme/app_motion.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/material.dart';
 
 final ValueNotifier<bool> werkaCreateHubMenuOpen = ValueNotifier<bool>(false);
 const double _werkaHubMenuItemHeight = 56.0;
-const double _werkaHubActionPaddingStart = 8.0;
-const double _werkaHubActionPaddingEnd = 10.0;
-const double _werkaHubActionIconGap = 8.0;
+const double _werkaHubActionPaddingStart = 14.0;
+const double _werkaHubActionPaddingEnd = 14.0;
+const double _werkaHubActionIconGap = 10.0;
 
 OverlayEntry? _werkaCreateHubOverlayEntry;
 final GlobalKey<_WerkaCreateHubOverlayState> _werkaCreateHubOverlayKey =
@@ -92,23 +91,31 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
   static const double _menuTrailingInset = 16.0;
   static const double _stackTrailingInset = 16.0;
   static final SpringDescription _spatialSpring =
-      AppMotion.m3ExpressiveFastSpatial;
+      SpringDescription.withDampingRatio(
+    mass: 1.72,
+    stiffness: 60.0,
+    ratio: 0.88,
+  );
   static final SpringDescription _effectsSpring =
-      AppMotion.m3ExpressiveFastEffects;
+      SpringDescription.withDampingRatio(
+    mass: 1.58,
+    stiffness: 140.0,
+    ratio: 1.0,
+  );
   static final SpringDescription _spatialSpringClose =
       SpringDescription.withDampingRatio(
-    mass: 1.0,
-    stiffness: 2100.0,
-    ratio: 0.6,
+    mass: 1.58,
+    stiffness: 110.0,
+    ratio: 0.82,
   );
   static final SpringDescription _effectsSpringClose =
       SpringDescription.withDampingRatio(
-    mass: 1.0,
-    stiffness: 4500.0,
+    mass: 1.42,
+    stiffness: 260.0,
     ratio: 1.0,
   );
-  static const Duration _openDuration = Duration(milliseconds: 280);
-  static const Duration _closeDuration = Duration(milliseconds: 280);
+  static const Duration _openDuration = Duration(milliseconds: 2000);
+  static const Duration _closeDuration = Duration(milliseconds: 2000);
 
   /// Wider than [0,1] so [SpringSimulation] can overshoot (M3 Expressive spatial).
   static const double _spatialLower = -0.08;
@@ -123,8 +130,8 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
   );
   late final AnimationController _effectsController = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 220),
-    reverseDuration: const Duration(milliseconds: 220),
+    duration: const Duration(milliseconds: 1520),
+    reverseDuration: const Duration(milliseconds: 1520),
   );
   late final ShapeBorderTween _fabShapeTween = ShapeBorderTween(
     begin: RoundedRectangleBorder(
@@ -221,6 +228,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
 
   List<_WerkaHubAction> _actions(BuildContext context) {
     final l10n = context.l10n;
+    const n = 3;
     return [
       _WerkaHubAction(
         key: const ValueKey('werka-hub-unannounced'),
@@ -228,6 +236,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.inventory_2_outlined,
         routeName: AppRoutes.werkaUnannouncedSupplier,
         row: 0,
+        staggerOrder: n - 1 - 0,
       ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-customer-issue'),
@@ -235,6 +244,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.send_outlined,
         routeName: AppRoutes.werkaCustomerIssueCustomer,
         row: 1,
+        staggerOrder: n - 1 - 1,
       ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-batch-dispatch'),
@@ -242,6 +252,7 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
         icon: Icons.playlist_add_check_rounded,
         routeName: AppRoutes.werkaBatchDispatch,
         row: 2,
+        staggerOrder: n - 1 - 2,
       ),
     ];
   }
@@ -321,7 +332,9 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
             builder: (context, _) {
               final double rawForFab =
                   _spatialController.value.clamp(0.0, 1.0);
-              final double progress = _m3SpatialLerpT(rawForFab);
+              final double progress = _m3SpatialLerpT(
+                _fabSpatialMorphDriver(rawForFab),
+              );
               final double currentButtonSize =
                   _lerpDouble(_fabClosedSize, _fabOpenSize, progress);
               final double anchoredBottom =
@@ -352,13 +365,13 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
     _WerkaHubAction action,
     Animation<double> parent,
   ) {
-    final int row = action.row;
-    final double start = (row * 0.12).clamp(0.0, 0.78);
-    final double end = (start + 0.58).clamp(0.0, 1.0);
+    final int order = action.staggerOrder;
+    final double start = (order * 0.30).clamp(0.0, 0.76);
+    final double end = (start + 0.56).clamp(0.0, 1.0);
     return CurvedAnimation(
       parent: parent,
-      curve: Interval(start, end, curve: Curves.linear),
-      reverseCurve: Interval(start, end, curve: Curves.linear),
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+      reverseCurve: Interval(start, end, curve: Curves.easeInCubic),
     );
   }
 }
@@ -370,6 +383,7 @@ class _WerkaHubAction {
     required this.icon,
     required this.routeName,
     required this.row,
+    required this.staggerOrder,
   });
 
   final Key key;
@@ -377,6 +391,8 @@ class _WerkaHubAction {
   final IconData icon;
   final String routeName;
   final int row;
+  /// 0 = first in the reveal sequence (FAB-proximal / bottom in the column).
+  final int staggerOrder;
 }
 
 class _WerkaHubActionPill extends StatelessWidget {
@@ -426,7 +442,7 @@ class _WerkaHubActionPill extends StatelessWidget {
       animation: Listenable.merge([spatial, effectsAnimation]),
       builder: (context, _) {
         final double widthT =
-            _hubStaggerSpatialT(spatial.value, action.row);
+            _hubStaggerSpatialT(spatial.value, action.staggerOrder);
         final double opacity = effectsAnimation.value.clamp(0.0, 1.0);
         final double currentWidth = _lerpDouble(
           _werkaHubMenuItemHeight,
@@ -532,10 +548,11 @@ class _WerkaMorphFabButton extends StatelessWidget {
       builder: (context, child) {
         final double raw = spatialAnimation.value;
         final double rawForFab = raw.clamp(0.0, 1.0);
-        final double morphT = _m3SpatialLerpT(rawForFab);
+        final double fabMorph = _fabSpatialMorphDriver(rawForFab);
+        final double morphT = _m3SpatialLerpT(fabMorph);
         final double iconT = effectsAnimation.value.clamp(0.0, 1.0);
-        final double colorT = raw.clamp(0.0, 1.0);
-        final double shapeT = _shapeMorphT(rawForFab, targetOpen);
+        final double colorT = fabMorph;
+        final double shapeT = _shapeMorphT(fabMorph, targetOpen);
         final double buttonSize = _lerpDouble(closedSize, openSize, morphT);
         final ShapeBorder shape = shapeTween.lerp(shapeT)!;
         final Color containerColor = Color.lerp(
@@ -606,6 +623,14 @@ double _lerpDouble(double begin, double end, double t) =>
 /// Spatial spring may exceed 0–1; allow extrapolation for size (Expressive overshoot).
 double _m3SpatialLerpT(double v) => v.clamp(-0.06, 1.18);
 
+/// ~0.5–0.55: lower = FAB shape/size completes earlier in the spring.
+const double _fabMorphSpatialSpan = 0.28;
+
+/// Maps spatial progress so FAB circle ↔ rounded-rect morph finishes before hub rows
+/// (hub items still use raw [v] via [_hubStaggerSpatialT]).
+double _fabSpatialMorphDriver(double raw) =>
+    (raw / _fabMorphSpatialSpan).clamp(0.0, 1.0);
+
 double _shapeMorphT(double raw, bool targetOpen) {
   final double t = raw.clamp(0.0, 1.0);
   if (targetOpen) {
@@ -614,10 +639,13 @@ double _shapeMorphT(double raw, bool targetOpen) {
   return t * t;
 }
 
-/// Same stagger windows as before [Interval], but driven by raw spatial spring value.
-double _hubStaggerSpatialT(double v, int row) {
-  final double start = (row * 0.12).clamp(0.0, 0.78);
-  final double end = (start + 0.58).clamp(0.0, 1.0);
+/// Same stagger windows as [_buildEffectsStagger], driven by raw spatial [v].
+///
+/// Grow is linear for most of the window; the last segment is a short sine hump so
+/// each row gets a visible overshoot when *that* row finishes, not only the last.
+double _hubStaggerSpatialT(double v, int staggerOrder) {
+  final double start = (staggerOrder * 0.30).clamp(0.0, 0.76);
+  final double end = (start + 0.56).clamp(0.0, 1.0);
   if (v <= start) {
     return 0.0;
   }
@@ -625,5 +653,17 @@ double _hubStaggerSpatialT(double v, int row) {
   if (span <= 0) {
     return 1.0;
   }
-  return ((v - start) / span).clamp(0.0, 1.22);
+  const double growFraction = 0.86;
+  final double spanGrow = span * growFraction;
+  final double spanBounce = span - spanGrow;
+  if (v < start + spanGrow) {
+    final double linearT = ((v - start) / spanGrow).clamp(0.0, 1.0);
+    return Curves.easeOutCubic.transform(linearT);
+  }
+  if (v <= end && spanBounce > 1e-6) {
+    final double u = ((v - start - spanGrow) / spanBounce).clamp(0.0, 1.0);
+    const double peak = 0.055;
+    return 1.0 + peak * math.sin(math.pi * u);
+  }
+  return 1.0;
 }
