@@ -13,6 +13,7 @@ void main() {
         home: Scaffold(
           body: const SizedBox.expand(),
           bottomNavigationBar: AppNavigationBar(
+            height: 60,
             destinations: const [
               AppNavigationDestination(
                 label: 'Home',
@@ -96,5 +97,92 @@ void main() {
     final navBarFinder = find.byType(NavigationBar);
     expect(navBarFinder, findsOneWidget);
     expect(tester.getSize(navBarFinder).height, 80);
+  });
+
+  testWidgets('navigation bar lifts above system bottom inset', (tester) async {
+    addTearDown(() {
+      tester.view.viewPadding = FakeViewPadding.zero;
+      tester.view.systemGestureInsets = FakeViewPadding.zero;
+      tester.view.resetDevicePixelRatio();
+    });
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.viewPadding = const FakeViewPadding(bottom: 32);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: true),
+        home: Scaffold(
+          body: const SizedBox.expand(),
+          bottomNavigationBar: AppNavigationBar(
+            height: 60,
+            destinations: const [
+              AppNavigationDestination(
+                label: 'Home',
+                icon: Icon(Icons.home_outlined),
+              ),
+              AppNavigationDestination(
+                label: 'Search',
+                icon: Icon(Icons.search_outlined),
+              ),
+            ],
+            selectedIndex: 0,
+            onDestinationSelected: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final hostFinder = find.byKey(const ValueKey('app-navigation-bar-host'));
+    final shellFinder = find.byKey(const ValueKey('app-navigation-bar-shell'));
+    expect(hostFinder, findsOneWidget);
+    expect(shellFinder, findsOneWidget);
+    expect(tester.getSize(shellFinder).height, 92);
+    expect(tester.getSize(hostFinder).height, 92);
+  });
+
+  testWidgets('navigation bar also lifts above gesture inset', (tester) async {
+    addTearDown(() {
+      tester.view.viewPadding = FakeViewPadding.zero;
+      tester.view.systemGestureInsets = FakeViewPadding.zero;
+      tester.view.resetDevicePixelRatio();
+    });
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.viewPadding = FakeViewPadding.zero;
+    tester.view.systemGestureInsets = const FakeViewPadding(bottom: 24);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: true),
+        home: Scaffold(
+          body: const SizedBox.expand(),
+          bottomNavigationBar: AppNavigationBar(
+            height: 60,
+            destinations: const [
+              AppNavigationDestination(
+                label: 'Home',
+                icon: Icon(Icons.home_outlined),
+              ),
+              AppNavigationDestination(
+                label: 'Search',
+                icon: Icon(Icons.search_outlined),
+              ),
+            ],
+            selectedIndex: 0,
+            onDestinationSelected: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final hostFinder = find.byKey(const ValueKey('app-navigation-bar-host'));
+    final shellFinder = find.byKey(const ValueKey('app-navigation-bar-shell'));
+    expect(hostFinder, findsOneWidget);
+    expect(shellFinder, findsOneWidget);
+    expect(tester.getSize(shellFinder).height, 84);
+    expect(tester.getSize(hostFinder).height, 84);
   });
 }
