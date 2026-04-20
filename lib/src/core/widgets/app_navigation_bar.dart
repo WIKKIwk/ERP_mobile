@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+const double appNavigationBarHeight = 80.0;
 const double appNavigationBarPrimaryButtonSize = 84.0;
 const double appNavigationBarPrimaryButtonGap = 44.0;
 const double appNavigationBarPrimaryButtonLift = 10.0;
@@ -13,6 +14,13 @@ double appNavigationBarPrimaryButtonBottom({
       appNavigationBarPrimaryButtonGap -
       (appNavigationBarPrimaryButtonSize / 2) +
       appNavigationBarPrimaryButtonLift;
+}
+
+double appNavigationBarDockHeight({
+  required double height,
+  required double systemBottomInset,
+}) {
+  return height + systemBottomInset;
 }
 
 class AppNavigationDestination {
@@ -40,7 +48,7 @@ class AppNavigationBar extends StatelessWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
     this.selectionVisible = true,
-    this.height = 80,
+    this.height = appNavigationBarHeight,
     this.primaryVisible = true,
   });
 
@@ -64,8 +72,6 @@ class AppNavigationBar extends StatelessWidget {
       return SizedBox(height: height + systemBottomInset);
     }
 
-    final ThemeData theme = Theme.of(context);
-    final ColorScheme scheme = theme.colorScheme;
     final int effectiveIndex =
         selectedIndex.clamp(0, destinations.length - 1).toInt();
     final int primaryIndex =
@@ -91,11 +97,10 @@ class AppNavigationBar extends StatelessWidget {
                 .clamp(0, barDestinations.length - 1)
                 .toInt()
         : effectiveIndex;
-    final Color selectedLabelColor = barSelectionVisible
-        ? scheme.onSecondaryContainer
-        : scheme.onSurfaceVariant;
-    final Color unselectedLabelColor = scheme.onSurfaceVariant;
-    final double dockHeight = height + systemBottomInset;
+    final double dockHeight = appNavigationBarDockHeight(
+      height: height,
+      systemBottomInset: systemBottomInset,
+    );
     final double hostHeight = dockHeight +
         (hasPrimary && primaryVisible
             ? appNavigationBarPrimaryButtonSize +
@@ -122,95 +127,46 @@ class AppNavigationBar extends StatelessWidget {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: ColoredBox(
-                    color: scheme.surfaceContainerLow,
-                    child: SizedBox(
-                      key: const ValueKey('app-navigation-bar-shell'),
-                      width: availableWidth,
-                      height: dockHeight,
-                      child: Padding(
+                  child: SizedBox(
+                    key: const ValueKey('app-navigation-bar-shell'),
+                    width: availableWidth,
+                    height: dockHeight,
+                    child: MediaQuery(
+                      data: viewMetrics.copyWith(
                         padding: EdgeInsets.only(bottom: systemBottomInset),
-                        child: SizedBox(
+                      ),
+                      child: _SelectionAwareNavigationBarTheme(
+                        enabled: barSelectionVisible,
+                        height: height,
+                        child: NavigationBar(
                           height: height,
-                          child: NavigationBarTheme(
-                            data: NavigationBarThemeData(
-                              height: height,
-                              backgroundColor: scheme.surfaceContainerLow,
-                              surfaceTintColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              indicatorColor: !barSelectionVisible
-                                  ? Colors.transparent
-                                  : scheme.secondaryContainer,
-                              indicatorShape: const StadiumBorder(),
-                              labelTextStyle:
-                                  WidgetStateProperty.resolveWith<TextStyle?>(
-                                (states) {
-                                  final bool selected = barSelectionVisible &&
-                                      states.contains(WidgetState.selected);
-                                  return theme.textTheme.labelSmall?.copyWith(
-                                    fontWeight: selected
-                                        ? FontWeight.w700
-                                        : FontWeight.w600,
-                                    color: selected
-                                        ? selectedLabelColor
-                                        : unselectedLabelColor,
-                                    letterSpacing: 0.1,
-                                  );
-                                },
-                              ),
-                              iconTheme: WidgetStateProperty.resolveWith<
-                                  IconThemeData?>(
-                                (states) {
-                                  final bool selected = barSelectionVisible &&
-                                      states.contains(WidgetState.selected);
-                                  return IconThemeData(
-                                    color: selected
-                                        ? selectedLabelColor
-                                        : unselectedLabelColor,
-                                    size: 24,
-                                  );
-                                },
-                              ),
-                            ),
-                            child: NavigationBar(
-                              height: height,
-                              selectedIndex: barSelectedIndex,
-                              onDestinationSelected: (index) {
-                                final destination = barDestinations[index];
-                                final originalIndex =
-                                    destinations.indexOf(destination);
-                                onDestinationSelected(originalIndex);
-                              },
-                              labelBehavior:
-                                  NavigationDestinationLabelBehavior.alwaysShow,
-                              backgroundColor: scheme.surfaceContainerLow,
-                              surfaceTintColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              indicatorColor: !barSelectionVisible
-                                  ? Colors.transparent
-                                  : scheme.secondaryContainer,
-                              indicatorShape: const StadiumBorder(),
-                              destinations:
-                                  List<NavigationDestination>.generate(
-                                barDestinations.length,
-                                (index) {
-                                  final destination = barDestinations[index];
-                                  return NavigationDestination(
-                                    label: destination.label,
-                                    icon: _AppNavigationDestinationIcon(
-                                      destination: destination,
-                                      selected: false,
-                                      selectionVisible: selectionVisible,
-                                    ),
-                                    selectedIcon: _AppNavigationDestinationIcon(
-                                      destination: destination,
-                                      selected: true,
-                                      selectionVisible: selectionVisible,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
+                          selectedIndex: barSelectedIndex,
+                          labelBehavior:
+                              NavigationDestinationLabelBehavior.alwaysShow,
+                          onDestinationSelected: (index) {
+                            final destination = barDestinations[index];
+                            final originalIndex =
+                                destinations.indexOf(destination);
+                            onDestinationSelected(originalIndex);
+                          },
+                          destinations: List<NavigationDestination>.generate(
+                            barDestinations.length,
+                            (index) {
+                              final destination = barDestinations[index];
+                              return NavigationDestination(
+                                label: destination.label,
+                                tooltip:
+                                    destination.onLongPress == null ? null : '',
+                                icon: _AppNavigationDestinationIcon(
+                                  destination: destination,
+                                  selected: false,
+                                ),
+                                selectedIcon: _AppNavigationDestinationIcon(
+                                  destination: destination,
+                                  selected: true,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -238,40 +194,77 @@ class AppNavigationBar extends StatelessWidget {
   }
 }
 
+class _SelectionAwareNavigationBarTheme extends StatelessWidget {
+  const _SelectionAwareNavigationBarTheme({
+    required this.enabled,
+    required this.height,
+    required this.child,
+  });
+
+  final bool enabled;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (enabled) {
+      return child;
+    }
+
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
+    final TextStyle? unselectedLabelStyle =
+        theme.textTheme.labelMedium?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+
+    return NavigationBarTheme(
+      data: NavigationBarThemeData(
+        height: height,
+        indicatorColor: Colors.transparent,
+        iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((states) {
+          final bool disabled = states.contains(WidgetState.disabled);
+          return IconThemeData(
+            size: 24,
+            color: disabled
+                ? scheme.onSurfaceVariant.withValues(alpha: 0.38)
+                : scheme.onSurfaceVariant,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return unselectedLabelStyle?.copyWith(
+              color: scheme.onSurfaceVariant.withValues(alpha: 0.38),
+            );
+          }
+          return unselectedLabelStyle;
+        }),
+      ),
+      child: child,
+    );
+  }
+}
+
 class _AppNavigationDestinationIcon extends StatelessWidget {
   const _AppNavigationDestinationIcon({
     required this.destination,
     required this.selected,
-    required this.selectionVisible,
   });
 
   final AppNavigationDestination destination;
   final bool selected;
-  final bool selectionVisible;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final ColorScheme scheme = theme.colorScheme;
-    final bool highlighted = selectionVisible && selected;
-    final Widget iconContent = IconTheme(
-      data: IconThemeData(
-        color:
-            highlighted ? scheme.onSecondaryContainer : scheme.onSurfaceVariant,
-        size: 24,
-      ),
-      child: highlighted
-          ? destination.selectedIcon ?? destination.icon
-          : destination.icon,
-    );
-    final Widget icon = destination.showBadge
-        ? Badge(
-            smallSize: 8,
-            alignment: Alignment.topRight,
-            backgroundColor: scheme.error,
-            child: iconContent,
-          )
-        : iconContent;
+    Widget icon = selected
+        ? destination.selectedIcon ?? destination.icon
+        : destination.icon;
+
+    if (destination.showBadge) {
+      icon = Badge(
+        child: icon,
+      );
+    }
 
     if (destination.onLongPress == null) {
       return icon;
@@ -324,8 +317,8 @@ class _AppPrimaryNavigationButton extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
-            width: 84,
-            height: 84,
+            width: appNavigationBarPrimaryButtonSize,
+            height: appNavigationBarPrimaryButtonSize,
             decoration: BoxDecoration(
               color: background,
               borderRadius: BorderRadius.circular(22),

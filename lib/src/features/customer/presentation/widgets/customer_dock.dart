@@ -1,4 +1,5 @@
 import '../../../../app/app_router.dart';
+import '../../../../core/native_dock_bridge.dart';
 import '../../../../core/notifications/notification_unread_store.dart';
 import '../../../../core/session/app_session.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
@@ -28,7 +29,10 @@ class CustomerDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: NotificationUnreadStore.instance,
+      animation: Listenable.merge([
+        NotificationUnreadStore.instance,
+        NativeDockBridge.instance,
+      ]),
       builder: (context, _) {
         final showBadge = NotificationUnreadStore.instance.hasUnreadForProfile(
               AppSession.instance.profile,
@@ -41,6 +45,96 @@ class CustomerDock extends StatelessWidget {
           CustomerDockTab.profile => 2,
           null => 0,
         };
+
+        void handleSelection(int index) {
+          if (index == 0) {
+            if (activeTab == CustomerDockTab.home) return;
+            if (onTabSelected != null) {
+              onTabSelected!(CustomerDockTab.home);
+            } else {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.customerHome,
+                (route) => false,
+              );
+            }
+            return;
+          }
+          if (index == 1) {
+            if (activeTab == CustomerDockTab.notifications) return;
+            if (onTabSelected != null) {
+              onTabSelected!(CustomerDockTab.notifications);
+            } else {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.customerNotifications,
+                (route) => false,
+              );
+            }
+            return;
+          }
+          if (activeTab == CustomerDockTab.profile) return;
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRoutes.profile,
+            (route) => false,
+          );
+        }
+
+        final useNativeDock = NativeDockBridge.isSupportedPlatform &&
+            NativeDockBridge.instance.supportsSystemDock;
+        if (useNativeDock) {
+          NativeDockBridge.instance.register(
+            NativeDockState(
+              visible: true,
+              compact: compact,
+              tightToEdges: tightToEdges,
+              items: [
+                NativeDockItem(
+                  id: 'customer-home',
+                  label: 'Uy',
+                  iconCodePoint: Icons.home_outlined.codePoint,
+                  selectedIconCodePoint: Icons.home_filled.codePoint,
+                  active: activeTab == CustomerDockTab.home,
+                  primary: false,
+                  showBadge: false,
+                  routeName:
+                      onTabSelected == null ? AppRoutes.customerHome : null,
+                  replaceStack: onTabSelected == null,
+                  onTap: () => handleSelection(0),
+                ),
+                NativeDockItem(
+                  id: 'customer-notifications',
+                  label: 'Bildirish',
+                  iconCodePoint: Icons.notifications_outlined.codePoint,
+                  selectedIconCodePoint: Icons.notifications.codePoint,
+                  active: activeTab == CustomerDockTab.notifications,
+                  primary: false,
+                  showBadge: showBadge,
+                  routeName: onTabSelected == null
+                      ? AppRoutes.customerNotifications
+                      : null,
+                  replaceStack: onTabSelected == null,
+                  onTap: () => handleSelection(1),
+                ),
+                NativeDockItem(
+                  id: 'customer-profile',
+                  label: 'Profil',
+                  iconCodePoint: Icons.account_circle_outlined.codePoint,
+                  selectedIconCodePoint: Icons.account_circle.codePoint,
+                  active: activeTab == CustomerDockTab.profile,
+                  primary: false,
+                  showBadge: false,
+                  routeName: AppRoutes.profile,
+                  replaceStack: true,
+                  onTap: () => handleSelection(2),
+                  onHoldComplete: activeTab == CustomerDockTab.profile
+                      ? () => showLogoutPrompt(context)
+                      : null,
+                ),
+              ],
+            ),
+          );
+          return const SizedBox.shrink();
+        }
+
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: tightToEdges ? 0 : 8),
           child: AppNavigationBar(
@@ -48,10 +142,10 @@ class CustomerDock extends StatelessWidget {
             selectionVisible: selectionVisible,
             selectedIndex: selectedIndex,
             destinations: [
-              AppNavigationDestination(
+              const AppNavigationDestination(
                 label: 'Uy',
-                icon: const Icon(Icons.home_outlined),
-                selectedIcon: const Icon(Icons.home_filled),
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home_filled),
               ),
               AppNavigationDestination(
                 label: 'Bildirish',
@@ -68,37 +162,7 @@ class CustomerDock extends StatelessWidget {
                     : null,
               ),
             ],
-            onDestinationSelected: (index) {
-              if (index == 0) {
-                if (activeTab == CustomerDockTab.home) return;
-                if (onTabSelected != null) {
-                  onTabSelected!(CustomerDockTab.home);
-                } else {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.customerHome,
-                    (route) => false,
-                  );
-                }
-                return;
-              }
-              if (index == 1) {
-                if (activeTab == CustomerDockTab.notifications) return;
-                if (onTabSelected != null) {
-                  onTabSelected!(CustomerDockTab.notifications);
-                } else {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.customerNotifications,
-                    (route) => false,
-                  );
-                }
-                return;
-              }
-              if (activeTab == CustomerDockTab.profile) return;
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.profile,
-                (route) => false,
-              );
-            },
+            onDestinationSelected: handleSelection,
           ),
         );
       },

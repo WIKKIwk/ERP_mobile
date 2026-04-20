@@ -49,13 +49,6 @@ class ErpnextStockMobileApp extends StatelessWidget {
             if (AppPreview.enabled) {
               current = DevicePreview.appBuilder(context, current);
             }
-            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-              current = MediaQuery.removeViewPadding(
-                context: context,
-                removeBottom: true,
-                child: current,
-              );
-            }
             final brightness = Theme.of(context).brightness;
             final overlayStyle = brightness == Brightness.dark
                 ? SystemUiOverlayStyle.light.copyWith(

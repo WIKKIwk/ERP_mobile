@@ -43,6 +43,8 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final Color shellBackground =
+        backgroundColor ?? AppTheme.shellStart(context);
     final useNativeTitle =
         NativeBackButtonBridge.useNativeNavigationTitleWhenPossible(
       context,
@@ -51,47 +53,43 @@ class AppShell extends StatelessWidget {
     );
     final shouldHideLeading = leading != null &&
         NativeBackButtonBridge.shouldUseNativeBackButton(context);
-    final preserveNativeDock = NativeDockBridge.isSupportedPlatform &&
-        NativeDockBridge.instance.supportsSystemDock;
-    if (bottom == null && !preserveNativeDock) {
+    if (bottom == null) {
       NativeDockBridge.instance.clearFromBuild();
     }
 
-    return Scaffold(
-      backgroundColor: backgroundColor ?? theme.scaffoldBackgroundColor,
-      extendBody: true,
-      drawer: drawer,
-      appBar: nativeTopBar
-          ? AppBar(
-              title: Text(
-                title,
-                style: nativeTitleTextStyle,
+    return DecoratedBox(
+      decoration: BoxDecoration(color: shellBackground),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        drawer: drawer,
+        appBar: nativeTopBar
+            ? AppBar(
+                title: Text(
+                  title,
+                  style: nativeTitleTextStyle,
+                ),
+                leading: shouldHideLeading ? null : leading,
+                automaticallyImplyLeading:
+                    shouldHideLeading ? false : leading == null,
+                actions: actions,
+                backgroundColor:
+                    backgroundColor ?? theme.colorScheme.surfaceContainerLow,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                toolbarHeight: 40,
+                titleSpacing: 20,
+                centerTitle: false,
+              )
+            : null,
+        bottomNavigationBar: bottom == null
+            ? null
+            : Padding(
+                padding: bottomPadding,
+                child: bottom!,
               ),
-              leading: shouldHideLeading ? null : leading,
-              automaticallyImplyLeading:
-                  shouldHideLeading ? false : leading == null,
-              actions: actions,
-              backgroundColor:
-                  backgroundColor ?? theme.colorScheme.surfaceContainerLow,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              toolbarHeight: 40,
-              titleSpacing: 20,
-              centerTitle: false,
-            )
-          : null,
-      bottomNavigationBar: bottom == null
-          ? null
-          : Padding(
-              padding: bottomPadding,
-              child: bottom!,
-            ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          color: backgroundColor ?? AppTheme.shellStart(context),
-        ),
-        child: SafeArea(
+        body: SafeArea(
           bottom: false,
           child: _buildAnimatedContent(
             context,

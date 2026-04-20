@@ -1,4 +1,5 @@
 import '../../../../app/app_router.dart';
+import '../../../../core/native_dock_bridge.dart';
 import '../../../../core/notifications/notification_unread_store.dart';
 import '../../../../core/session/app_session.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
@@ -30,7 +31,10 @@ class WerkaDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: NotificationUnreadStore.instance,
+      animation: Listenable.merge([
+        NotificationUnreadStore.instance,
+        NativeDockBridge.instance,
+      ]),
       builder: (context, _) {
         final showBadge = NotificationUnreadStore.instance.hasUnreadForProfile(
               AppSession.instance.profile,
@@ -48,6 +52,122 @@ class WerkaDock extends StatelessWidget {
         return ValueListenableBuilder<bool>(
           valueListenable: werkaCreateHubMenuOpen,
           builder: (context, menuOpen, child) {
+            void handleSelection(int index) {
+              if (index == 0) {
+                if (activeTab == WerkaDockTab.home) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.werkaHome,
+                  (route) => false,
+                );
+                return;
+              }
+              if (index == 1) {
+                if (activeTab == WerkaDockTab.notifications) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.werkaNotifications,
+                  (route) => false,
+                );
+                return;
+              }
+              if (index == 2) {
+                showWerkaCreateHubSheet(context);
+                return;
+              }
+              if (index == 3) {
+                if (activeTab == WerkaDockTab.archive) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.werkaArchive,
+                  (route) => false,
+                );
+                return;
+              }
+              if (activeTab == WerkaDockTab.profile) return;
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.profile,
+                (route) => false,
+              );
+            }
+
+            final useNativeDock = NativeDockBridge.isSupportedPlatform &&
+                NativeDockBridge.instance.supportsSystemDock;
+            if (useNativeDock) {
+              NativeDockBridge.instance.register(
+                NativeDockState(
+                  visible: true,
+                  compact: compact,
+                  tightToEdges: tightToEdges,
+                  items: [
+                    NativeDockItem(
+                      id: 'werka-home',
+                      label: 'Uy',
+                      iconCodePoint: Icons.home_outlined.codePoint,
+                      selectedIconCodePoint: Icons.home_rounded.codePoint,
+                      active: activeTab == WerkaDockTab.home,
+                      primary: false,
+                      showBadge: false,
+                      routeName: AppRoutes.werkaHome,
+                      replaceStack: true,
+                      onTap: () => handleSelection(0),
+                    ),
+                    NativeDockItem(
+                      id: 'werka-notifications',
+                      label: 'Bildirish',
+                      iconCodePoint: Icons.notifications_outlined.codePoint,
+                      selectedIconCodePoint:
+                          Icons.notifications_rounded.codePoint,
+                      active: activeTab == WerkaDockTab.notifications,
+                      primary: false,
+                      showBadge: showBadge,
+                      routeName: AppRoutes.werkaNotifications,
+                      replaceStack: true,
+                      onTap: () => handleSelection(1),
+                    ),
+                    if (!menuOpen)
+                      NativeDockItem(
+                        id: 'werka-create',
+                        label: 'Yangi',
+                        iconCodePoint: Icons.add_rounded.codePoint,
+                        selectedIconCodePoint: Icons.add_rounded.codePoint,
+                        active: activeTab == WerkaDockTab.create,
+                        primary: true,
+                        showBadge: false,
+                        onTap: () => handleSelection(2),
+                      ),
+                    NativeDockItem(
+                      id: 'werka-archive',
+                      label: 'Arxiv',
+                      iconCodePoint: Icons.playlist_add_check_rounded.codePoint,
+                      selectedIconCodePoint:
+                          Icons.playlist_add_check_rounded.codePoint,
+                      active: activeTab == WerkaDockTab.archive,
+                      primary: false,
+                      showBadge: false,
+                      routeName: AppRoutes.werkaArchive,
+                      replaceStack: true,
+                      onTap: () => handleSelection(3),
+                    ),
+                    NativeDockItem(
+                      id: 'werka-profile',
+                      label: 'Profil',
+                      iconCodePoint: Icons.account_circle_outlined.codePoint,
+                      selectedIconCodePoint:
+                          Icons.account_circle_rounded.codePoint,
+                      active: activeTab == WerkaDockTab.profile,
+                      primary: false,
+                      showBadge: false,
+                      routeName: AppRoutes.profile,
+                      replaceStack: true,
+                      onTap: () => handleSelection(4),
+                      onHoldComplete: activeTab == WerkaDockTab.profile
+                          ? () => showLogoutPrompt(context)
+                          : null,
+                    ),
+                  ],
+                ),
+              );
+              return const SizedBox.shrink();
+            }
+
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: tightToEdges ? 0 : 8),
               child: AppNavigationBar(
@@ -56,10 +176,10 @@ class WerkaDock extends StatelessWidget {
                 selectedIndex: selectedIndex,
                 primaryVisible: !menuOpen,
                 destinations: [
-                  AppNavigationDestination(
+                  const AppNavigationDestination(
                     label: 'Uy',
-                    icon: const Icon(Icons.home_outlined),
-                    selectedIcon: const Icon(Icons.home_rounded),
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home_rounded),
                   ),
                   AppNavigationDestination(
                     label: 'Bildirish',
@@ -67,16 +187,16 @@ class WerkaDock extends StatelessWidget {
                     selectedIcon: const Icon(Icons.notifications_rounded),
                     showBadge: showBadge,
                   ),
-                  AppNavigationDestination(
+                  const AppNavigationDestination(
                     label: 'Yangi',
-                    icon: const Icon(Icons.add_rounded),
-                    selectedIcon: const Icon(Icons.add_rounded),
+                    icon: Icon(Icons.add_rounded),
+                    selectedIcon: Icon(Icons.add_rounded),
                     isPrimary: true,
                   ),
-                  AppNavigationDestination(
+                  const AppNavigationDestination(
                     label: 'Arxiv',
-                    icon: const _WerkaDockSvgIcon(),
-                    selectedIcon: const _WerkaDockSvgIcon(),
+                    icon: _WerkaDockSvgIcon(),
+                    selectedIcon: _WerkaDockSvgIcon(),
                   ),
                   AppNavigationDestination(
                     label: 'Profil',
@@ -87,41 +207,7 @@ class WerkaDock extends StatelessWidget {
                         : null,
                   ),
                 ],
-                onDestinationSelected: (index) {
-                  if (index == 0) {
-                    if (activeTab == WerkaDockTab.home) return;
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRoutes.werkaHome,
-                      (route) => false,
-                    );
-                    return;
-                  }
-                  if (index == 1) {
-                    if (activeTab == WerkaDockTab.notifications) return;
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRoutes.werkaNotifications,
-                      (route) => false,
-                    );
-                    return;
-                  }
-                  if (index == 2) {
-                    showWerkaCreateHubSheet(context);
-                    return;
-                  }
-                  if (index == 3) {
-                    if (activeTab == WerkaDockTab.archive) return;
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRoutes.werkaArchive,
-                      (route) => false,
-                    );
-                    return;
-                  }
-                  if (activeTab == WerkaDockTab.profile) return;
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.profile,
-                    (route) => false,
-                  );
-                },
+                onDestinationSelected: handleSelection,
               ),
             );
           },

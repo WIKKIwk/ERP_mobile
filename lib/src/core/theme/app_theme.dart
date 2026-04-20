@@ -530,34 +530,8 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: textTheme.titleLarge,
       ),
-      navigationBarTheme: NavigationBarThemeData(
+      navigationBarTheme: const NavigationBarThemeData(
         height: 80,
-        backgroundColor: colorScheme.surfaceContainerLow,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        indicatorColor: colorScheme.secondaryContainer,
-        indicatorShape: const StadiumBorder(),
-        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
-          (states) {
-            final bool selected = states.contains(WidgetState.selected);
-            return textTheme.labelSmall?.copyWith(
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-              color: selected
-                  ? colorScheme.onSecondaryContainer
-                  : colorScheme.onSurfaceVariant,
-              letterSpacing: 0.1,
-            );
-          },
-        ),
-        iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((states) {
-          final bool selected = states.contains(WidgetState.selected);
-          return IconThemeData(
-            color: selected
-                ? colorScheme.onSecondaryContainer
-                : colorScheme.onSurfaceVariant,
-            size: 25,
-          );
-        }),
       ),
       pageTransitionsTheme: _pageTransitionsTheme(),
       elevatedButtonTheme: ElevatedButtonThemeData(

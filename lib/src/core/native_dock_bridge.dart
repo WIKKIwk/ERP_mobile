@@ -265,7 +265,10 @@ class NativeDockState {
 class NativeDockItem {
   const NativeDockItem({
     required this.id,
-    required this.symbol,
+    required this.label,
+    required this.iconCodePoint,
+    this.selectedIconCodePoint,
+    this.symbol = '',
     this.selectedSymbol,
     required this.active,
     required this.primary,
@@ -277,6 +280,9 @@ class NativeDockItem {
   });
 
   final String id;
+  final String label;
+  final int iconCodePoint;
+  final int? selectedIconCodePoint;
   final String symbol;
   final String? selectedSymbol;
   final bool active;
@@ -290,6 +296,9 @@ class NativeDockItem {
   Map<String, Object?> toMap() {
     return <String, Object?>{
       'id': id,
+      'label': label,
+      'iconCodePoint': iconCodePoint,
+      'selectedIconCodePoint': selectedIconCodePoint,
       'symbol': symbol,
       'selectedSymbol': selectedSymbol,
       'active': active,
@@ -305,6 +314,9 @@ class NativeDockItem {
   bool operator ==(Object other) {
     return other is NativeDockItem &&
         other.id == id &&
+        other.label == label &&
+        other.iconCodePoint == iconCodePoint &&
+        other.selectedIconCodePoint == selectedIconCodePoint &&
         other.symbol == symbol &&
         other.selectedSymbol == selectedSymbol &&
         other.active == active &&
@@ -318,6 +330,9 @@ class NativeDockItem {
   @override
   int get hashCode => Object.hash(
         id,
+        label,
+        iconCodePoint,
+        selectedIconCodePoint,
         symbol,
         selectedSymbol,
         active,
