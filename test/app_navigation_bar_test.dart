@@ -50,7 +50,7 @@ void main() {
     final navBarFinder = find.byType(NavigationBar);
     expect(buttonFinder, findsOneWidget);
     expect(navBarFinder, findsOneWidget);
-    expect(tester.getSize(buttonFinder), const Size(84, 84));
+    expect(tester.getSize(buttonFinder), const Size(80, 80));
 
     final buttonRect = tester.getRect(buttonFinder);
     final navBarRect = tester.getRect(navBarFinder);

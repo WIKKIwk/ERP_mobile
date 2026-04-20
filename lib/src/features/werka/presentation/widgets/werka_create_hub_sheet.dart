@@ -1,35 +1,50 @@
+import 'dart:async';
 import 'dart:math' as math;
+
 import '../../../../app/app_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/material.dart';
 
 final ValueNotifier<bool> werkaCreateHubMenuOpen = ValueNotifier<bool>(false);
+const double _werkaHubMenuItemHeight = 56.0;
 
 OverlayEntry? _werkaCreateHubOverlayEntry;
+final GlobalKey<_WerkaCreateHubOverlayState> _werkaCreateHubOverlayKey =
+    GlobalKey<_WerkaCreateHubOverlayState>();
 
 void showWerkaCreateHubSheet(BuildContext context) {
   if (_werkaCreateHubOverlayEntry != null) {
+    _werkaCreateHubOverlayKey.currentState?.setOpen(true);
     return;
   }
 
   final overlay = Overlay.of(context, rootOverlay: true);
-
   final navigator = Navigator.of(context);
   late final OverlayEntry entry;
 
-  void closeMenu() {
+  void closeMenuNow() {
+    werkaCreateHubMenuOpen.value = false;
     if (entry.mounted) {
       entry.remove();
     }
-    werkaCreateHubMenuOpen.value = false;
     if (_werkaCreateHubOverlayEntry == entry) {
       _werkaCreateHubOverlayEntry = null;
     }
   }
 
+  void requestCloseMenu() {
+    final currentState = _werkaCreateHubOverlayKey.currentState;
+    if (currentState != null) {
+      currentState.setOpen(false);
+      return;
+    }
+    closeMenuNow();
+  }
+
   void openRoute(String routeName) {
-    closeMenu();
+    requestCloseMenu();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       navigator.pushNamed(routeName);
     });
@@ -38,7 +53,8 @@ void showWerkaCreateHubSheet(BuildContext context) {
   entry = OverlayEntry(
     builder: (overlayContext) {
       return _WerkaCreateHubOverlay(
-        onClose: closeMenu,
+        key: _werkaCreateHubOverlayKey,
+        onClose: closeMenuNow,
         onOpenRoute: openRoute,
       );
     },
@@ -51,6 +67,7 @@ void showWerkaCreateHubSheet(BuildContext context) {
 
 class _WerkaCreateHubOverlay extends StatefulWidget {
   const _WerkaCreateHubOverlay({
+    super.key,
     required this.onClose,
     required this.onOpenRoute,
   });
@@ -64,51 +81,159 @@ class _WerkaCreateHubOverlay extends StatefulWidget {
 
 class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
     with TickerProviderStateMixin {
-  static const double _toggleCollapsedSize = 58.0;
-  static const double _toggleExpandedSize = 84.0;
-  static const double _menuGap = 34.0;
-  static const double _menuSpacing = 10.0;
+  static const double _fabClosedSize = 80.0;
+  static const double _fabOpenSize = 56.0;
+  static const double _menuItemGap = 6.0;
+  static const double _groupButtonGap = 16.0;
+  static const double _menuTrailingInset = 16.0;
+  static const double _stackTrailingInset = 16.0;
+  static final SpringDescription _spatialSpring =
+      SpringDescription.withDampingRatio(
+    mass: 1.0,
+    stiffness: 800.0,
+    ratio: 0.6,
+  );
+  static final SpringDescription _effectsSpring =
+      SpringDescription.withDampingRatio(
+    mass: 1.0,
+    stiffness: 3800.0,
+    ratio: 1.0,
+  );
+  static const Duration _openDuration = Duration(milliseconds: 280);
+  static const Duration _closeDuration = Duration(milliseconds: 210);
 
-  late final AnimationController _menuController = AnimationController(
+  late final AnimationController _spatialController = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 260),
-  )..forward();
-  late final AnimationController _toggleController = AnimationController(
+    duration: _openDuration,
+    reverseDuration: _closeDuration,
+  );
+  late final AnimationController _effectsController = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 30),
-    reverseDuration: const Duration(milliseconds: 125),
-  )..forward();
+    duration: const Duration(milliseconds: 220),
+    reverseDuration: const Duration(milliseconds: 180),
+  );
+  late final ShapeBorderTween _fabShapeTween = ShapeBorderTween(
+    begin: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+    end: const CircleBorder(),
+  );
+  bool _targetOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _setOpen(true);
+  }
+
+  void setOpen(bool open) {
+    _setOpen(open);
+  }
 
   @override
   void dispose() {
-    _menuController.dispose();
-    _toggleController.dispose();
+    _werkaCreateHubOverlayEntry = null;
+    werkaCreateHubMenuOpen.value = false;
+    _spatialController.dispose();
+    _effectsController.dispose();
     super.dispose();
   }
 
-  CurvedAnimation _actionCardAnimation({
-    required int orderFromBottom,
-  }) {
-    final start = 0.02 + (orderFromBottom * 0.10);
-    final end = (start + 0.42).clamp(0.0, 1.0);
-    return CurvedAnimation(
-      parent: _menuController,
-      curve: Interval(start, end, curve: Curves.easeOutCubic),
-      reverseCurve: const Interval(0.0, 1.0, curve: Curves.easeInCubic),
+  void _setOpen(bool open) {
+    _targetOpen = open;
+    if (open) {
+      werkaCreateHubMenuOpen.value = true;
+    }
+
+    final double target = open ? 1.0 : 0.0;
+    if ((_spatialController.value - target).abs() < 0.001 &&
+        (_effectsController.value - target).abs() < 0.001) {
+      if (!open) {
+        widget.onClose();
+      }
+      return;
+    }
+
+    final spatialFuture = _animateWithSpring(
+      controller: _spatialController,
+      spring: _spatialSpring,
+      target: target,
     );
+    final effectsFuture = _animateWithSpring(
+      controller: _effectsController,
+      spring: _effectsSpring,
+      target: target,
+    );
+
+    if (!open) {
+      unawaited(
+        () async {
+          try {
+            await Future.wait<void>([
+              spatialFuture.orCancel,
+              effectsFuture.orCancel,
+            ]);
+          } on TickerCanceled {
+            return;
+          }
+
+          if (!mounted || _targetOpen) {
+            return;
+          }
+          widget.onClose();
+        }(),
+      );
+    }
+  }
+
+  TickerFuture _animateWithSpring({
+    required AnimationController controller,
+    required SpringDescription spring,
+    required double target,
+  }) {
+    final simulation = SpringSimulation(
+      spring,
+      controller.value,
+      target,
+      controller.velocity,
+    )..tolerance = const Tolerance(distance: 0.001, velocity: 0.001);
+    return controller.animateWith(simulation);
+  }
+
+  List<_WerkaHubAction> _actions(BuildContext context) {
+    final l10n = context.l10n;
+    return [
+      _WerkaHubAction(
+        key: const ValueKey('werka-hub-unannounced'),
+        title: l10n.unannouncedTitle,
+        icon: Icons.inventory_2_outlined,
+        routeName: AppRoutes.werkaUnannouncedSupplier,
+        row: 0,
+      ),
+      _WerkaHubAction(
+        key: const ValueKey('werka-hub-customer-issue'),
+        title: l10n.customerIssueTitle,
+        icon: Icons.send_outlined,
+        routeName: AppRoutes.werkaCustomerIssueCustomer,
+        row: 1,
+      ),
+      _WerkaHubAction(
+        key: const ValueKey('werka-hub-batch-dispatch'),
+        title: l10n.batchDispatchTitle,
+        icon: Icons.playlist_add_check_rounded,
+        routeName: AppRoutes.werkaBatchDispatch,
+        row: 2,
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final bool isDarkMode = theme.brightness == Brightness.dark;
-    final Color backdropColor = isDarkMode
-        ? Colors.black.withValues(alpha: 0.42)
-        : Colors.white.withValues(alpha: 0.34);
-    final size = MediaQuery.sizeOf(context);
-    final menuWidth = math.min(320.0, size.width - 32.0);
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color targetBackdropColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.50)
+        : Colors.black.withValues(alpha: 0.34);
+
     final viewMetrics = MediaQueryData.fromView(View.of(context));
     final double systemBottomInset = math.max(
       viewMetrics.viewPadding.bottom,
@@ -118,118 +243,261 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
     final double toggleBottom = appNavigationBarPrimaryButtonBottom(
       dockHeight: dockHeight + systemBottomInset,
     );
-    final menuAnimation = CurvedAnimation(
-      parent: _menuController,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    );
-    final toggleAnimation = CurvedAnimation(
-      parent: _toggleController,
-      curve: Easing.standardDecelerate,
-      reverseCurve: Easing.standardAccelerate,
-    );
-    final items = [
-      _WerkaFloatingActionItem(
-        animation: _actionCardAnimation(orderFromBottom: 2),
-        title: l10n.unannouncedTitle,
-        icon: Icons.inventory_2_outlined,
-        onTap: () => widget.onOpenRoute(AppRoutes.werkaUnannouncedSupplier),
-      ),
-      _WerkaFloatingActionItem(
-        animation: _actionCardAnimation(orderFromBottom: 1),
-        title: l10n.customerIssueTitle,
-        icon: Icons.send_outlined,
-        onTap: () => widget.onOpenRoute(AppRoutes.werkaCustomerIssueCustomer),
-      ),
-      _WerkaFloatingActionItem(
-        animation: _actionCardAnimation(orderFromBottom: 0),
-        title: l10n.batchDispatchTitle,
-        icon: Icons.playlist_add_check_rounded,
-        onTap: () => widget.onOpenRoute(AppRoutes.werkaBatchDispatch),
-      ),
-    ];
+    final actions = _actions(context);
 
     return Material(
       color: Colors.transparent,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: widget.onClose,
+              onTap: () => _setOpen(false),
               child: AnimatedBuilder(
-                animation: menuAnimation,
+                animation: _effectsController,
                 builder: (context, _) {
-                  final value = menuAnimation.value;
+                  final double progress =
+                      _effectsController.value.clamp(0.0, 1.0);
+                  final double backdropOpacity = progress * 0.96;
                   return Container(
                     color: Color.lerp(
                       Colors.transparent,
-                      backdropColor,
-                      value,
+                      targetBackdropColor,
+                      backdropOpacity,
                     ),
                   );
                 },
               ),
             ),
           ),
-          PositionedDirectional(
-            end: 16,
-            bottom: toggleBottom + _toggleCollapsedSize + _menuGap,
-            child: AnimatedBuilder(
-              animation: menuAnimation,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: menuAnimation.value,
-                  child: child,
-                );
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  for (int index = 0; index < items.length; index++) ...[
-                    SizedBox(
-                      width: menuWidth,
-                      child: items[index],
-                    ),
-                    if (index != items.length - 1)
-                      const SizedBox(height: _menuSpacing),
+          AnimatedBuilder(
+            animation: _spatialController,
+            builder: (context, _) {
+              final double progress = _spatialController.value.clamp(0.0, 1.0);
+              final double currentButtonSize =
+                  _lerpDouble(_fabClosedSize, _fabOpenSize, progress);
+              final double groupBottom =
+                  toggleBottom + currentButtonSize + _groupButtonGap;
+              return PositionedDirectional(
+                end: _stackTrailingInset,
+                bottom: groupBottom,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (int index = 0; index < actions.length; index++) ...[
+                      _WerkaHubActionPill(
+                        key: actions[index].key,
+                        action: actions[index],
+                        spatialAnimation: _buildActionAnimation(
+                          actions[index],
+                          _spatialController,
+                        ),
+                        effectsAnimation: _buildActionAnimation(
+                          actions[index],
+                          _effectsController,
+                        ),
+                        motionKey:
+                            ValueKey('werka-hub-reveal-${actions[index].row}'),
+                        onTap: () =>
+                            widget.onOpenRoute(actions[index].routeName),
+                      ),
+                      if (index != actions.length - 1)
+                        const SizedBox(height: _menuItemGap),
+                    ],
                   ],
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
-          PositionedDirectional(
-            end: 16,
-            bottom: toggleBottom,
-            child: _WerkaCreateHubToggleButton(
-              animation: toggleAnimation,
-              onTap: widget.onClose,
-              color: scheme.primaryContainer,
-              foregroundColor: scheme.onPrimaryContainer,
-              collapsedSize: _toggleCollapsedSize,
-              expandedSize: _toggleExpandedSize,
-              expandedBorderRadius: 22.0,
-            ),
+          AnimatedBuilder(
+            animation:
+                Listenable.merge([_spatialController, _effectsController]),
+            builder: (context, _) {
+              final double anchoredBottom = toggleBottom;
+              return PositionedDirectional(
+                end: _menuTrailingInset,
+                bottom: anchoredBottom,
+                child: _WerkaMorphFabButton(
+                  key: const ValueKey('werka-hub-toggle-button'),
+                  spatialAnimation: _spatialController,
+                  effectsAnimation: _effectsController,
+                  onTap: () => _setOpen(!_targetOpen),
+                  closedSize: _fabClosedSize,
+                  openSize: _fabOpenSize,
+                  shapeTween: _fabShapeTween,
+                ),
+              );
+            },
           ),
         ],
       ),
     );
   }
+
+  Animation<double> _buildActionAnimation(
+    _WerkaHubAction action,
+    Animation<double> parent,
+  ) {
+    final int row = action.row;
+    final double start = (row * 0.12).clamp(0.0, 0.78);
+    final double end = (start + 0.58).clamp(0.0, 1.0);
+    return CurvedAnimation(
+      parent: parent,
+      curve: Interval(start, end, curve: Curves.linear),
+      reverseCurve: Interval(start, end, curve: Curves.linear),
+    );
+  }
 }
 
-class _WerkaFloatingActionItem extends StatelessWidget {
-  const _WerkaFloatingActionItem({
+class _WerkaHubAction {
+  const _WerkaHubAction({
+    required this.key,
     required this.title,
     required this.icon,
-    required this.animation,
+    required this.routeName,
+    required this.row,
+  });
+
+  final Key key;
+  final String title;
+  final IconData icon;
+  final String routeName;
+  final int row;
+}
+
+class _WerkaHubActionPill extends StatelessWidget {
+  const _WerkaHubActionPill({
+    super.key,
+    required this.action,
+    required this.spatialAnimation,
+    required this.effectsAnimation,
+    this.motionKey,
     required this.onTap,
   });
 
-  final String title;
-  final IconData icon;
-  final Animation<double> animation;
+  final _WerkaHubAction action;
+  final Animation<double> spatialAnimation;
+  final Animation<double> effectsAnimation;
+  final Key? motionKey;
   final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final textDirection = Directionality.of(context);
+    final TextStyle titleStyle = theme.textTheme.titleMedium?.copyWith(
+          color: scheme.onPrimaryContainer,
+          fontWeight: FontWeight.w600,
+        ) ??
+        TextStyle(
+          color: scheme.onPrimaryContainer,
+          fontWeight: FontWeight.w600,
+        );
+    final TextPainter titlePainter = TextPainter(
+      text: TextSpan(text: action.title, style: titleStyle),
+      textDirection: textDirection,
+      maxLines: 1,
+    )..layout();
+    final double targetWidth = math.max(
+      _werkaHubMenuItemHeight,
+      16 + 24 + 12 + titlePainter.width + 16,
+    );
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([spatialAnimation, effectsAnimation]),
+      builder: (context, _) {
+        final double widthT = spatialAnimation.value.clamp(0.0, 1.0);
+        final double opacity = effectsAnimation.value.clamp(0.0, 1.0);
+        final double currentWidth = _lerpDouble(
+          _werkaHubMenuItemHeight,
+          targetWidth,
+          widthT,
+        );
+
+        return IgnorePointer(
+          ignoring: opacity <= 0.001,
+          child: ExcludeSemantics(
+            excluding: opacity <= 0.001,
+            child: Opacity(
+              opacity: opacity,
+              child: SizedBox(
+                key: motionKey,
+                width: currentWidth,
+                height: _werkaHubMenuItemHeight,
+                child: Semantics(
+                  button: true,
+                  label: action.title,
+                  child: Material(
+                    color: scheme.primaryContainer,
+                    elevation: 0,
+                    shape: const StadiumBorder(),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: onTap,
+                      child: OverflowBox(
+                        alignment: Alignment.centerRight,
+                        minWidth: targetWidth,
+                        maxWidth: targetWidth,
+                        child: SizedBox(
+                          width: targetWidth,
+                          height: _werkaHubMenuItemHeight,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  action.icon,
+                                  size: 24,
+                                  color: scheme.onPrimaryContainer,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    action.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: titleStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WerkaMorphFabButton extends StatelessWidget {
+  const _WerkaMorphFabButton({
+    super.key,
+    required this.spatialAnimation,
+    required this.effectsAnimation,
+    required this.onTap,
+    required this.closedSize,
+    required this.openSize,
+    required this.shapeTween,
+  });
+
+  final Animation<double> spatialAnimation;
+  final Animation<double> effectsAnimation;
+  final VoidCallback onTap;
+  final double closedSize;
+  final double openSize;
+  final ShapeBorderTween shapeTween;
 
   @override
   Widget build(BuildContext context) {
@@ -237,174 +505,62 @@ class _WerkaFloatingActionItem extends StatelessWidget {
     final scheme = theme.colorScheme;
 
     return AnimatedBuilder(
-      animation: animation,
+      animation: Listenable.merge([spatialAnimation, effectsAnimation]),
       builder: (context, child) {
-        final value = animation.value.clamp(0.0, 1.0);
-        final xOffset = _tweenSequence(
-          value,
-          const [
-            _TweenStep<double>(18, 0, Curves.easeOutCubic, 0.82),
-            _TweenStep<double>(0, 3, Curves.easeOutQuad, 0.10),
-            _TweenStep<double>(3, 0, Curves.easeOutQuad, 0.08),
-          ],
-        );
-        final yOffset = _tweenSequence(
-          value,
-          const [
-            _TweenStep<double>(26, 0, Curves.easeOutCubic, 0.82),
-            _TweenStep<double>(0, -4, Curves.easeOutQuad, 0.10),
-            _TweenStep<double>(-4, 0, Curves.easeOutQuad, 0.08),
-          ],
-        );
-        final scale = _tweenSequence(
-          value,
-          const [
-            _TweenStep<double>(0.98, 1.01, Curves.easeOutCubic, 0.84),
-            _TweenStep<double>(1.01, 1.0, Curves.easeOutQuad, 0.16),
-          ],
-        );
-        return Opacity(
-          opacity: value,
-          child: Transform.translate(
-            offset: Offset(xOffset, yOffset),
-            child: Transform.scale(
-              scale: scale,
-              alignment: Alignment.bottomRight,
-              child: child,
-            ),
-          ),
-        );
-      },
-      child: Material(
-        color: scheme.primaryContainer,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(30),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: scheme.onPrimaryContainer,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: scheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: scheme.onPrimaryContainer,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+        final double morphT = spatialAnimation.value.clamp(0.0, 1.0);
+        final double iconT = effectsAnimation.value.clamp(0.0, 1.0);
+        final double buttonSize = _lerpDouble(closedSize, openSize, morphT);
+        final ShapeBorder shape = shapeTween.lerp(morphT)!;
+        final Color containerColor = Color.lerp(
+          scheme.primaryContainer,
+          scheme.primary,
+          morphT,
+        )!;
+        final Color foregroundColor = Color.lerp(
+          scheme.onPrimaryContainer,
+          scheme.onPrimary,
+          morphT,
+        )!;
+        final double iconSize = _lerpDouble(28.0, 24.0, morphT);
 
-class _WerkaCreateHubToggleButton extends StatelessWidget {
-  const _WerkaCreateHubToggleButton({
-    required this.animation,
-    required this.onTap,
-    required this.color,
-    required this.foregroundColor,
-    required this.collapsedSize,
-    required this.expandedSize,
-    required this.expandedBorderRadius,
-  });
-
-  final Animation<double> animation;
-  final VoidCallback onTap;
-  final Color color;
-  final Color foregroundColor;
-  final double collapsedSize;
-  final double expandedSize;
-  final double expandedBorderRadius;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        final value = animation.value.clamp(0.0, 1.0);
-        final morphProgress =
-            Easing.standardDecelerate.transform((value * 2.1).clamp(0.0, 1.0));
-        final iconProgress = Easing.standardDecelerate.transform(value);
-        final buttonScale = _lerpDouble(1.0, 0.74, morphProgress);
-        final radius = _lerpDouble(
-          expandedBorderRadius,
-          expandedSize / 2,
-          morphProgress,
-        );
-        return SizedBox(
-          width: expandedSize,
-          height: expandedSize,
-          child: Center(
-            child: Transform.scale(
-              scale: buttonScale,
-              alignment: Alignment.center,
-              child: Material(
-                color: color,
-                elevation: 8,
-                shadowColor: color.withValues(alpha: 0.28),
-                clipBehavior: Clip.antiAlias,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(radius),
-                ),
-                child: InkWell(
-                  customBorder: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(radius),
-                  ),
-                  onTap: onTap,
-                  child: SizedBox.square(
-                    dimension: expandedSize,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Opacity(
-                          opacity: 1 - iconProgress,
-                          child: Transform.rotate(
-                            angle: (-math.pi / 4) * iconProgress,
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.add_rounded,
-                              color: foregroundColor,
-                              size: 28.5,
-                            ),
-                          ),
+        return Semantics(
+          button: true,
+          label: iconT >= 0.5
+              ? context.l10n.closeAction
+              : context.l10n.createHubTitle,
+          child: SizedBox(
+            width: buttonSize,
+            height: buttonSize,
+            child: Material(
+              color: containerColor,
+              elevation: 8,
+              shadowColor: scheme.primary.withValues(alpha: 0.28),
+              shape: shape,
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                customBorder: shape,
+                onTap: onTap,
+                child: SizedBox.expand(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Opacity(
+                        opacity: 1 - iconT,
+                        child: Icon(
+                          Icons.add_rounded,
+                          size: iconSize,
+                          color: foregroundColor,
                         ),
-                        Opacity(
-                          opacity: iconProgress,
-                          child: Icon(
-                            Icons.close_rounded,
-                            color: foregroundColor,
-                            size: 28.5,
-                          ),
+                      ),
+                      Opacity(
+                        opacity: iconT,
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: iconSize,
+                          color: foregroundColor,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -414,38 +570,6 @@ class _WerkaCreateHubToggleButton extends StatelessWidget {
       },
     );
   }
-}
-
-class _TweenStep<T extends num> {
-  const _TweenStep(
-    this.begin,
-    this.end,
-    this.curve,
-    this.weight,
-  );
-
-  final T begin;
-  final T end;
-  final Curve curve;
-  final double weight;
-}
-
-double _tweenSequence(
-  double value,
-  List<_TweenStep<double>> steps,
-) {
-  return TweenSequence<double>(
-    steps
-        .map(
-          (step) => TweenSequenceItem(
-            tween: Tween<double>(begin: step.begin, end: step.end).chain(
-              CurveTween(curve: step.curve),
-            ),
-            weight: step.weight,
-          ),
-        )
-        .toList(growable: false),
-  ).transform(value);
 }
 
 double _lerpDouble(double begin, double end, double t) =>

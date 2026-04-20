@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 const double appNavigationBarHeight = 80.0;
-const double appNavigationBarPrimaryButtonSize = 84.0;
+const double appNavigationBarPrimaryButtonSize = 80.0;
 const double appNavigationBarPrimaryButtonGap = 44.0;
 const double appNavigationBarPrimaryButtonLift = 10.0;
 
@@ -304,14 +304,15 @@ class _AppPrimaryNavigationButton extends StatelessWidget {
       button: true,
       label: destination.label,
       child: Material(
-        color: Colors.transparent,
+        color: background,
         elevation: 8,
         shadowColor: scheme.primary.withValues(alpha: 0.28),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(16),
         ),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           onLongPress: destination.onLongPress,
           child: AnimatedContainer(
@@ -321,7 +322,7 @@ class _AppPrimaryNavigationButton extends StatelessWidget {
             height: appNavigationBarPrimaryButtonSize,
             decoration: BoxDecoration(
               color: background,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: scheme.outlineVariant.withValues(alpha: 0.25),
               ),
@@ -329,7 +330,7 @@ class _AppPrimaryNavigationButton extends StatelessWidget {
             child: IconTheme(
               data: IconThemeData(
                 color: foreground,
-                size: 28,
+                size: 24,
               ),
               child: Center(child: icon),
             ),
