@@ -1,9 +1,9 @@
 import '../../../../app/app_router.dart';
+import '../../../../core/navigation/profile_route_overlay_notifier.dart';
 import '../../../../core/native_dock_bridge.dart';
 import '../../../../core/notifications/notification_unread_store.dart';
 import '../../../../core/session/app_session.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
-import '../../../../core/widgets/logout_prompt.dart';
 import 'werka_create_hub_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,7 +13,6 @@ enum WerkaDockTab {
   notifications,
   create,
   archive,
-  profile,
 }
 
 class WerkaDock extends StatelessWidget {
@@ -22,11 +21,13 @@ class WerkaDock extends StatelessWidget {
     required this.activeTab,
     this.compact = true,
     this.tightToEdges = true,
+    this.showPrimaryFab = true,
   });
 
   final WerkaDockTab? activeTab;
   final bool compact;
   final bool tightToEdges;
+  final bool showPrimaryFab;
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +35,11 @@ class WerkaDock extends StatelessWidget {
       animation: Listenable.merge([
         NotificationUnreadStore.instance,
         NativeDockBridge.instance,
+        ProfileRouteOverlayNotifier.instance,
       ]),
       builder: (context, _) {
+        final effectiveShowPrimaryFab = showPrimaryFab &&
+            !ProfileRouteOverlayNotifier.instance.obscuresDockPrimaryFab;
         final showBadge = NotificationUnreadStore.instance.hasUnreadForProfile(
               AppSession.instance.profile,
             ) &&
@@ -46,7 +50,6 @@ class WerkaDock extends StatelessWidget {
           WerkaDockTab.notifications => 1,
           WerkaDockTab.create => 2,
           WerkaDockTab.archive => 3,
-          WerkaDockTab.profile => 4,
           null => 0,
         };
         return ValueListenableBuilder<bool>(
@@ -81,11 +84,6 @@ class WerkaDock extends StatelessWidget {
                 );
                 return;
               }
-              if (activeTab == WerkaDockTab.profile) return;
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.profile,
-                (route) => false,
-              );
             }
 
             final useNativeDock = NativeDockBridge.isSupportedPlatform &&
@@ -122,7 +120,7 @@ class WerkaDock extends StatelessWidget {
                       replaceStack: true,
                       onTap: () => handleSelection(1),
                     ),
-                    if (!menuOpen)
+                    if (!menuOpen && effectiveShowPrimaryFab)
                       NativeDockItem(
                         id: 'werka-create',
                         label: 'Yangi',
@@ -146,22 +144,6 @@ class WerkaDock extends StatelessWidget {
                       replaceStack: true,
                       onTap: () => handleSelection(3),
                     ),
-                    NativeDockItem(
-                      id: 'werka-profile',
-                      label: 'Profil',
-                      iconCodePoint: Icons.account_circle_outlined.codePoint,
-                      selectedIconCodePoint:
-                          Icons.account_circle_rounded.codePoint,
-                      active: activeTab == WerkaDockTab.profile,
-                      primary: false,
-                      showBadge: false,
-                      routeName: AppRoutes.profile,
-                      replaceStack: true,
-                      onTap: () => handleSelection(4),
-                      onHoldComplete: activeTab == WerkaDockTab.profile
-                          ? () => showLogoutPrompt(context)
-                          : null,
-                    ),
                   ],
                 ),
               );
@@ -174,7 +156,7 @@ class WerkaDock extends StatelessWidget {
                 height: compact ? 60 : 64,
                 selectionVisible: selectionVisible,
                 selectedIndex: selectedIndex,
-                primaryVisible: !menuOpen,
+                primaryVisible: !menuOpen && effectiveShowPrimaryFab,
                 destinations: [
                   const AppNavigationDestination(
                     label: 'Uy',
@@ -197,14 +179,6 @@ class WerkaDock extends StatelessWidget {
                     label: 'Arxiv',
                     icon: _WerkaDockSvgIcon(),
                     selectedIcon: _WerkaDockSvgIcon(),
-                  ),
-                  AppNavigationDestination(
-                    label: 'Profil',
-                    icon: const Icon(Icons.account_circle_outlined),
-                    selectedIcon: const Icon(Icons.account_circle_rounded),
-                    onLongPress: activeTab == WerkaDockTab.profile
-                        ? () => showLogoutPrompt(context)
-                        : null,
                   ),
                 ],
                 onDestinationSelected: handleSelection,

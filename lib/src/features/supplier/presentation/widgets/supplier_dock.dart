@@ -1,16 +1,15 @@
 import '../../../../app/app_router.dart';
+import '../../../../core/navigation/profile_route_overlay_notifier.dart';
 import '../../../../core/native_dock_bridge.dart';
 import '../../../../core/notifications/notification_unread_store.dart';
 import '../../../../core/session/app_session.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
-import '../../../../core/widgets/logout_prompt.dart';
 import 'package:flutter/material.dart';
 
 enum SupplierDockTab {
   home,
   notifications,
   recent,
-  profile,
 }
 
 class SupplierDock extends StatelessWidget {
@@ -20,12 +19,14 @@ class SupplierDock extends StatelessWidget {
     this.centerActive = false,
     this.compact = true,
     this.tightToEdges = true,
+    this.showPrimaryFab = true,
   });
 
   final SupplierDockTab? activeTab;
   final bool centerActive;
   final bool compact;
   final bool tightToEdges;
+  final bool showPrimaryFab;
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +34,11 @@ class SupplierDock extends StatelessWidget {
       animation: Listenable.merge([
         NotificationUnreadStore.instance,
         NativeDockBridge.instance,
+        ProfileRouteOverlayNotifier.instance,
       ]),
       builder: (context, _) {
+        final effectiveShowPrimaryFab = showPrimaryFab &&
+            !ProfileRouteOverlayNotifier.instance.obscuresDockPrimaryFab;
         final showBadge = NotificationUnreadStore.instance.hasUnreadForProfile(
               AppSession.instance.profile,
             ) &&
@@ -44,7 +48,6 @@ class SupplierDock extends StatelessWidget {
           SupplierDockTab.home => 0,
           SupplierDockTab.notifications => 1,
           SupplierDockTab.recent => 3,
-          SupplierDockTab.profile => 4,
           null => centerActive ? 2 : 0,
         };
 
@@ -80,11 +83,6 @@ class SupplierDock extends StatelessWidget {
             );
             return;
           }
-          if (activeTab == SupplierDockTab.profile) return;
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRoutes.profile,
-            (route) => false,
-          );
         }
 
         final useNativeDock = NativeDockBridge.isSupportedPlatform &&
@@ -120,16 +118,17 @@ class SupplierDock extends StatelessWidget {
                   replaceStack: true,
                   onTap: () => handleSelection(1),
                 ),
-                NativeDockItem(
-                  id: 'supplier-create',
-                  label: 'Yangi',
-                  iconCodePoint: Icons.add_rounded.codePoint,
-                  selectedIconCodePoint: Icons.add_rounded.codePoint,
-                  active: centerActive,
-                  primary: true,
-                  showBadge: false,
-                  onTap: () => handleSelection(2),
-                ),
+                if (effectiveShowPrimaryFab)
+                  NativeDockItem(
+                    id: 'supplier-create',
+                    label: 'Yangi',
+                    iconCodePoint: Icons.add_rounded.codePoint,
+                    selectedIconCodePoint: Icons.add_rounded.codePoint,
+                    active: centerActive,
+                    primary: true,
+                    showBadge: false,
+                    onTap: () => handleSelection(2),
+                  ),
                 NativeDockItem(
                   id: 'supplier-recent',
                   label: 'Tarix',
@@ -141,21 +140,6 @@ class SupplierDock extends StatelessWidget {
                   routeName: AppRoutes.supplierRecent,
                   replaceStack: true,
                   onTap: () => handleSelection(3),
-                ),
-                NativeDockItem(
-                  id: 'supplier-profile',
-                  label: 'Profil',
-                  iconCodePoint: Icons.account_circle_outlined.codePoint,
-                  selectedIconCodePoint: Icons.account_circle_rounded.codePoint,
-                  active: activeTab == SupplierDockTab.profile,
-                  primary: false,
-                  showBadge: false,
-                  routeName: AppRoutes.profile,
-                  replaceStack: true,
-                  onTap: () => handleSelection(4),
-                  onHoldComplete: activeTab == SupplierDockTab.profile
-                      ? () => showLogoutPrompt(context)
-                      : null,
                 ),
               ],
             ),
@@ -169,6 +153,7 @@ class SupplierDock extends StatelessWidget {
             height: compact ? 60 : 64,
             selectionVisible: selectionVisible,
             selectedIndex: selectedIndex,
+            primaryVisible: effectiveShowPrimaryFab,
             destinations: [
               const AppNavigationDestination(
                 label: 'Uy',
@@ -191,14 +176,6 @@ class SupplierDock extends StatelessWidget {
                 label: 'Tarix',
                 icon: Icon(Icons.history_outlined),
                 selectedIcon: Icon(Icons.history_rounded),
-              ),
-              AppNavigationDestination(
-                label: 'Profil',
-                icon: const Icon(Icons.account_circle_outlined),
-                selectedIcon: const Icon(Icons.account_circle_rounded),
-                onLongPress: activeTab == SupplierDockTab.profile
-                    ? () => showLogoutPrompt(context)
-                    : null,
               ),
             ],
             onDestinationSelected: handleSelection,

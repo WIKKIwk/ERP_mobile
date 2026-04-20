@@ -3,13 +3,11 @@ import '../../../../core/native_dock_bridge.dart';
 import '../../../../core/notifications/notification_unread_store.dart';
 import '../../../../core/session/app_session.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
-import '../../../../core/widgets/logout_prompt.dart';
 import 'package:flutter/material.dart';
 
 enum CustomerDockTab {
   home,
   notifications,
-  profile,
 }
 
 class CustomerDock extends StatelessWidget {
@@ -42,7 +40,6 @@ class CustomerDock extends StatelessWidget {
         final int selectedIndex = switch (activeTab) {
           CustomerDockTab.home => 0,
           CustomerDockTab.notifications => 1,
-          CustomerDockTab.profile => 2,
           null => 0,
         };
 
@@ -71,11 +68,6 @@ class CustomerDock extends StatelessWidget {
             }
             return;
           }
-          if (activeTab == CustomerDockTab.profile) return;
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRoutes.profile,
-            (route) => false,
-          );
         }
 
         final useNativeDock = NativeDockBridge.isSupportedPlatform &&
@@ -114,21 +106,6 @@ class CustomerDock extends StatelessWidget {
                   replaceStack: onTabSelected == null,
                   onTap: () => handleSelection(1),
                 ),
-                NativeDockItem(
-                  id: 'customer-profile',
-                  label: 'Profil',
-                  iconCodePoint: Icons.account_circle_outlined.codePoint,
-                  selectedIconCodePoint: Icons.account_circle.codePoint,
-                  active: activeTab == CustomerDockTab.profile,
-                  primary: false,
-                  showBadge: false,
-                  routeName: AppRoutes.profile,
-                  replaceStack: true,
-                  onTap: () => handleSelection(2),
-                  onHoldComplete: activeTab == CustomerDockTab.profile
-                      ? () => showLogoutPrompt(context)
-                      : null,
-                ),
               ],
             ),
           );
@@ -152,14 +129,6 @@ class CustomerDock extends StatelessWidget {
                 icon: const Icon(Icons.notifications_outlined),
                 selectedIcon: const Icon(Icons.notifications),
                 showBadge: showBadge,
-              ),
-              AppNavigationDestination(
-                label: 'Profil',
-                icon: const Icon(Icons.account_circle_outlined),
-                selectedIcon: const Icon(Icons.account_circle),
-                onLongPress: activeTab == CustomerDockTab.profile
-                    ? () => showLogoutPrompt(context)
-                    : null,
               ),
             ],
             onDestinationSelected: handleSelection,

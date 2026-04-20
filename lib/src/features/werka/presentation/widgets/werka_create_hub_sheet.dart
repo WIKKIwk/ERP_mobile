@@ -319,8 +319,9 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
             animation:
                 Listenable.merge([_spatialController, _effectsController]),
             builder: (context, _) {
-              final double progress =
-                  _m3SpatialLerpT(_spatialController.value);
+              final double rawForFab =
+                  _spatialController.value.clamp(0.0, 1.0);
+              final double progress = _m3SpatialLerpT(rawForFab);
               final double currentButtonSize =
                   _lerpDouble(_fabClosedSize, _fabOpenSize, progress);
               final double anchoredBottom =
@@ -530,10 +531,11 @@ class _WerkaMorphFabButton extends StatelessWidget {
       animation: Listenable.merge([spatialAnimation, effectsAnimation]),
       builder: (context, child) {
         final double raw = spatialAnimation.value;
-        final double morphT = _m3SpatialLerpT(raw);
+        final double rawForFab = raw.clamp(0.0, 1.0);
+        final double morphT = _m3SpatialLerpT(rawForFab);
         final double iconT = effectsAnimation.value.clamp(0.0, 1.0);
         final double colorT = raw.clamp(0.0, 1.0);
-        final double shapeT = _shapeMorphT(raw, targetOpen);
+        final double shapeT = _shapeMorphT(rawForFab, targetOpen);
         final double buttonSize = _lerpDouble(closedSize, openSize, morphT);
         final ShapeBorder shape = shapeTween.lerp(shapeT)!;
         final Color containerColor = Color.lerp(

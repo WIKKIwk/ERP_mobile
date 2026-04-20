@@ -359,12 +359,12 @@ class _ProfileScreenState extends State<ProfileScreen>
           subtitle: '',
           animateOnEnter: role != UserRole.customer,
           bottom: role == UserRole.supplier
-              ? const SupplierDock(activeTab: SupplierDockTab.profile)
+              ? const SupplierDock(activeTab: null, showPrimaryFab: false)
               : role == UserRole.werka
-                  ? const WerkaDock(activeTab: WerkaDockTab.profile)
+                  ? const WerkaDock(activeTab: null, showPrimaryFab: false)
                   : role == UserRole.customer
-                      ? const CustomerDock(activeTab: CustomerDockTab.profile)
-                      : const AdminDock(activeTab: AdminDockTab.profile),
+                      ? const CustomerDock(activeTab: null)
+                      : const AdminDock(activeTab: null, showPrimaryFab: false),
           contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
           child: AppRefreshIndicator(
             onRefresh: _refreshProfile,

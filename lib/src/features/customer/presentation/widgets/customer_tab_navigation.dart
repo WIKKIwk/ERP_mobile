@@ -1,5 +1,4 @@
 import '../../../../core/theme/app_motion.dart';
-import '../../../shared/presentation/profile_screen.dart';
 import '../customer_home_screen.dart';
 import '../customer_notifications_screen.dart';
 import 'customer_dock.dart';
@@ -16,8 +15,6 @@ int _customerTabIndex(CustomerDockTab tab) {
       return 0;
     case CustomerDockTab.notifications:
       return 1;
-    case CustomerDockTab.profile:
-      return 2;
   }
 }
 
@@ -27,8 +24,6 @@ Widget _customerTabScreen(CustomerDockTab tab) {
       return const CustomerHomeScreen();
     case CustomerDockTab.notifications:
       return const CustomerNotificationsScreen();
-    case CustomerDockTab.profile:
-      return const ProfileScreen();
   }
 }
 
@@ -72,12 +67,6 @@ void handleCustomerTabSwipe(
           to: CustomerDockTab.notifications,
         );
       case CustomerDockTab.notifications:
-        navigateToCustomerTab(
-          context,
-          from: activeTab,
-          to: CustomerDockTab.profile,
-        );
-      case CustomerDockTab.profile:
         return;
     }
     return;
@@ -91,12 +80,6 @@ void handleCustomerTabSwipe(
         context,
         from: activeTab,
         to: CustomerDockTab.home,
-      );
-    case CustomerDockTab.profile:
-      navigateToCustomerTab(
-        context,
-        from: activeTab,
-        to: CustomerDockTab.notifications,
       );
   }
 }

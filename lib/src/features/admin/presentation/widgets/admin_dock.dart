@@ -1,7 +1,7 @@
 import '../../../../app/app_router.dart';
+import '../../../../core/navigation/profile_route_overlay_notifier.dart';
 import '../../../../core/native_dock_bridge.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
-import '../../../../core/widgets/logout_prompt.dart';
 import 'package:flutter/material.dart';
 
 enum AdminDockTab {
@@ -9,7 +9,6 @@ enum AdminDockTab {
   suppliers,
   settings,
   activity,
-  profile,
 }
 
 class AdminDock extends StatelessWidget {
@@ -18,23 +17,31 @@ class AdminDock extends StatelessWidget {
     required this.activeTab,
     this.compact = true,
     this.tightToEdges = true,
+    this.showPrimaryFab = true,
   });
 
-  final AdminDockTab activeTab;
+  final AdminDockTab? activeTab;
   final bool compact;
   final bool tightToEdges;
+  final bool showPrimaryFab;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: NativeDockBridge.instance,
+      animation: Listenable.merge([
+        NativeDockBridge.instance,
+        ProfileRouteOverlayNotifier.instance,
+      ]),
       builder: (context, _) {
+        final effectiveShowPrimaryFab = showPrimaryFab &&
+            !ProfileRouteOverlayNotifier.instance.obscuresDockPrimaryFab;
+        final bool selectionVisible = activeTab != null;
         final int selectedIndex = switch (activeTab) {
           AdminDockTab.home => 0,
           AdminDockTab.suppliers => 1,
           AdminDockTab.settings => 2,
           AdminDockTab.activity => 3,
-          AdminDockTab.profile => 4,
+          null => 0,
         };
 
         void handleSelection(int index) {
@@ -69,11 +76,6 @@ class AdminDock extends StatelessWidget {
             );
             return;
           }
-          if (activeTab == AdminDockTab.profile) return;
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRoutes.profile,
-            (route) => false,
-          );
         }
 
         final useNativeDock = NativeDockBridge.isSupportedPlatform &&
@@ -109,18 +111,19 @@ class AdminDock extends StatelessWidget {
                   replaceStack: true,
                   onTap: () => handleSelection(1),
                 ),
-                NativeDockItem(
-                  id: 'admin-create',
-                  label: 'Yangi',
-                  iconCodePoint: Icons.add_rounded.codePoint,
-                  selectedIconCodePoint: Icons.add_rounded.codePoint,
-                  active: activeTab == AdminDockTab.settings,
-                  primary: true,
-                  showBadge: false,
-                  routeName: AppRoutes.adminCreateHub,
-                  replaceStack: true,
-                  onTap: () => handleSelection(2),
-                ),
+                if (effectiveShowPrimaryFab)
+                  NativeDockItem(
+                    id: 'admin-create',
+                    label: 'Yangi',
+                    iconCodePoint: Icons.add_rounded.codePoint,
+                    selectedIconCodePoint: Icons.add_rounded.codePoint,
+                    active: activeTab == AdminDockTab.settings,
+                    primary: true,
+                    showBadge: false,
+                    routeName: AppRoutes.adminCreateHub,
+                    replaceStack: true,
+                    onTap: () => handleSelection(2),
+                  ),
                 NativeDockItem(
                   id: 'admin-activity',
                   label: 'Faoliyat',
@@ -133,21 +136,6 @@ class AdminDock extends StatelessWidget {
                   replaceStack: true,
                   onTap: () => handleSelection(3),
                 ),
-                NativeDockItem(
-                  id: 'admin-profile',
-                  label: 'Profil',
-                  iconCodePoint: Icons.account_circle_outlined.codePoint,
-                  selectedIconCodePoint: Icons.account_circle_rounded.codePoint,
-                  active: activeTab == AdminDockTab.profile,
-                  primary: false,
-                  showBadge: false,
-                  routeName: AppRoutes.profile,
-                  replaceStack: true,
-                  onTap: () => handleSelection(4),
-                  onHoldComplete: activeTab == AdminDockTab.profile
-                      ? () => showLogoutPrompt(context)
-                      : null,
-                ),
               ],
             ),
           );
@@ -158,36 +146,30 @@ class AdminDock extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: tightToEdges ? 0 : 8),
           child: AppNavigationBar(
             height: compact ? 60 : 64,
+            selectionVisible: selectionVisible,
             selectedIndex: selectedIndex,
-            destinations: [
-              const AppNavigationDestination(
+            primaryVisible: effectiveShowPrimaryFab,
+            destinations: const [
+              AppNavigationDestination(
                 label: 'Uy',
                 icon: Icon(Icons.home_outlined),
                 selectedIcon: Icon(Icons.home_rounded),
               ),
-              const AppNavigationDestination(
+              AppNavigationDestination(
                 label: 'Yetkazuvchilar',
                 icon: Icon(Icons.groups_outlined),
                 selectedIcon: Icon(Icons.groups_rounded),
               ),
-              const AppNavigationDestination(
+              AppNavigationDestination(
                 label: 'Yangi',
                 icon: Icon(Icons.add_rounded),
                 selectedIcon: Icon(Icons.add_rounded),
                 isPrimary: true,
               ),
-              const AppNavigationDestination(
+              AppNavigationDestination(
                 label: 'Faoliyat',
                 icon: Icon(Icons.history_outlined),
                 selectedIcon: Icon(Icons.history_rounded),
-              ),
-              AppNavigationDestination(
-                label: 'Profil',
-                icon: const Icon(Icons.account_circle_outlined),
-                selectedIcon: const Icon(Icons.account_circle_rounded),
-                onLongPress: activeTab == AdminDockTab.profile
-                    ? () => showLogoutPrompt(context)
-                    : null,
               ),
             ],
             onDestinationSelected: handleSelection,
