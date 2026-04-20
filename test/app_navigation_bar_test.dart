@@ -54,7 +54,7 @@ void main() {
     final buttonRect = tester.getRect(buttonFinder);
     final navBarRect = tester.getRect(navBarFinder);
     expect(buttonRect.top, lessThan(navBarRect.top));
-    expect(buttonRect.bottom, lessThan(navBarRect.top - 8));
+    expect(buttonRect.bottom, lessThan(navBarRect.top));
 
     await tester.tap(buttonFinder);
     await tester.pumpAndSettle();

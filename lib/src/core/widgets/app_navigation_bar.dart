@@ -208,7 +208,7 @@ class AppNavigationBar extends StatelessWidget {
                 if (hasPrimary && primaryVisible)
                   PositionedDirectional(
                     end: 16,
-                    bottom: dockHeight + primaryButtonGap,
+                    bottom: dockHeight + primaryButtonGap - 8,
                     child: _AppPrimaryNavigationButton(
                       destination: destinations[primaryIndex],
                       selected: primarySelected,
