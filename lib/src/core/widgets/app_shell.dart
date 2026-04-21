@@ -163,8 +163,9 @@ class _AppShellState extends State<AppShell>
                   ? false
                   : widget.leading == null && widget.drawer == null,
               actions: widget.actions,
-              backgroundColor:
-                  widget.backgroundColor ?? theme.colorScheme.surfaceContainer,
+              backgroundColor: widget.backgroundColor ??
+                  theme.appBarTheme.backgroundColor ??
+                  theme.colorScheme.surfaceContainer,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,
@@ -311,7 +312,38 @@ class _AppShellState extends State<AppShell>
           child: Container(
             width: double.infinity,
             padding: widget.contentPadding,
-            child: widget.child,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                widget.child,
+                if (widget.bottom != null)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: IgnorePointer(
+                      child: SizedBox(
+                        height: 72 + MediaQuery.viewPaddingOf(context).bottom,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                // "List pastga kirib ketgandek" — chrome rangi tomonga yumshoq fade.
+                                (theme.navigationBarTheme.backgroundColor ??
+                                        theme.colorScheme.surfaceContainer)
+                                    .withValues(alpha: 0.92),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ],

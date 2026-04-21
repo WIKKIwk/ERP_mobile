@@ -3,6 +3,19 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'theme_controller.dart';
 
+/// Ilova [ColorScheme] va [ThemeData] orqali Material Design 3 rang tizimiga tayangan.
+///
+/// **MD3 da palitra qanday beriladi (qisqa):**
+/// 1. **Urinish (seed)** — [ColorScheme.fromSeed] HCT (hue–chroma–tone) bo‘yicha asosiy garmoniyani hisoblaydi.
+/// 2. **Juft rollar** — har bir fon rangiga mos **on-*** matn/icon: [onPrimary], [onSurface], [onSurfaceVariant] va hokazo;
+///    kontrast WCAG AA ga yaqin bo‘lishi kerak ([m3.material.io/styles/color/the-color-system/color-roles](https://m3.material.io/styles/color/the-color-system/color-roles)).
+/// 3. **Surface zinapoyi** — [surface] va [surfaceContainerLow] … [surfaceContainerHighest] bir yo‘nalishda
+///    (dark temada odatda pastdan yuqoriga **yorqinlash**); bu MD3 konteyner ierarxiyasi.
+/// 4. **Qo‘lda [copyWith]** — brend uchun; juda ko‘p maydonni almashtirish `fromSeed` hisoblagan yordamchi
+///    ranglar (masalan, [error], [scrim]) bilan vizual ziddiyat qilishi mumkin — minimal override yaxshiroq.
+///
+/// **Earthy** variant atrof-muhit ranglarini bir xil issiqroq tonlarda yig‘adi; bu spesifikatsiya buzilish emas,
+/// lekin ikkilamchi matnlar uchun [onSurfaceVariant] va konteynerlar oralig‘ini ehtiyotkorlik bilan tanlash kerak.
 class AppTheme {
   static const double headerActionSize = 44;
   static const double headerActionIconSize = 22;
@@ -84,6 +97,10 @@ class AppTheme {
       surfaceContainerHighest: const Color(0xFF3A3328),
       outline: const Color(0xFF9C9276),
       outlineVariant: const Color(0xFF5C5342),
+      // MD3: ikkilamchi matn konteyner fonlarida o‘qilishi; `fromSeed` qiymatidan biroz ochiqroq.
+      onSurfaceVariant: const Color(0xFFC8C2AE),
+      // Tonal surface’larda Material elevation tint — brendda sokinroq ko‘rinish uchun o‘chirilgan.
+      surfaceTint: Colors.transparent,
     );
     return colorScheme;
   }
@@ -515,6 +532,12 @@ class AppTheme {
     required TextTheme textTheme,
     required Color inputFillColor,
   }) {
+    // Qorong‘i: kontent pastki ton, chrome biroz yuqori (MD3 tonal zinapoyi).
+    // Yorug‘: barlar odatda surfaceContainer bilan ajraladi.
+    final Color appChromeBackground = brightness == Brightness.dark
+        ? colorScheme.surfaceContainerHigh
+        : colorScheme.surfaceContainer;
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -524,7 +547,7 @@ class AppTheme {
       dividerColor: colorScheme.outlineVariant,
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surfaceContainer,
+        backgroundColor: appChromeBackground,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -534,7 +557,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 80,
-        backgroundColor: colorScheme.surfaceContainer,
+        backgroundColor: appChromeBackground,
         surfaceTintColor: Colors.transparent,
       ),
       pageTransitionsTheme: _pageTransitionsTheme(),

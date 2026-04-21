@@ -311,7 +311,10 @@ class _WerkaSummarySegmentCard extends StatelessWidget {
         M3SegmentedListGeometry.borderRadius(slot, cornerRadius);
     final Color bg = highlighted
         ? scheme.secondaryContainer
-        : scheme.surfaceContainerHighest;
+        : switch (theme.brightness) {
+            Brightness.dark => scheme.surfaceContainerLow,
+            Brightness.light => scheme.surfaceContainerHighest,
+          };
     final Color fg = highlighted
         ? scheme.onSecondaryContainer
         : scheme.onSurface;

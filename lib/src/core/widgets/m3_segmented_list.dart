@@ -93,8 +93,11 @@ abstract final class M3SegmentedListGeometry {
   }
 }
 
-/// MD3 contained list elementi: `surfaceContainerHighest` + engil `outlineVariant` chegarasi,
-/// ixtiyoriy bosilish.
+/// MD3 contained list elementi: fon + engil `outlineVariant` chegarasi, ixtiyoriy bosilish.
+///
+/// **Qorong‘i temada** kontent odatda asosiy [ColorScheme.surface]ga yaqin — shuning uchun
+/// [surfaceContainerLow] (yuqori zinapoyadan pastroq). **Yorug‘ temada** konteynerlar
+/// odatda [surface]dan to‘qroq — [surfaceContainerHighest] ishlatiladi.
 class M3SegmentOutlineSurface extends StatelessWidget {
   const M3SegmentOutlineSurface({
     super.key,
@@ -112,9 +115,13 @@ class M3SegmentOutlineSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     final BorderRadius radius =
         M3SegmentedListGeometry.borderRadius(slot, cornerRadius);
-    final Color bg = scheme.surfaceContainerHighest;
+    final Color bg = switch (brightness) {
+      Brightness.dark => scheme.surfaceContainerLow,
+      Brightness.light => scheme.surfaceContainerHighest,
+    };
 
     final Widget ink = Ink(
       decoration: BoxDecoration(
