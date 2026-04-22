@@ -2,6 +2,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../app/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
 import '../../../core/widgets/native_back_button.dart'
     show useNativeNavigationTitle;
 import '../../shared/models/app_models.dart';
@@ -115,58 +116,60 @@ class WerkaCustomerDeliveryDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Padding(
+          M3SegmentSpacedColumn(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              children: [
-                for (int index = 0; index < detailRows.length; index++) ...[
-                  _WerkaDeliveryInfoRow(
-                    label: detailRows[index].label,
-                    value: detailRows[index].value,
-                    isFirst: index == 0,
-                    isLast: index == detailRows.length - 1,
-                  ),
-                  if (index != detailRows.length - 1)
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      indent: 0,
-                      endIndent: 0,
-                      color: scheme.outlineVariant.withValues(alpha: 0.55),
-                    ),
-                ],
-              ],
-            ),
+            children: [
+              for (int index = 0; index < detailRows.length; index++)
+                _WerkaDeliveryInfoRow(
+                  label: detailRows[index].label,
+                  value: detailRows[index].value,
+                  index: index,
+                  itemCount: detailRows.length,
+                ),
+            ],
           ),
           const SizedBox(height: 22),
-          Padding(
+          M3SegmentSpacedColumn(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.detailsStateTitle,
-                  style: theme.textTheme.titleLarge,
+            children: [
+              M3SegmentFilledSurface(
+                slot: M3SegmentVerticalSlot.top,
+                cornerRadius: M3SegmentedListGeometry.cornerLarge,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.detailsStateTitle,
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _noteText(l10n),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  _noteText(l10n),
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           if (record.status == DispatchStatus.accepted ||
               record.status == DispatchStatus.rejected) ...[
             const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.of(context).pushNamed(
-                  AppRoutes.notificationDetail,
-                  arguments: customerDeliveryResultEventId(record.id),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pushNamed(
+                    AppRoutes.notificationDetail,
+                    arguments: customerDeliveryResultEventId(record.id),
+                  ),
+                  child: Text(l10n.openDiscussionAction),
                 ),
-                child: Text(l10n.openDiscussionAction),
               ),
             ),
           ],
@@ -180,54 +183,56 @@ class _WerkaDeliveryInfoRow extends StatelessWidget {
   const _WerkaDeliveryInfoRow({
     required this.label,
     required this.value,
-    required this.isFirst,
-    required this.isLast,
+    required this.index,
+    required this.itemCount,
   });
 
   final String label;
   final String value;
-  final bool isFirst;
-  final bool isLast;
+  final int index;
+  final int itemCount;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(isFirst ? 24 : 0),
-          topRight: Radius.circular(isFirst ? 24 : 0),
-          bottomLeft: Radius.circular(isLast ? 24 : 0),
-          bottomRight: Radius.circular(isLast ? 24 : 0),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 108,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Align(
-              alignment: AlignmentDirectional.topEnd,
+    final slot = M3SegmentedListGeometry.standaloneListSlotForIndex(
+      index,
+      itemCount,
+    );
+    final r = M3SegmentedListGeometry.cornerRadiusForSlot(slot);
+    return M3SegmentFilledSurface(
+      slot: slot,
+      cornerRadius: r,
+      backgroundColor: scheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 108,
               child: Text(
-                value,
-                textAlign: TextAlign.right,
-                style: theme.textTheme.titleMedium?.copyWith(height: 1.25),
+                label,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Align(
+                alignment: AlignmentDirectional.topEnd,
+                child: Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.titleMedium?.copyWith(height: 1.25),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
