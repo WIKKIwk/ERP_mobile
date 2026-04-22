@@ -2,10 +2,23 @@ import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../native_back_button_bridge.dart';
 import '../native_dock_bridge.dart';
-import 'app_loading_indicator.dart';
 import 'shared_header_title.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+
+/// [AppShell] AppBar [bottom] va [AppRefreshIndicator] uchun bir xil chiziqli progress.
+Widget _appShellStyleLinearProgress(
+  ThemeData theme, {
+  double? value,
+}) {
+  return LinearProgressIndicator(
+    minHeight: 3,
+    value: value,
+    backgroundColor:
+        theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.14),
+    color: theme.colorScheme.primary,
+  );
+}
 
 /// Vertikal ro‘yxat pastki chekka yaqinlashganda dock ustidagi scrim uchun **0–1**.
 ///
@@ -42,6 +55,7 @@ class AppShell extends StatefulWidget {
     this.nativeTopBar = false,
     this.nativeTitleTextStyle,
     this.backgroundColor,
+    this.appBarBottomLoading = false,
   });
 
   final String title;
@@ -60,6 +74,9 @@ class AppShell extends StatefulWidget {
   final bool nativeTopBar;
   final TextStyle? nativeTitleTextStyle;
   final Color? backgroundColor;
+
+  /// [nativeTopBar] bo‘lsa, AppBar ostida indeterminate chiziqli yuklanish (Google uslubi).
+  final bool appBarBottomLoading;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -153,6 +170,34 @@ class _AppShellState extends State<AppShell>
     return null;
   }
 
+  /// [nativeTopBar] rejimida ixtiyoriy [AppShell.subtitle] — ikkinchi qator sifatida.
+  Widget _nativeAppBarTitle(ThemeData theme) {
+    final titleStyle =
+        widget.nativeTitleTextStyle ?? theme.textTheme.titleLarge;
+    final subtitle = widget.subtitle.trim();
+    if (subtitle.isEmpty) {
+      return Text(widget.title, style: titleStyle);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(widget.title, style: titleStyle),
+        const SizedBox(height: 2),
+        Text(
+          subtitle,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            height: 1.25,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -175,10 +220,7 @@ class _AppShellState extends State<AppShell>
       extendBody: true,
       appBar: widget.nativeTopBar
           ? AppBar(
-              title: Text(
-                widget.title,
-                style: widget.nativeTitleTextStyle,
-              ),
+              title: _nativeAppBarTitle(theme),
               leading: _nativeAppBarLeading(shouldHideLeading),
               automaticallyImplyLeading: shouldHideLeading
                   ? false
@@ -190,9 +232,15 @@ class _AppShellState extends State<AppShell>
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,
-              toolbarHeight: 40,
+              toolbarHeight: widget.subtitle.trim().isNotEmpty ? 56 : 40,
               titleSpacing: 20,
               centerTitle: false,
+              bottom: widget.appBarBottomLoading
+                  ? PreferredSize(
+                      preferredSize: const Size.fromHeight(3),
+                      child: _appShellStyleLinearProgress(theme),
+                    )
+                  : null,
             )
           : null,
       bottomNavigationBar: widget.bottom == null
@@ -706,15 +754,12 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     final progress = (_pullExtent / _triggerDistance).clamp(0.0, 1.0);
     final visible = _refreshing || _pullExtent > 0.0;
     final contentTranslateY = _refreshing
         ? 0.0
         : _pullExtent.clamp(0.0, widget.displacement + 12.0).toDouble();
-    final translateY = _refreshing
-        ? widget.edgeOffset + 12.0
-        : widget.edgeOffset + (widget.displacement * progress) - 28.0;
     final motionDuration = _userPulling
         ? Duration.zero
         : _refreshing
@@ -739,52 +784,17 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
             ),
             if (visible)
               Positioned(
-                top: 0,
+                top: widget.edgeOffset,
                 left: 0,
                 right: 0,
                 child: IgnorePointer(
                   ignoring: true,
-                  child: AnimatedContainer(
-                    duration: motionDuration,
-                    curve: motionCurve,
-                    transform: Matrix4.translationValues(0, translateY, 0),
-                    transformAlignment: Alignment.topCenter,
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: AnimatedOpacity(
-                        duration: AppMotion.fast,
-                        opacity: visible ? 1 : 0,
-                        child: Container(
-                          height: 36,
-                          width: 36,
-                          decoration: BoxDecoration(
-                            color: scheme.surfaceContainerHigh,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.10),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(8),
-                          child: AnimatedScale(
-                            duration: motionDuration,
-                            curve: motionCurve,
-                            scale: _refreshing ? 1 : (0.72 + (0.28 * progress)),
-                            child: AnimatedOpacity(
-                              duration: AppMotion.fast,
-                              opacity:
-                                  _refreshing ? 1 : (0.35 + (0.65 * progress)),
-                              child: const AppLoadingIndicator(
-                                size: 20,
-                                glyphSize: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                  child: AnimatedOpacity(
+                    duration: AppMotion.fast,
+                    opacity: visible ? 1 : 0,
+                    child: _appShellStyleLinearProgress(
+                      theme,
+                      value: _refreshing ? null : progress,
                     ),
                   ),
                 ),

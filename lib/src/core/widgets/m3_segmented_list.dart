@@ -91,6 +91,23 @@ abstract final class M3SegmentedListGeometry {
     }
     return M3SegmentVerticalSlot.middle;
   }
+
+  /// AppBar ostidagi **to‘liq** segmentlangan ro‘yxat (yuqorida alohida [top] titul **yo‘q**).
+  ///
+  /// Bitta qator: [top] (yuqori katta radius); bir nechta: birinchi [top], o‘rtalar [middle], oxirgi [bottom].
+  static M3SegmentVerticalSlot standaloneListSlotForIndex(int index, int count) {
+    assert(count >= 1);
+    if (count == 1) {
+      return M3SegmentVerticalSlot.top;
+    }
+    if (index == 0) {
+      return M3SegmentVerticalSlot.top;
+    }
+    if (index == count - 1) {
+      return M3SegmentVerticalSlot.bottom;
+    }
+    return M3SegmentVerticalSlot.middle;
+  }
 }
 
 /// MD3 contained list elementi: faqat **to‘ldirilgan fon** (chegara chizig‘i yo‘q), ixtiyoriy bosilish.
@@ -105,6 +122,7 @@ class M3SegmentFilledSurface extends StatelessWidget {
     required this.cornerRadius,
     required this.child,
     this.onTap,
+    this.backgroundColor,
   });
 
   final M3SegmentVerticalSlot slot;
@@ -112,16 +130,20 @@ class M3SegmentFilledSurface extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
 
+  /// `null` — standart [surfaceContainerLow] / [surfaceContainerHighest].
+  final Color? backgroundColor;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final brightness = Theme.of(context).brightness;
     final BorderRadius radius =
         M3SegmentedListGeometry.borderRadius(slot, cornerRadius);
-    final Color bg = switch (brightness) {
-      Brightness.dark => scheme.surfaceContainerLow,
-      Brightness.light => scheme.surfaceContainerHighest,
-    };
+    final Color bg = backgroundColor ??
+        switch (brightness) {
+          Brightness.dark => scheme.surfaceContainerLow,
+          Brightness.light => scheme.surfaceContainerHighest,
+        };
 
     final Widget ink = Ink(
       decoration: BoxDecoration(

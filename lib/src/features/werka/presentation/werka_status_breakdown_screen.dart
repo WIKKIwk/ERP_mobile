@@ -4,6 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_retry_state.dart';
 import '../../../core/widgets/app_shell.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
 import '../../../core/widgets/native_back_button.dart';
 import '../../shared/models/app_models.dart';
 import '../state/werka_store.dart';
@@ -74,114 +75,95 @@ class _WerkaStatusBreakdownScreenState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     useNativeNavigationTitle(context, _title);
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: AppTheme.shellStart(context),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            NativeNavigationTitleHeader(title: _title),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 12, 0),
-                child: AnimatedBuilder(
-                  animation: WerkaStore.instance,
-                  builder: (context, _) {
-                    final store = WerkaStore.instance;
-                    if (store.loadingBreakdown(widget.kind) &&
-                        store.breakdownItems(widget.kind).isEmpty) {
-                      return const Center(child: AppLoadingIndicator());
-                    }
-                    final error = store.breakdownError(widget.kind);
-                    if (error != null &&
-                        store.breakdownItems(widget.kind).isEmpty) {
-                      return AppRetryState(
-                        onRetry: _reload,
-                      );
-                    }
+    final bottomListPadding =
+        MediaQuery.viewPaddingOf(context).bottom + 136.0;
+    return AppShell(
+      title: _title,
+      subtitle: '',
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
+      bottom: const WerkaDock(activeTab: null),
+      contentPadding: EdgeInsets.zero,
+      child: AnimatedBuilder(
+        animation: WerkaStore.instance,
+        builder: (context, _) {
+          final store = WerkaStore.instance;
+          if (store.loadingBreakdown(widget.kind) &&
+              store.breakdownItems(widget.kind).isEmpty) {
+            return const Center(child: AppLoadingIndicator());
+          }
+          final error = store.breakdownError(widget.kind);
+          if (error != null && store.breakdownItems(widget.kind).isEmpty) {
+            return AppRetryState(
+              onRetry: _reload,
+            );
+          }
 
-                    final items = store.breakdownItems(widget.kind);
-                    if (items.isEmpty) {
-                      return Center(
-                        child: Card.filled(
-                          margin: EdgeInsets.zero,
-                          color: scheme.surfaceContainerLow,
-                          child: Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Text(
-                              context.l10n.noStatusRecords,
-                              style: theme.textTheme.titleMedium,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return AppRefreshIndicator(
-                      onRefresh: _reload,
-                      child: ListView(
-                        padding: const EdgeInsets.only(bottom: 110),
-                        children: [
-                          Card.filled(
-                            margin: EdgeInsets.zero,
-                            color: scheme.surfaceContainerLow,
-                            clipBehavior: Clip.antiAlias,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                            child: Column(
-                              children: [
-                                for (int index = 0;
-                                    index < items.length;
-                                    index++) ...[
-                                  _WerkaBreakdownRow(
-                                    entry: items[index],
-                                    metricLabel: _metricLabel(items[index]),
-                                    isLast: index == items.length - 1,
-                                    onTap: () async {
-                                      await Navigator.of(context).pushNamed(
-                                        AppRoutes.werkaStatusDetail,
-                                        arguments: WerkaStatusDetailArgs(
-                                          kind: widget.kind,
-                                          supplierRef: items[index].supplierRef,
-                                          supplierName:
-                                              items[index].supplierName,
-                                        ),
-                                      );
-                                      if (!context.mounted) {
-                                        return;
-                                      }
-                                      await _reload();
-                                    },
-                                  ),
-                                  if (index != items.length - 1)
-                                    Divider(
-                                      height: 1,
-                                      thickness: 1,
-                                      indent: 18,
-                                      endIndent: 18,
-                                      color: Theme.of(context)
-                                          .dividerColor
-                                          .withValues(alpha: 0.55),
-                                    ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+          final items = store.breakdownItems(widget.kind);
+          if (items.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: M3SegmentFilledSurface(
+                  slot: M3SegmentVerticalSlot.top,
+                  cornerRadius: M3SegmentedListGeometry.cornerLarge,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    child: Text(
+                      context.l10n.noStatusRecords,
+                      style: theme.textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+            );
+          }
+
+          final n = items.length;
+          return AppRefreshIndicator(
+            onRefresh: _reload,
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(0, 4, 0, bottomListPadding),
+              children: [
+                M3SegmentSpacedColumn(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  children: [
+                    for (int index = 0; index < n; index++)
+                      _WerkaBreakdownSegmentTile(
+                        entry: items[index],
+                        metricLabel: _metricLabel(items[index]),
+                        index: index,
+                        itemCount: n,
+                        onTap: () async {
+                          await Navigator.of(context).pushNamed(
+                            AppRoutes.werkaStatusDetail,
+                            arguments: WerkaStatusDetailArgs(
+                              kind: widget.kind,
+                              supplierRef: items[index].supplierRef,
+                              supplierName: items[index].supplierName,
+                            ),
+                          );
+                          if (!context.mounted) {
+                            return;
+                          }
+                          await _reload();
+                        },
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
-      bottomNavigationBar: const WerkaDock(activeTab: null),
     );
   }
 }
@@ -198,72 +180,91 @@ class WerkaStatusDetailArgs {
   final String supplierName;
 }
 
-class _WerkaBreakdownRow extends StatelessWidget {
-  const _WerkaBreakdownRow({
+/// Home «Jarayondagi mahsulotlar» qatori bilan bir xil [M3SegmentFilledSurface] geometriya/fon.
+class _WerkaBreakdownSegmentTile extends StatelessWidget {
+  const _WerkaBreakdownSegmentTile({
     required this.entry,
     required this.metricLabel,
-    required this.isLast,
+    required this.index,
+    required this.itemCount,
     required this.onTap,
   });
 
   final WerkaStatusBreakdownEntry entry;
   final String metricLabel;
-  final bool isLast;
+  final int index;
+  final int itemCount;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final radius = BorderRadius.circular(28);
-    return Material(
-      color: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: radius),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        customBorder: RoundedRectangleBorder(borderRadius: radius),
-        onTap: onTap,
-        child: SizedBox(
-          width: double.infinity,
-          child: Container(
-            decoration: BoxDecoration(
-              border: isLast
-                  ? null
-                  : Border(
-                      bottom: BorderSide(
-                        color: AppTheme.cardBorder(context),
-                        width: 1,
-                      ),
+    final scheme = theme.colorScheme;
+    final slot = M3SegmentedListGeometry.standaloneListSlotForIndex(
+      index,
+      itemCount,
+    );
+    final r = M3SegmentedListGeometry.cornerRadiusForSlot(slot);
+
+    return M3SegmentFilledSurface(
+      slot: slot,
+      cornerRadius: r,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 11,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.supplierName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        entry.supplierName,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        metricLabel,
-                        style: theme.textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppLocalizations.of(context)
-                            .recordCountLabel(entry.receiptCount),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 5),
+                  Text(
+                    AppLocalizations.of(context)
+                        .recordCountLabel(entry.receiptCount),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 9,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    metricLabel,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      height: 1.22,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

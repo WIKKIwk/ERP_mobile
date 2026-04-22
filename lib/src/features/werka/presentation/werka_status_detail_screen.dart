@@ -4,7 +4,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_retry_state.dart';
 import '../../../core/widgets/app_shell.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
 import '../../../core/widgets/native_back_button.dart';
+import '../../../core/widgets/top_refresh_scroll_physics.dart';
 import '../../shared/models/app_models.dart';
 import '../state/werka_store.dart';
 import 'werka_status_breakdown_screen.dart';
@@ -55,108 +57,90 @@ class _WerkaStatusDetailScreenState extends State<WerkaStatusDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     useNativeNavigationTitle(context, _title);
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: AppTheme.shellStart(context),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            NativeNavigationTitleHeader(title: _title),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 16, 0),
-                child: AnimatedBuilder(
-                  animation: WerkaStore.instance,
-                  builder: (context, _) {
-                    final store = WerkaStore.instance;
-                    if (store.loadingDetail(
-                            widget.args.kind, widget.args.supplierRef) &&
-                        store
-                            .detailItems(
-                                widget.args.kind, widget.args.supplierRef)
-                            .isEmpty) {
-                      return const Center(child: AppLoadingIndicator());
-                    }
-                    final error = store.detailError(
-                        widget.args.kind, widget.args.supplierRef);
-                    if (error != null &&
-                        store
-                            .detailItems(
-                                widget.args.kind, widget.args.supplierRef)
-                            .isEmpty) {
-                      return AppRetryState(
-                        onRetry: _reload,
-                      );
-                    }
+    final bottomListPadding =
+        MediaQuery.viewPaddingOf(context).bottom + 136.0;
+    return AppShell(
+      title: _title,
+      subtitle: '',
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
+      bottom: const WerkaDock(activeTab: null),
+      contentPadding: EdgeInsets.zero,
+      child: AnimatedBuilder(
+        animation: WerkaStore.instance,
+        builder: (context, _) {
+          final store = WerkaStore.instance;
+          if (store.loadingDetail(
+                  widget.args.kind, widget.args.supplierRef) &&
+              store
+                  .detailItems(widget.args.kind, widget.args.supplierRef)
+                  .isEmpty) {
+            return const Center(child: AppLoadingIndicator());
+          }
+          final error = store.detailError(
+              widget.args.kind, widget.args.supplierRef);
+          if (error != null &&
+              store
+                  .detailItems(widget.args.kind, widget.args.supplierRef)
+                  .isEmpty) {
+            return AppRetryState(
+              onRetry: _reload,
+            );
+          }
 
-                    final items = store.detailItems(
-                        widget.args.kind, widget.args.supplierRef);
-                    if (items.isEmpty) {
-                      return Center(
-                        child: Card.filled(
-                          margin: EdgeInsets.zero,
-                          color: scheme.surfaceContainerLow,
-                          child: Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Text(
-                              context.l10n.noRecordsYet,
-                              style: theme.textTheme.titleMedium,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return AppRefreshIndicator(
-                      onRefresh: _reload,
-                      child: ListView(
-                        padding: const EdgeInsets.only(bottom: 110),
-                        children: [
-                          Card.filled(
-                            margin: EdgeInsets.zero,
-                            color: scheme.surfaceContainerLow,
-                            clipBehavior: Clip.antiAlias,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                            child: Column(
-                              children: [
-                                for (int index = 0;
-                                    index < items.length;
-                                    index++) ...[
-                                  _WerkaStatusRecordRow(
-                                    record: items[index],
-                                    isFirst: index == 0,
-                                    isLast: index == items.length - 1,
-                                    onTap: () => _openRecord(items[index]),
-                                  ),
-                                  if (index != items.length - 1)
-                                    Divider(
-                                      height: 1,
-                                      thickness: 1,
-                                      indent: 16,
-                                      endIndent: 16,
-                                      color: scheme.outlineVariant
-                                          .withValues(alpha: 0.55),
-                                    ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
+          final items =
+              store.detailItems(widget.args.kind, widget.args.supplierRef);
+          if (items.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: M3SegmentFilledSurface(
+                    slot: M3SegmentVerticalSlot.top,
+                    cornerRadius: M3SegmentedListGeometry.cornerLarge,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
                       ),
-                    );
-                  },
+                      child: Text(
+                        context.l10n.noRecordsYet,
+                        style: theme.textTheme.titleMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
                 ),
               ),
+            );
+          }
+
+          final n = items.length;
+          return AppRefreshIndicator(
+            onRefresh: _reload,
+            child: ListView(
+              physics: const TopRefreshScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(0, 4, 0, bottomListPadding),
+              children: [
+                M3SegmentSpacedColumn(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  children: [
+                    for (int index = 0; index < n; index++)
+                      _WerkaStatusDetailSegmentTile(
+                        record: items[index],
+                        index: index,
+                        itemCount: n,
+                        onTap: () => _openRecord(items[index]),
+                      ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
-      bottomNavigationBar: const WerkaDock(activeTab: null),
     );
   }
 
@@ -189,96 +173,102 @@ class _WerkaStatusDetailScreenState extends State<WerkaStatusDetailScreen> {
   }
 }
 
-class _WerkaStatusRecordRow extends StatelessWidget {
-  const _WerkaStatusRecordRow({
+/// Home «Jarayondagi mahsulotlar» qatori / breakdown SDK bilan bir xil segment.
+class _WerkaStatusDetailSegmentTile extends StatelessWidget {
+  const _WerkaStatusDetailSegmentTile({
     required this.record,
-    required this.isFirst,
-    required this.isLast,
+    required this.index,
+    required this.itemCount,
     required this.onTap,
   });
 
   final DispatchRecord record;
-  final bool isFirst;
-  final bool isLast;
+  final int index;
+  final int itemCount;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final borderRadius = BorderRadius.only(
-      topLeft: Radius.circular(isFirst ? 28 : 0),
-      topRight: Radius.circular(isFirst ? 28 : 0),
-      bottomLeft: Radius.circular(isLast ? 28 : 0),
-      bottomRight: Radius.circular(isLast ? 28 : 0),
+    final scheme = theme.colorScheme;
+    final slot = M3SegmentedListGeometry.standaloneListSlotForIndex(
+      index,
+      itemCount,
     );
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: borderRadius,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      record.itemName.trim().isEmpty
-                          ? record.itemCode
-                          : record.itemName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 3),
-                    if (record.note.trim().isNotEmpty)
-                      Text(
-                        record.note,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      )
-                    else if (record.acceptedQty > 0)
-                      Text(
-                        context.l10n.acceptedQtyLabel(
-                          record.acceptedQty,
-                          record.uom,
-                        ),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+    final r = M3SegmentedListGeometry.cornerRadiusForSlot(slot);
+    final title = record.itemName.trim().isEmpty
+        ? record.itemCode
+        : record.itemName;
+
+    return M3SegmentFilledSurface(
+      slot: slot,
+      cornerRadius: r,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${record.sentQty.toStringAsFixed(0)} ${record.uom}',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    record.createdLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
+                  if (record.note.trim().isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      record.note,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
+                  ] else if (record.acceptedQty > 0) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      context.l10n.acceptedQtyLabel(
+                        record.acceptedQty,
+                        record.uom,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${record.sentQty.toStringAsFixed(0)} ${record.uom}',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  record.createdLabel,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

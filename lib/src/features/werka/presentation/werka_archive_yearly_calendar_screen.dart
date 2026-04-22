@@ -1,7 +1,7 @@
 import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../../core/widgets/app_loading_indicator.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_retry_state.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/native_back_button.dart';
@@ -145,18 +145,19 @@ class _WerkaArchiveYearlyCalendarScreenState
     useNativeNavigationTitle(context, title);
     return AppShell(
       title: title,
-      subtitle: l10n.archiveYearCalendarHint,
-      leading: NativeBackButtonSlot(
-        onPressed: () => Navigator.of(context).maybePop(),
-      ),
+      subtitle: '',
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
+      appBarBottomLoading: _loading && _activeYears.isEmpty,
       bottom: const WerkaDock(activeTab: null),
+      contentPadding: EdgeInsets.zero,
       child: _buildBody(context),
     );
   }
 
   Widget _buildBody(BuildContext context) {
     if (_loading && _activeYears.isEmpty) {
-      return const Center(child: AppLoadingIndicator());
+      return const SizedBox.expand();
     }
     if (_error != null && _activeYears.isEmpty) {
       return AppRetryState(onRetry: _loadYears);
@@ -166,10 +167,11 @@ class _WerkaArchiveYearlyCalendarScreenState
     final scheme = theme.colorScheme;
     final years = [for (int year = _startYear; year <= _startYear + 11; year++) year];
 
+    final bottomPadding = MediaQuery.viewPaddingOf(context).bottom + 136.0;
     return RefreshIndicator(
       onRefresh: _loadYears,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(4, 0, 4, 110),
+        padding: EdgeInsets.fromLTRB(4, 4, 4, bottomPadding),
         children: [
           Card.filled(
             margin: EdgeInsets.zero,

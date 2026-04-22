@@ -7,11 +7,12 @@ import '../../../core/notifications/notification_hidden_store.dart';
 import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/notifications/notification_unread_store.dart';
 import '../../../core/session/app_session.dart';
-import '../../../core/widgets/app_loading_indicator.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/app_retry_state.dart';
 import '../../../core/widgets/m3_confirm_dialog.dart';
-import '../../../core/widgets/motion_widgets.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
+import '../../../core/widgets/native_back_button.dart';
 import '../../../core/widgets/top_refresh_scroll_physics.dart';
 import '../../shared/models/app_models.dart';
 import '../state/werka_notification_store.dart';
@@ -264,124 +265,160 @@ class _WerkaNotificationsScreenState extends State<WerkaNotificationsScreen>
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.viewPaddingOf(context).bottom + 136.0;
-    return AppShell(
-      title: context.l10n.notificationsTitle,
-      subtitle: '',
-      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
-      actions: [
-        IconButton.filledTonal(
-          onPressed: _clearAll,
-          icon: const Icon(Icons.clear_all_rounded),
-        ),
-      ],
-      bottom: const WerkaDock(activeTab: WerkaDockTab.notifications),
-      bottomDockFadeStrength: _bottomDockFadeStrength,
-      child: NotificationListener<ScrollMetricsNotification>(
-        onNotification: (ScrollMetricsNotification n) {
-          _syncBottomDockFade(n.metrics);
-          return false;
-        },
-        child: AnimatedBuilder(
-          animation: WerkaNotificationStore.instance,
-          builder: (context, _) {
-          final store = WerkaNotificationStore.instance;
-          final hidden = NotificationHiddenStore.instance.hiddenIdsForProfile(
-            AppSession.instance.profile,
-          );
-          final items = ((store.loaded
-                  ? store.items
-                  : (_cachedItems ?? <DispatchRecord>[])))
-              .where((item) => !hidden.contains(item.id))
-              .toList();
-          final orderedItems = [
-            ...items.where((item) => _highlightedUnreadIds.contains(item.id)),
-            ...items.where((item) => !_highlightedUnreadIds.contains(item.id)),
-          ];
-          if (store.loading && !store.loaded && items.isEmpty) {
-            return const Center(child: AppLoadingIndicator());
-          }
-          if (store.error != null && !store.loaded && items.isEmpty) {
-            return AppRefreshIndicator(
-              onRefresh: _reload,
-              allowRefreshOnShortContent: true,
-              child: ListView(
-                physics: const TopRefreshScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
-                children: [
-                  AppRetryState(onRetry: _reload),
-                ],
-              ),
-            );
-          }
+    final scheme = Theme.of(context).colorScheme;
+    useNativeNavigationTitle(context, context.l10n.notificationsTitle);
+    return AnimatedBuilder(
+      animation: WerkaNotificationStore.instance,
+      builder: (context, _) {
+        final store = WerkaNotificationStore.instance;
+        final hidden = NotificationHiddenStore.instance.hiddenIdsForProfile(
+          AppSession.instance.profile,
+        );
+        final items = ((store.loaded
+                ? store.items
+                : (_cachedItems ?? <DispatchRecord>[])))
+            .where((item) => !hidden.contains(item.id))
+            .toList();
+        final appBarBottomLoading =
+            store.loading && !store.loaded && items.isEmpty;
 
-          if (items.isEmpty) {
-            return AppRefreshIndicator(
-              onRefresh: _reload,
-              allowRefreshOnShortContent: true,
-              child: ListView(
-                physics: const TopRefreshScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 116),
-                children: [
-                  const SizedBox(height: 120),
-                  Align(
-                    alignment: const Alignment(0, -0.22),
-                    child: Text(
-                      context.l10n.noNotifications,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return AppRefreshIndicator(
-            onRefresh: _reload,
-            allowRefreshOnShortContent: true,
-            child: NotificationListener<ScrollNotification>(
-              onNotification: _handleScrollNotification,
-              child: ListView(
-                physics: const TopRefreshScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(
-                        begin: 1.0,
-                        end: 1.0 + _cardStretch,
-                      ),
-                      duration: const Duration(milliseconds: 110),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, scaleY, child) {
-                        return Transform.scale(
-                          scaleY: scaleY,
-                          alignment: Alignment.bottomCenter,
-                          child: child,
-                        );
-                      },
-                      child: _WerkaNotificationsSection(
-                        items: orderedItems,
-                        highlightedUnreadIds: _highlightedUnreadIds,
-                        onTapRecord: (id) {
-                          final record = orderedItems.firstWhere(
-                            (item) => item.id == id,
-                          );
-                          _openDetail(record);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
+        return AppShell(
+          title: context.l10n.notificationsTitle,
+          subtitle: '',
+          nativeTopBar: true,
+          nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
+          contentPadding: EdgeInsets.zero,
+          appBarBottomLoading: appBarBottomLoading,
+          actions: [
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 10),
+              child: IconButton(
+                tooltip: context.l10n.clearTitle,
+                onPressed: _clearAll,
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+                icon: Icon(
+                  Icons.clear_all_rounded,
+                  color: scheme.primary,
+                ),
               ),
             ),
-          );
-        },
-        ),
-      ),
+          ],
+          bottom: const WerkaDock(activeTab: WerkaDockTab.notifications),
+          bottomDockFadeStrength: _bottomDockFadeStrength,
+          child: NotificationListener<ScrollMetricsNotification>(
+            onNotification: (ScrollMetricsNotification n) {
+              _syncBottomDockFade(n.metrics);
+              return false;
+            },
+            child: Builder(
+              builder: (context) {
+                final orderedItems = [
+                  ...items.where(
+                      (item) => _highlightedUnreadIds.contains(item.id)),
+                  ...items.where(
+                      (item) => !_highlightedUnreadIds.contains(item.id)),
+                ];
+                if (store.loading && !store.loaded && items.isEmpty) {
+                  return const SizedBox.expand();
+                }
+                if (store.error != null && !store.loaded && items.isEmpty) {
+                  return AppRefreshIndicator(
+                    onRefresh: _reload,
+                    allowRefreshOnShortContent: true,
+                    child: ListView(
+                      physics: const TopRefreshScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(0, 4, 0, bottomPadding),
+                      children: [
+                        AppRetryState(onRetry: _reload),
+                      ],
+                    ),
+                  );
+                }
+
+                if (items.isEmpty) {
+                  final theme = Theme.of(context);
+                  return AppRefreshIndicator(
+                    onRefresh: _reload,
+                    allowRefreshOnShortContent: true,
+                    child: ListView(
+                      physics: const TopRefreshScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(0, 4, 0, bottomPadding),
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4),
+                            child: M3SegmentFilledSurface(
+                              slot: M3SegmentVerticalSlot.top,
+                              cornerRadius:
+                                  M3SegmentedListGeometry.cornerLarge,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                child: Text(
+                                  context.l10n.noNotifications,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return AppRefreshIndicator(
+                  onRefresh: _reload,
+                  allowRefreshOnShortContent: true,
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: _handleScrollNotification,
+                    child: ListView(
+                      physics: const TopRefreshScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(0, 4, 0, bottomPadding),
+                      children: [
+                        TweenAnimationBuilder<double>(
+                          tween: Tween<double>(
+                            begin: 1.0,
+                            end: 1.0 + _cardStretch,
+                          ),
+                          duration: const Duration(milliseconds: 110),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, scaleY, child) {
+                            return Transform.scale(
+                              scaleY: scaleY,
+                              alignment: Alignment.bottomCenter,
+                              child: child,
+                            );
+                          },
+                          child: _WerkaNotificationsSection(
+                            items: orderedItems,
+                            highlightedUnreadIds: _highlightedUnreadIds,
+                            onTapRecord: (id) {
+                              final record = orderedItems.firstWhere(
+                                (item) => item.id == id,
+                              );
+                              _openDetail(record);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -399,52 +436,36 @@ class _WerkaNotificationsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color: scheme.surfaceContainerLow,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        children: [
-          for (int index = 0; index < items.length; index++) ...[
-            _WerkaNotificationRow(
-              record: items[index],
-              highlighted: highlightedUnreadIds.contains(items[index].id),
-              isFirst: index == 0,
-              isLast: index == items.length - 1,
-              onTap: () => onTapRecord(items[index].id),
-            ),
-            if (index != items.length - 1)
-              Divider(
-                height: 1,
-                thickness: 1,
-                indent: 18,
-                endIndent: 18,
-                color: Theme.of(context).dividerColor.withValues(alpha: 0.55),
-              ),
-          ],
-        ],
-      ),
+    final n = items.length;
+    return M3SegmentSpacedColumn(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      children: [
+        for (int index = 0; index < n; index++)
+          _WerkaNotificationSegmentTile(
+            record: items[index],
+            highlighted: highlightedUnreadIds.contains(items[index].id),
+            index: index,
+            itemCount: n,
+            onTap: () => onTapRecord(items[index].id),
+          ),
+      ],
     );
   }
 }
 
-class _WerkaNotificationRow extends StatelessWidget {
-  const _WerkaNotificationRow({
+class _WerkaNotificationSegmentTile extends StatelessWidget {
+  const _WerkaNotificationSegmentTile({
     required this.record,
     required this.highlighted,
-    required this.isFirst,
-    required this.isLast,
+    required this.index,
+    required this.itemCount,
     required this.onTap,
   });
 
   final DispatchRecord record;
   final bool highlighted;
-  final bool isFirst;
-  final bool isLast;
+  final int index;
+  final int itemCount;
   final VoidCallback onTap;
 
   String _secondary(DispatchRecord record) {
@@ -465,18 +486,25 @@ class _WerkaNotificationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PressableScale(
-      borderRadius: 0,
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final slot = M3SegmentedListGeometry.standaloneListSlotForIndex(
+      index,
+      itemCount,
+    );
+    final r = M3SegmentedListGeometry.cornerRadiusForSlot(slot);
+
+    return M3SegmentFilledSurface(
+      slot: slot,
+      cornerRadius: r,
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: highlighted
-              ? Theme.of(context).colorScheme.secondaryContainer
-              : Colors.transparent,
-        ),
+      backgroundColor:
+          highlighted ? scheme.secondaryContainer : null,
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,7 +512,7 @@ class _WerkaNotificationRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     _notificationTitle(context, record),
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: theme.textTheme.titleLarge,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -494,7 +522,7 @@ class _WerkaNotificationRow extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               _secondary(record),
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -504,7 +532,7 @@ class _WerkaNotificationRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     _metricLine(record),
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -512,7 +540,7 @@ class _WerkaNotificationRow extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   record.createdLabel,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),

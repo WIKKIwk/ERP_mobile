@@ -1,27 +1,22 @@
 import '../localization/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class AppRetryState extends StatelessWidget {
   const AppRetryState({
     super.key,
     required this.onRetry,
     this.padding,
+    this.message,
   });
 
   final Future<void> Function() onRetry;
   final EdgeInsetsGeometry? padding;
 
-  static double retryIconSizeFor(Size screenSize) {
-    return (screenSize.shortestSide * 0.29).clamp(104.0, 132.0).toDouble();
-  }
+  /// Bo‘sh bo‘lsa — umumiy tushuntirish ([AppLocalizations.serverDisconnectedRetry]).
+  final String? message;
 
   static double contentWidthFor(Size screenSize) {
-    return (screenSize.width * 0.72).clamp(260.0, 320.0).toDouble();
-  }
-
-  static double topInsetFor(Size screenSize) {
-    return (screenSize.height * 0.2).clamp(140.0, 190.0).toDouble();
+    return (screenSize.width * 0.88).clamp(280.0, 360.0).toDouble();
   }
 
   @override
@@ -30,10 +25,10 @@ class AppRetryState extends StatelessWidget {
     final scheme = theme.colorScheme;
     final mediaQuery = MediaQuery.maybeOf(context);
     final screenSize = mediaQuery?.size ?? const Size(390, 844);
-    final retryIconSize = retryIconSizeFor(screenSize);
     final contentWidth = contentWidthFor(screenSize);
     final resolvedPadding =
-        padding ?? EdgeInsets.fromLTRB(20, topInsetFor(screenSize), 20, 24);
+        padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 40);
+    final body = message ?? context.l10n.serverDisconnectedRetry;
 
     return Padding(
       padding: resolvedPadding,
@@ -44,25 +39,24 @@ class AppRetryState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SvgPicture.asset(
-                'assets/icons/server-disconnected.svg',
-                width: retryIconSize,
-                height: retryIconSize,
-                colorFilter: ColorFilter.mode(
-                  scheme.onSurfaceVariant,
-                  BlendMode.srcIn,
+              Text(
+                body,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.35,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
               TextButton(
                 onPressed: onRetry,
                 style: TextButton.styleFrom(
-                  foregroundColor: scheme.onSurfaceVariant,
-                  textStyle: theme.textTheme.bodySmall?.copyWith(
+                  foregroundColor: scheme.primary,
+                  textStyle: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),

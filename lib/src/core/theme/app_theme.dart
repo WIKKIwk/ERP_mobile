@@ -20,6 +20,14 @@ class AppTheme {
   static const double headerActionSize = 44;
   static const double headerActionIconSize = 22;
 
+  /// Werka [AppShell] `nativeTopBar` sarlavhasi (masalan «Omborchi», «Jarayonda»).
+  static TextStyle? werkaNativeAppBarTitleStyle(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
+        );
+  }
+
   static ThemeData dark([AppThemeVariant variant = AppThemeVariant.earthy]) {
     final colorScheme = switch (variant) {
       AppThemeVariant.classic => _classicDarkScheme(),

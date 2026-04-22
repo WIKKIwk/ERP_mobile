@@ -3,25 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('retry icon scales from phone width', () {
+  test('content width scales from phone width', () {
     expect(
-      AppRetryState.retryIconSizeFor(const Size(390, 844)),
-      closeTo(113.1, 0.1),
+      AppRetryState.contentWidthFor(const Size(390, 844)),
+      closeTo(343.2, 0.1),
     );
   });
 
-  test('retry icon grows on larger phones', () {
-    expect(
-      AppRetryState.retryIconSizeFor(const Size(430, 932)),
-      closeTo(124.7, 0.1),
-    );
-  });
-
-  test('top inset stays within stable bounds', () {
-    expect(AppRetryState.topInsetFor(const Size(320, 568)), 140);
-    expect(
-      AppRetryState.topInsetFor(const Size(430, 932)),
-      closeTo(186.4, 0.1),
-    );
+  test('content width clamps on narrow screens', () {
+    expect(AppRetryState.contentWidthFor(const Size(300, 600)), 280.0);
   });
 }

@@ -1,13 +1,15 @@
 import '../../../app/app_router.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
 import '../../../core/widgets/native_back_button.dart';
 import '../../shared/models/app_models.dart';
 import 'werka_archive_list_screen.dart';
 import 'widgets/werka_dock.dart';
 import 'package:flutter/material.dart';
 
-class WerkaArchivePeriodScreen extends StatefulWidget {
+class WerkaArchivePeriodScreen extends StatelessWidget {
   const WerkaArchivePeriodScreen({
     super.key,
     required this.kind,
@@ -15,14 +17,10 @@ class WerkaArchivePeriodScreen extends StatefulWidget {
 
   final WerkaArchiveKind kind;
 
-  @override
-  State<WerkaArchivePeriodScreen> createState() =>
-      _WerkaArchivePeriodScreenState();
-}
+  static const int _entryCount = 3;
 
-class _WerkaArchivePeriodScreenState extends State<WerkaArchivePeriodScreen> {
   String _kindTitle(AppLocalizations l10n) {
-    switch (widget.kind) {
+    switch (kind) {
       case WerkaArchiveKind.received:
         return l10n.archiveReceivedTitle;
       case WerkaArchiveKind.sent:
@@ -36,28 +34,28 @@ class _WerkaArchivePeriodScreenState extends State<WerkaArchivePeriodScreen> {
     if (period == WerkaArchivePeriod.daily) {
       Navigator.of(context).pushNamed(
         AppRoutes.werkaArchiveDailyCalendar,
-        arguments: widget.kind,
+        arguments: kind,
       );
       return;
     }
     if (period == WerkaArchivePeriod.monthly) {
       Navigator.of(context).pushNamed(
         AppRoutes.werkaArchiveMonthlyCalendar,
-        arguments: widget.kind,
+        arguments: kind,
       );
       return;
     }
     if (period == WerkaArchivePeriod.yearly) {
       Navigator.of(context).pushNamed(
         AppRoutes.werkaArchiveYearlyCalendar,
-        arguments: widget.kind,
+        arguments: kind,
       );
       return;
     }
     Navigator.of(context).pushNamed(
       AppRoutes.werkaArchiveList,
       arguments: WerkaArchiveListArgs(
-        kind: widget.kind,
+        kind: kind,
         period: period,
       ),
     );
@@ -65,29 +63,40 @@ class _WerkaArchivePeriodScreenState extends State<WerkaArchivePeriodScreen> {
 
   @override
   Widget build(BuildContext context) {
-    useNativeNavigationTitle(context, _kindTitle(context.l10n));
+    final l10n = context.l10n;
+    final title = _kindTitle(l10n);
+    useNativeNavigationTitle(context, title);
+    final bottomPadding = MediaQuery.viewPaddingOf(context).bottom + 136.0;
+
     return AppShell(
-      title: _kindTitle(context.l10n),
-      subtitle: context.l10n.archiveChoosePeriod,
-      leading: NativeBackButtonSlot(
-        onPressed: () => Navigator.of(context).maybePop(),
-      ),
+      title: title,
+      subtitle: '',
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       bottom: const WerkaDock(activeTab: null),
+      contentPadding: EdgeInsets.zero,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(4, 0, 4, 110),
+        padding: EdgeInsets.fromLTRB(0, 4, 0, bottomPadding),
         children: [
-          _PeriodGroupCard(
-            rows: [
-              _PeriodRowData(
-                title: context.l10n.archiveDailyTitle,
+          M3SegmentSpacedColumn(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            children: [
+              _WerkaArchivePeriodSegmentTile(
+                index: 0,
+                itemCount: _entryCount,
+                title: l10n.archiveDailyTitle,
                 onTap: () => _openList(context, WerkaArchivePeriod.daily),
               ),
-              _PeriodRowData(
-                title: context.l10n.archiveMonthlyTitle,
+              _WerkaArchivePeriodSegmentTile(
+                index: 1,
+                itemCount: _entryCount,
+                title: l10n.archiveMonthlyTitle,
                 onTap: () => _openList(context, WerkaArchivePeriod.monthly),
               ),
-              _PeriodRowData(
-                title: context.l10n.archiveYearlyTitle,
+              _WerkaArchivePeriodSegmentTile(
+                index: 2,
+                itemCount: _entryCount,
+                title: l10n.archiveYearlyTitle,
                 onTap: () => _openList(context, WerkaArchivePeriod.yearly),
               ),
             ],
@@ -98,83 +107,35 @@ class _WerkaArchivePeriodScreenState extends State<WerkaArchivePeriodScreen> {
   }
 }
 
-class _PeriodRowData {
-  const _PeriodRowData({
+class _WerkaArchivePeriodSegmentTile extends StatelessWidget {
+  const _WerkaArchivePeriodSegmentTile({
+    required this.index,
+    required this.itemCount,
     required this.title,
     required this.onTap,
   });
 
+  final int index;
+  final int itemCount;
   final String title;
   final VoidCallback onTap;
-}
-
-class _PeriodGroupCard extends StatelessWidget {
-  const _PeriodGroupCard({
-    required this.rows,
-  });
-
-  final List<_PeriodRowData> rows;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color: scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        children: [
-          for (int index = 0; index < rows.length; index++) ...[
-            _PeriodRow(
-              title: rows[index].title,
-              onTap: rows[index].onTap,
-              isFirst: index == 0,
-              isLast: index == rows.length - 1,
-            ),
-            if (index != rows.length - 1)
-              Divider(
-                height: 1,
-                thickness: 1,
-                indent: 18,
-                endIndent: 18,
-                color: theme.dividerColor.withValues(alpha: 0.55),
-              ),
-          ],
-        ],
-      ),
+    final slot = M3SegmentedListGeometry.standaloneListSlotForIndex(
+      index,
+      itemCount,
     );
-  }
-}
+    final r = M3SegmentedListGeometry.cornerRadiusForSlot(slot);
 
-class _PeriodRow extends StatelessWidget {
-  const _PeriodRow({
-    required this.title,
-    required this.onTap,
-    required this.isFirst,
-    required this.isLast,
-  });
-
-  final String title;
-  final VoidCallback onTap;
-  final bool isFirst;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return M3SegmentFilledSurface(
+      slot: slot,
+      cornerRadius: r,
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          18,
-          isFirst ? 18 : 16,
-          18,
-          isLast ? 18 : 16,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         child: Row(
           children: [
             Expanded(
@@ -183,7 +144,11 @@ class _PeriodRow extends StatelessWidget {
                 style: theme.textTheme.titleLarge,
               ),
             ),
-            const Icon(Icons.chevron_right_rounded),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 22,
+              color: scheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),

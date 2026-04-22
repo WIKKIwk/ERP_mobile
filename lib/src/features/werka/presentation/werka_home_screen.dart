@@ -1,5 +1,6 @@
 import '../../../app/app_router.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/notifications/refresh_hub.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_retry_state.dart';
@@ -97,15 +98,11 @@ class _WerkaHomeScreenState extends State<WerkaHomeScreen>
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.viewPaddingOf(context).bottom + 136.0;
-    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontSize: 24,
-          fontWeight: FontWeight.w800,
-        );
     return AppShell(
       title: context.l10n.werkaRoleName,
       subtitle: '',
       nativeTopBar: true,
-      nativeTitleTextStyle: titleStyle,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       drawer: _WerkaHomeDrawer(onNavigate: _openDrawerRoute),
       bottom: const WerkaDock(activeTab: WerkaDockTab.home),
       bottomDockFadeStrength: _bottomDockFadeStrength,
@@ -275,7 +272,6 @@ class _WerkaSummaryList extends StatelessWidget {
             cornerRadius: M3SegmentedListGeometry.cornerLarge,
             label: context.l10n.pendingStatus,
             value: summary.pendingCount.toString(),
-            highlighted: true,
             onTap: () => Navigator.of(context).pushNamed(
               AppRoutes.werkaStatusBreakdown,
               arguments: WerkaStatusKind.pending,
@@ -286,7 +282,6 @@ class _WerkaSummaryList extends StatelessWidget {
             cornerRadius: M3SegmentedListGeometry.cornerMiddle,
             label: context.l10n.confirmedStatus,
             value: summary.confirmedCount.toString(),
-            highlighted: false,
             onTap: () => Navigator.of(context).pushNamed(
               AppRoutes.werkaStatusBreakdown,
               arguments: WerkaStatusKind.confirmed,
@@ -297,7 +292,6 @@ class _WerkaSummaryList extends StatelessWidget {
             cornerRadius: M3SegmentedListGeometry.cornerLarge,
             label: context.l10n.returnedStatus,
             value: summary.returnedCount.toString(),
-            highlighted: false,
             onTap: () => Navigator.of(context).pushNamed(
               AppRoutes.werkaStatusBreakdown,
               arguments: WerkaStatusKind.returned,
@@ -317,7 +311,6 @@ class _WerkaSummarySegmentCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onTap,
-    this.highlighted = false,
   });
 
   final M3SegmentVerticalSlot slot;
@@ -325,7 +318,6 @@ class _WerkaSummarySegmentCard extends StatelessWidget {
   final String label;
   final String value;
   final VoidCallback onTap;
-  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -333,17 +325,12 @@ class _WerkaSummarySegmentCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final BorderRadius radius =
         M3SegmentedListGeometry.borderRadius(slot, cornerRadius);
-    final Color bg = highlighted
-        ? scheme.secondaryContainer
-        : switch (theme.brightness) {
-            Brightness.dark => scheme.surfaceContainerLow,
-            Brightness.light => scheme.surfaceContainerHighest,
-          };
-    final Color fg = highlighted
-        ? scheme.onSecondaryContainer
-        : scheme.onSurface;
-    final Color accent =
-        highlighted ? scheme.primary : scheme.onSurfaceVariant;
+    final Color bg = switch (theme.brightness) {
+      Brightness.dark => scheme.surfaceContainerLow,
+      Brightness.light => scheme.surfaceContainerHighest,
+    };
+    final Color foreground = scheme.onSurface;
+    final Color accent = scheme.onSurfaceVariant;
 
     return Material(
       color: Colors.transparent,
@@ -364,24 +351,13 @@ class _WerkaSummarySegmentCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
             child: Row(
               children: [
-                if (highlighted) ...[
-                  Container(
-                    width: 4,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: scheme.primary,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                ],
                 Expanded(
                   child: Text(
                     label,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontSize: 18.5,
                       fontWeight: FontWeight.w700,
-                      color: fg,
+                      color: foreground,
                     ),
                   ),
                 ),
@@ -391,7 +367,7 @@ class _WerkaSummarySegmentCard extends StatelessWidget {
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontSize: 18.5,
                     fontWeight: FontWeight.w700,
-                    color: fg,
+                    color: foreground,
                   ),
                 ),
                 const SizedBox(width: 8),
