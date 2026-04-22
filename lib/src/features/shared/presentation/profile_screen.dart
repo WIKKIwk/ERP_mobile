@@ -9,6 +9,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/m3_confirm_dialog.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
 import '../../../core/widgets/motion_widgets.dart';
 import '../../../core/widgets/top_refresh_scroll_physics.dart';
 import '../data/profile_avatar_cache.dart';
@@ -808,10 +809,11 @@ class _ThemePreferenceRow extends StatelessWidget {
                     subtitle: l10n.themeBody,
                     maxHeight: mediaQuery.size.height * 0.72,
                     bottomPadding: mediaQuery.padding.bottom + 24,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    child: M3SegmentSpacedColumn(
                       children: [
                         _ThemeSelectionOption(
+                          index: 0,
+                          itemCount: 7,
                           title: l10n.themeClassicLabel,
                           active: variant == AppThemeVariant.classic,
                           swatches: const [
@@ -822,8 +824,9 @@ class _ThemePreferenceRow extends StatelessWidget {
                           onTap: () => Navigator.of(context)
                               .pop(AppThemeVariant.classic),
                         ),
-                        const SizedBox(height: 10),
                         _ThemeSelectionOption(
+                          index: 1,
+                          itemCount: 7,
                           title: l10n.themeEarthLabel,
                           active: variant == AppThemeVariant.earthy,
                           swatches: const [
@@ -834,8 +837,9 @@ class _ThemePreferenceRow extends StatelessWidget {
                           onTap: () =>
                               Navigator.of(context).pop(AppThemeVariant.earthy),
                         ),
-                        const SizedBox(height: 10),
                         _ThemeSelectionOption(
+                          index: 2,
+                          itemCount: 7,
                           title: l10n.themeBlushLabel,
                           active: variant == AppThemeVariant.blush,
                           swatches: const [
@@ -846,8 +850,9 @@ class _ThemePreferenceRow extends StatelessWidget {
                           onTap: () =>
                               Navigator.of(context).pop(AppThemeVariant.blush),
                         ),
-                        const SizedBox(height: 10),
                         _ThemeSelectionOption(
+                          index: 3,
+                          itemCount: 7,
                           title: l10n.themeMossLabel,
                           active: variant == AppThemeVariant.moss,
                           swatches: const [
@@ -858,8 +863,9 @@ class _ThemePreferenceRow extends StatelessWidget {
                           onTap: () =>
                               Navigator.of(context).pop(AppThemeVariant.moss),
                         ),
-                        const SizedBox(height: 10),
                         _ThemeSelectionOption(
+                          index: 4,
+                          itemCount: 7,
                           title: l10n.themeLavenderLabel,
                           active: variant == AppThemeVariant.lavender,
                           swatches: const [
@@ -870,8 +876,9 @@ class _ThemePreferenceRow extends StatelessWidget {
                           onTap: () => Navigator.of(context)
                               .pop(AppThemeVariant.lavender),
                         ),
-                        const SizedBox(height: 10),
                         _ThemeSelectionOption(
+                          index: 5,
+                          itemCount: 7,
                           title: l10n.themeSlateLabel,
                           active: variant == AppThemeVariant.slate,
                           swatches: const [
@@ -882,8 +889,9 @@ class _ThemePreferenceRow extends StatelessWidget {
                           onTap: () =>
                               Navigator.of(context).pop(AppThemeVariant.slate),
                         ),
-                        const SizedBox(height: 10),
                         _ThemeSelectionOption(
+                          index: 6,
+                          itemCount: 7,
                           title: l10n.themeOceanLabel,
                           active: variant == AppThemeVariant.ocean,
                           swatches: const [
@@ -1004,9 +1012,6 @@ class _ProfileSelectionSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(28),
         ),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.7),
-        ),
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -1056,14 +1061,12 @@ class _ProfileSelectionOption extends StatelessWidget {
     required this.onTap,
     this.subtitle,
     this.active = false,
-    this.trailing,
   });
 
   final String title;
   final String? subtitle;
   final bool active;
   final VoidCallback onTap;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -1108,10 +1111,6 @@ class _ProfileSelectionOption extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) ...[
-                const SizedBox(width: 12),
-                trailing!,
-              ],
               const SizedBox(width: 12),
               AnimatedContainer(
                 duration: AppMotion.medium,
@@ -1142,12 +1141,16 @@ class _ProfileSelectionOption extends StatelessWidget {
 
 class _ThemeSelectionOption extends StatelessWidget {
   const _ThemeSelectionOption({
+    required this.index,
+    required this.itemCount,
     required this.title,
     required this.swatches,
     required this.active,
     required this.onTap,
   });
 
+  final int index;
+  final int itemCount;
   final String title;
   final List<Color> swatches;
   final bool active;
@@ -1155,32 +1158,68 @@ class _ThemeSelectionOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ProfileSelectionOption(
-      title: title,
-      subtitle: null,
-      active: active,
+    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final slot = M3SegmentedListGeometry.standaloneListSlotForIndex(
+      index,
+      itemCount,
+    );
+    final radius = M3SegmentedListGeometry.cornerRadiusForSlot(slot);
+    return M3SegmentFilledSurface(
+      slot: slot,
+      cornerRadius: radius,
+      backgroundColor:
+          active ? scheme.secondaryContainer.withValues(alpha: 0.9) : null,
       onTap: onTap,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final swatch in swatches) ...[
-            Container(
-              height: 14,
-              width: 14,
-              decoration: BoxDecoration(
-                color: swatch,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outlineVariant
-                      .withValues(alpha: 0.45),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: active ? scheme.onSecondaryContainer : scheme.onSurface,
                 ),
               ),
             ),
-            if (swatch != swatches.last) const SizedBox(width: 6),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final swatch in swatches) ...[
+                  Container(
+                    height: 14,
+                    width: 14,
+                    decoration: BoxDecoration(
+                      color: swatch,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  if (swatch != swatches.last) const SizedBox(width: 6),
+                ],
+              ],
+            ),
+            const SizedBox(width: 12),
+            AnimatedContainer(
+              duration: AppMotion.medium,
+              curve: AppMotion.smooth,
+              height: 24,
+              width: 24,
+              decoration: BoxDecoration(
+                color: active ? scheme.primary : Colors.transparent,
+                shape: BoxShape.circle,
+                border: active ? null : Border.all(color: scheme.outlineVariant),
+              ),
+              child: active
+                  ? Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: scheme.onPrimary,
+                    )
+                  : null,
+            ),
           ],
-        ],
+        ),
       ),
     );
   }
