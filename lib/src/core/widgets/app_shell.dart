@@ -211,8 +211,14 @@ class _AppShellState extends State<AppShell>
     );
     final shouldHideLeading = widget.leading != null &&
         NativeBackButtonBridge.shouldUseNativeBackButton(context);
+    final route = ModalRoute.of(context);
+    final inferredBackLeading = !shouldHideLeading &&
+        widget.leading == null &&
+        widget.drawer == null &&
+        (route?.canPop ?? false) &&
+        !(route?.isFirst ?? true);
     final compactTitleNearLeading = !shouldHideLeading &&
-        (widget.drawer != null || widget.leading != null);
+        (widget.drawer != null || widget.leading != null || inferredBackLeading);
     if (widget.bottom == null) {
       NativeDockBridge.instance.clearFromBuild();
     }
