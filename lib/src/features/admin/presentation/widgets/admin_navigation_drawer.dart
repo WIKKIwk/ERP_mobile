@@ -1,5 +1,6 @@
 import '../../../../app/app_router.dart';
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/native_back_button_bridge.dart';
 import '../../../../core/widgets/logout_prompt.dart';
 import 'package:flutter/material.dart';
 
@@ -188,11 +189,17 @@ class _AdminNavigationDrawerOverlay extends StatelessWidget {
                       selectedIndex: 0,
                       onCloseDrawer: onClose,
                       onNavigate: (route) {
-                        final navigator =
-                            Navigator.of(context, rootNavigator: true);
+                        final navigator = NativeBackButtonBridge
+                            .instance.navigatorKey.currentState;
+                        if (navigator == null) {
+                          return;
+                        }
                         onClose();
                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                          navigator.pushReplacementNamed(route);
+                          navigator.pushNamedAndRemoveUntil(
+                            route,
+                            (route) => false,
+                          );
                         });
                       },
                     ),
