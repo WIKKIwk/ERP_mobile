@@ -7,6 +7,7 @@ import '../../../core/widgets/m3_segmented_list.dart';
 import '../../shared/models/app_models.dart';
 import 'widgets/admin_dock.dart';
 import 'widgets/admin_supplier_list_module.dart';
+import 'widgets/admin_summary_card.dart';
 import 'package:flutter/material.dart';
 
 class AdminSuppliersScreen extends StatefulWidget {
@@ -167,112 +168,116 @@ class _AdminSuppliersSummarySection extends StatelessWidget {
     return M3SegmentSpacedColumn(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       children: [
-        _AdminSummarySegmentCard(
+        AdminSummaryCard(
           slot: M3SegmentVerticalSlot.top,
           cornerRadius: M3SegmentedListGeometry.cornerLarge,
-          label: 'Jami supplierlar',
-          value: summary.totalSuppliers.toString(),
-        ),
-        _AdminSummarySegmentCard(
-          slot: M3SegmentVerticalSlot.middle,
-          cornerRadius: M3SegmentedListGeometry.cornerMiddle,
-          label: 'Faol supplierlar',
-          value: summary.activeSuppliers.toString(),
-        ),
-        _AdminSummarySegmentCard(
-          slot: M3SegmentVerticalSlot.bottom,
-          cornerRadius: M3SegmentedListGeometry.cornerLarge,
-          label: 'Bloklangan supplierlar',
-          value: summary.blockedSuppliers.toString(),
-          onTap: onTapBlocked,
-        ),
-      ],
-    );
-  }
-}
-
-class _AdminSummarySegmentCard extends StatelessWidget {
-  const _AdminSummarySegmentCard({
-    required this.slot,
-    required this.cornerRadius,
-    required this.label,
-    required this.value,
-    this.onTap,
-  });
-
-  final M3SegmentVerticalSlot slot;
-  final double cornerRadius;
-  final String label;
-  final String value;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final BorderRadius radius =
-        M3SegmentedListGeometry.borderRadius(slot, cornerRadius);
-    final Color bg = switch (theme.brightness) {
-      Brightness.dark => scheme.surfaceContainerLow,
-      Brightness.light => scheme.surfaceContainerHighest,
-    };
-    final Color foreground = scheme.onSurface;
-    final Color accent = scheme.onSurfaceVariant;
-
-    return Material(
-      color: Colors.transparent,
-      elevation: 0,
-      shadowColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: radius),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: radius,
-          ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
             child: Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: foreground,
+                  child: Text(
+                    'Jami supplierlar',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18.5,
                           fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Supplierlar bo‘limi',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: accent,
-                          height: 1.25,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
                 const SizedBox(width: 16),
                 Text(
-                  value,
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.6,
-                  ),
+                  summary.totalSuppliers.toString(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 18.5,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ],
             ),
           ),
         ),
-      ),
+        AdminSummaryCard(
+          slot: M3SegmentVerticalSlot.middle,
+          cornerRadius: M3SegmentedListGeometry.cornerMiddle,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Faol supplierlar',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18.5,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  summary.activeSuppliers.toString(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 18.5,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+        AdminSummaryCard(
+          slot: M3SegmentVerticalSlot.bottom,
+          cornerRadius: M3SegmentedListGeometry.cornerLarge,
+          onTap: onTapBlocked,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Bloklangan supplierlar',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18.5,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  summary.blockedSuppliers.toString(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 18.5,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
