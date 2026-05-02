@@ -370,7 +370,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
       ),
       title: 'Suppliers',
       subtitle: '',
-      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
+      contentPadding: EdgeInsets.zero,
       bottom: const AdminDock(activeTab: AdminDockTab.suppliers),
       child: _initialLoading
           ? const Center(child: AppLoadingIndicator())
@@ -387,9 +387,12 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  AdminSupplierListModule(
-                    items: _items,
-                    onTapUser: _openUser,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: AdminSupplierListModule(
+                      items: _items,
+                      onTapUser: _openUser,
+                    ),
                   ),
                   if (_loadingMore)
                     const Padding(
