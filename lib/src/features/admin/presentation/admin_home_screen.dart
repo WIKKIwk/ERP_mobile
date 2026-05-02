@@ -30,6 +30,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   void initState() {
     super.initState();
     AdminStore.instance.bootstrapSummary();
+    AdminStore.instance.bootstrapHomeActions();
     RefreshHub.instance.addListener(_handlePushRefresh);
   }
 
@@ -51,7 +52,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Future<void> _reload() async {
-    await AdminStore.instance.refreshSummary();
+    await Future.wait([
+      AdminStore.instance.refreshSummary(),
+      AdminStore.instance.refreshHomeActions(),
+    ]);
   }
 
   Future<void> _openAndReload(String routeName) async {
@@ -122,11 +126,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 SmoothAppear(
                   delay: const Duration(milliseconds: 120),
                   child: _AdminQuickActionsSection(
-                    onTapSettings: () =>
-                        _openAndReload(AppRoutes.adminSettings),
-                    onTapSuppliers: () =>
-                        _openAndReload(AppRoutes.adminSuppliers),
-                    onTapWerka: () => _openAndReload(AppRoutes.adminWerka),
+                    actions: store.homeActions,
+                    onTapAction: (routeName) => _openAndReload(routeName),
                   ),
                 ),
               ],
@@ -255,20 +256,42 @@ class _AdminBlockedSuppliersSection extends StatelessWidget {
 
 class _AdminQuickActionsSection extends StatelessWidget {
   const _AdminQuickActionsSection({
-    required this.onTapSettings,
-    required this.onTapSuppliers,
-    required this.onTapWerka,
+    required this.actions,
+    required this.onTapAction,
   });
 
-  final VoidCallback onTapSettings;
-  final VoidCallback onTapSuppliers;
-  final VoidCallback onTapWerka;
+  final List<AdminHomeAction> actions;
+  final ValueChanged<String> onTapAction;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final bool isDark = theme.brightness == Brightness.dark;
+    final visibleActions = actions.isEmpty
+        ? const <AdminHomeAction>[
+            AdminHomeAction(
+              id: 'erp_settings',
+              title: 'ERP settings',
+              subtitle: 'Core integration and stock defaults',
+              routeName: AppRoutes.adminSettings,
+              highlighted: true,
+            ),
+            AdminHomeAction(
+              id: 'suppliers',
+              title: 'Suppliers',
+              subtitle: 'List, mahsulot biriktirish va block nazorati',
+              routeName: AppRoutes.adminSuppliers,
+              highlighted: false,
+            ),
+            AdminHomeAction(
+              id: 'werka',
+              title: 'Add Werka',
+              subtitle: 'Configure warehouse worker phone and name',
+              routeName: AppRoutes.adminWerka,
+              highlighted: false,
+            ),
+          ]
+        : actions;
 
     return Card.filled(
       margin: EdgeInsets.zero,
@@ -292,44 +315,32 @@ class _AdminQuickActionsSection extends StatelessWidget {
             const SizedBox(height: 14),
             Card.filled(
               margin: EdgeInsets.zero,
-              color: isDark ? const Color(0xFF2A2931) : scheme.surfaceContainer,
+              color: scheme.surfaceContainer,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Column(
                 children: [
-                  _AdminQuickActionRow(
-                    title: context.l10n.adminErpSettingsTitle,
-                    subtitle: context.l10n.erpConnectionSubtitle,
-                    onTap: onTapSettings,
-                    highlighted: true,
-                    isFirst: true,
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    color: scheme.outlineVariant.withValues(alpha: 0.55),
-                  ),
-                  _AdminQuickActionRow(
-                    title: 'Suppliers',
-                    subtitle: 'List, mahsulot biriktirish va block nazorati',
-                    onTap: onTapSuppliers,
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: 16,
-                    endIndent: 16,
-                    color: scheme.outlineVariant.withValues(alpha: 0.55),
-                  ),
-                  _AdminQuickActionRow(
-                    title: context.l10n.adminCreateWerkaTitle,
-                    subtitle: context.l10n.adminCreateWerkaSubtitle,
-                    onTap: onTapWerka,
-                    isLast: true,
-                  ),
+                  for (int index = 0;
+                      index < visibleActions.length;
+                      index++) ...[
+                    _AdminQuickActionRow(
+                      title: visibleActions[index].title,
+                      subtitle: visibleActions[index].subtitle,
+                      onTap: () => onTapAction(visibleActions[index].routeName),
+                      highlighted: visibleActions[index].highlighted,
+                      isFirst: index == 0,
+                      isLast: index == visibleActions.length - 1,
+                    ),
+                    if (index != visibleActions.length - 1)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: scheme.outlineVariant.withValues(alpha: 0.55),
+                      ),
+                  ],
                 ],
               ),
             ),
