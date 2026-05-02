@@ -1,5 +1,6 @@
 import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/app_retry_state.dart';
@@ -228,6 +229,8 @@ class _AdminSupplierDetailScreenState extends State<AdminSupplierDetailScreen> {
         ),
         title: 'Supplier',
         subtitle: '',
+        nativeTopBar: true,
+        nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
         contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
         bottom: const AdminDock(activeTab: AdminDockTab.suppliers),
         child: FutureBuilder<AdminSupplierDetail>(

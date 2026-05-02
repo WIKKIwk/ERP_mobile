@@ -2,6 +2,7 @@ import '../../../core/api/mobile_api.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_retry_state.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../shared/models/app_models.dart';
 import 'widgets/admin_dock.dart';
 import 'dart:async';
@@ -159,6 +160,8 @@ class _AdminWerkaScreenState extends State<AdminWerkaScreen> {
         ),
         title: 'Werka',
         subtitle: '',
+        nativeTopBar: true,
+        nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
         bottom: const AdminDock(activeTab: AdminDockTab.settings),
         contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
         child: SafeArea(

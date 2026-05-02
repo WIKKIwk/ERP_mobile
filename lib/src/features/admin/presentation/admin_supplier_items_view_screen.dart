@@ -3,6 +3,7 @@ import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/common_widgets.dart';
 import '../../../core/widgets/m3_confirm_dialog.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../shared/models/app_models.dart';
 import 'widgets/admin_dock.dart';
 import 'package:flutter/material.dart';
@@ -94,6 +95,8 @@ class _AdminSupplierItemsViewScreenState
       ),
       title: 'Biriktirilgan mahsulotlar',
       subtitle: '',
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       bottom: const AdminDock(activeTab: AdminDockTab.suppliers),
       child: loading
           ? const Center(child: AppLoadingIndicator())

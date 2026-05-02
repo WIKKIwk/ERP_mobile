@@ -71,6 +71,8 @@ class _AdminInactiveSuppliersScreenState
       ),
       title: 'Inactive Suppliers',
       subtitle: '',
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       bottom: const AdminDock(activeTab: AdminDockTab.suppliers),
       child: FutureBuilder<List<AdminSupplier>>(
         future: _future,

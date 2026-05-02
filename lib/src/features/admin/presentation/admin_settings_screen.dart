@@ -1,5 +1,6 @@
 import '../../../core/api/mobile_api.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/app_retry_state.dart';
@@ -107,6 +108,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
         ),
         title: context.l10n.adminSettingsTitle,
         subtitle: '',
+        nativeTopBar: true,
+        nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
         contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
         bottom: const AdminDock(activeTab: AdminDockTab.settings),
         child: FutureBuilder<AdminSettings>(

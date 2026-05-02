@@ -1,4 +1,5 @@
 import '../../../core/api/mobile_api.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_shell.dart';
 import 'widgets/admin_dock.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,8 @@ class _AdminSupplierCreateScreenState extends State<AdminSupplierCreateScreen> {
       ),
       title: 'Supplier qo‘shish',
       subtitle: '',
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       bottom: const AdminDock(activeTab: AdminDockTab.suppliers),
       child: ListView(
         padding: EdgeInsets.zero,
