@@ -133,7 +133,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
 
           return ListView(
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
+            padding: const EdgeInsets.fromLTRB(0, 4, 0, 24),
             children: [
               SmoothAppear(
                 delay: const Duration(milliseconds: 20),

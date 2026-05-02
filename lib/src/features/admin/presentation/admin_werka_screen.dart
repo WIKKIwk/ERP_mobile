@@ -174,7 +174,7 @@ class _AdminWerkaScreenState extends State<AdminWerkaScreen> {
             }
             if (snapshot.hasError) {
               return ListView(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                 children: [
                   AppRetryState(onRetry: _reload, padding: EdgeInsets.zero),
                 ],
@@ -184,7 +184,7 @@ class _AdminWerkaScreenState extends State<AdminWerkaScreen> {
             _fill(current);
             final scheme = theme.colorScheme;
             return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
               children: [
                 Card.filled(
                   margin: EdgeInsets.zero,

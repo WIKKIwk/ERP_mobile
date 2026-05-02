@@ -98,14 +98,17 @@ class _AdminSupplierItemsViewScreenState
       nativeTopBar: true,
       nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       bottom: const AdminDock(activeTab: AdminDockTab.suppliers),
-      child: loading
-          ? const Center(child: AppLoadingIndicator())
-          : ItemsTable(
-              items: items,
-              actionIcon: Icons.remove_rounded,
-              emptyText: 'Hozircha mahsulot biriktirilmagan.',
-              onActionTap: mutating ? null : _removeItem,
-            ),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: loading
+            ? const Center(child: AppLoadingIndicator())
+            : ItemsTable(
+                items: items,
+                actionIcon: Icons.remove_rounded,
+                emptyText: 'Hozircha mahsulot biriktirilmagan.',
+                onActionTap: mutating ? null : _removeItem,
+              ),
+      ),
     );
   }
 }

@@ -99,7 +99,7 @@ class _AdminInactiveSuppliersScreenState
           return AppRefreshIndicator(
             onRefresh: _reload,
             child: ListView.separated(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.only(top: 4),
               itemCount: items.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {

@@ -357,7 +357,7 @@ class _AdminCustomerDetailScreenState extends State<AdminCustomerDetailScreen> {
         backgroundColor: AppTheme.shellStart(context),
         body: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
             children: [
               Row(
                 children: [

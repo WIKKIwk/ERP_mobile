@@ -29,7 +29,7 @@ class AdminCreateHubScreen extends StatelessWidget {
       nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       bottom: const AdminDock(activeTab: AdminDockTab.settings),
       child: ListView(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.only(top: 4),
         children: [
           SoftCard(
             padding: EdgeInsets.zero,

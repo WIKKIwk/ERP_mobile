@@ -251,7 +251,7 @@ class _AdminSupplierDetailScreenState extends State<AdminSupplierDetailScreen> {
           final scheme = theme.colorScheme;
 
           return ListView(
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.only(top: 4),
             children: [
               SmoothAppear(
                 delay: const Duration(milliseconds: 20),
