@@ -70,26 +70,22 @@ class _AdminUserRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
       value: '',
       showChevron: true,
-      leading: CircleAvatar(
-        radius: 18,
+      leading: _UsersAvatarBadge(
         backgroundColor: switch (item.kind) {
           AdminUserKind.werka => scheme.primaryContainer,
           AdminUserKind.customer => scheme.tertiaryContainer,
           AdminUserKind.supplier => scheme.secondaryContainer,
         },
-        child: Icon(
-          switch (item.kind) {
-            AdminUserKind.werka => Icons.storefront_rounded,
-            AdminUserKind.customer => Icons.groups_rounded,
-            AdminUserKind.supplier => Icons.person_rounded,
-          },
-          color: switch (item.kind) {
-            AdminUserKind.werka => scheme.onPrimaryContainer,
-            AdminUserKind.customer => scheme.onTertiaryContainer,
-            AdminUserKind.supplier => scheme.onSecondaryContainer,
-          },
-          size: 18,
-        ),
+        icon: switch (item.kind) {
+          AdminUserKind.werka => Icons.storefront_rounded,
+          AdminUserKind.customer => Icons.groups_rounded,
+          AdminUserKind.supplier => Icons.person_rounded,
+        },
+        iconColor: switch (item.kind) {
+          AdminUserKind.werka => scheme.onPrimaryContainer,
+          AdminUserKind.customer => scheme.onTertiaryContainer,
+          AdminUserKind.supplier => scheme.onSecondaryContainer,
+        },
       ),
       title: item.name,
       subtitle: subtitleLine,
@@ -102,6 +98,38 @@ class _AdminUserRow extends StatelessWidget {
             color: scheme.onSurfaceVariant,
             height: 1.05,
           ),
+    );
+  }
+}
+
+class _UsersAvatarBadge extends StatelessWidget {
+  const _UsersAvatarBadge({
+    required this.backgroundColor,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  final Color backgroundColor;
+  final IconData icon;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: 34,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: 18,
+          ),
+        ),
+      ),
     );
   }
 }
