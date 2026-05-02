@@ -66,9 +66,9 @@ class _AdminUserRow extends StatelessWidget {
       cornerRadius: M3SegmentedListGeometry.cornerRadiusForSlot(slot),
       onTap: onTap,
       child: ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+        contentPadding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
         leading: CircleAvatar(
-          radius: 19,
+          radius: 18,
           backgroundColor: switch (item.kind) {
             AdminUserKind.werka => scheme.primaryContainer,
             AdminUserKind.customer => scheme.tertiaryContainer,
@@ -85,7 +85,7 @@ class _AdminUserRow extends StatelessWidget {
               AdminUserKind.customer => scheme.onTertiaryContainer,
               AdminUserKind.supplier => scheme.onSecondaryContainer,
             },
-            size: 20,
+            size: 18,
           ),
         ),
         title: Text(
@@ -97,19 +97,20 @@ class _AdminUserRow extends StatelessWidget {
               ),
         ),
         subtitle: Padding(
-          padding: const EdgeInsets.only(top: 3),
+          padding: const EdgeInsets.only(top: 2),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (final line in subtitleLines)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 1),
+                  padding: const EdgeInsets.only(bottom: 0),
                   child: Text(
                     line,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
+                          height: 1.05,
                         ),
                   ),
                 ),
@@ -119,6 +120,7 @@ class _AdminUserRow extends StatelessWidget {
         trailing: Icon(
           Icons.chevron_right_rounded,
           color: scheme.onSurfaceVariant,
+          size: 20,
         ),
       ),
     );
