@@ -200,8 +200,6 @@ class _AdminActivityCard extends StatelessWidget {
     return sent;
   }
 
-  String _secondary() => '${item.supplierName} • ${item.itemName}';
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -214,7 +212,7 @@ class _AdminActivityCard extends StatelessWidget {
             color: scheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
-      subtitle: '${_secondary()}\n${_metricLine()}',
+      subtitle: _metricLine(),
       leading: _ActivityStatusBadge(status: item.status),
       showChevron: false,
       backgroundColor: scheme.surfaceContainerLow,
