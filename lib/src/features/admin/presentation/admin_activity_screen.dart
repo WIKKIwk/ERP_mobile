@@ -208,9 +208,22 @@ class _AdminActivityCard extends StatelessWidget {
       cornerRadius: M3SegmentedListGeometry.cornerRadiusForSlot(slot),
       title: item.supplierName,
       value: item.createdLabel,
-      valueStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: scheme.onSurfaceVariant,
+      titleStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontSize: 14.5,
             fontWeight: FontWeight.w600,
+            color: scheme.onSurface,
+            height: 1.15,
+          ),
+      subtitleStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontSize: 12.0,
+            fontWeight: FontWeight.w500,
+            color: scheme.onSurfaceVariant,
+            height: 1.2,
+          ),
+      valueStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontSize: 11.5,
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
           ),
       subtitle: _metricLine(),
       leading: _ActivityStatusBadge(status: item.status),

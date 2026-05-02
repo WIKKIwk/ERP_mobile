@@ -12,6 +12,8 @@ class AdminSummaryCard extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.showChevron = true,
+    this.titleStyle,
+    this.subtitleStyle,
     this.valueStyle,
     this.backgroundColor,
     this.borderRadiusOverride,
@@ -25,6 +27,8 @@ class AdminSummaryCard extends StatelessWidget {
   final String? subtitle;
   final Widget? leading;
   final bool showChevron;
+  final TextStyle? titleStyle;
+  final TextStyle? subtitleStyle;
   final TextStyle? valueStyle;
   final Color? backgroundColor;
   final BorderRadius? borderRadiusOverride;
@@ -64,11 +68,12 @@ class AdminSummaryCard extends StatelessWidget {
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontSize: 18.5,
-                          fontWeight: FontWeight.w700,
-                          color: scheme.onSurface,
-                        ),
+                    style: titleStyle ??
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontSize: 18.5,
+                              fontWeight: FontWeight.w700,
+                              color: scheme.onSurface,
+                            ),
                   ),
                   if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
                     const SizedBox(height: 4),
@@ -76,10 +81,11 @@ class AdminSummaryCard extends StatelessWidget {
                       subtitle!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            height: 1.25,
-                          ),
+                      style: subtitleStyle ??
+                          Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                height: 1.25,
+                              ),
                     ),
                   ],
                 ],
