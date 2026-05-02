@@ -489,7 +489,6 @@ class AppRouter {
   }
 
   static bool _usesAdminPageTransition(String? routeName) {
-    return routeName == AppRoutes.adminHome ||
-        routeName == AppRoutes.adminSuppliers;
+    return false;
   }
 }

@@ -22,13 +22,16 @@ class AdminSuppliersScreen extends StatefulWidget {
   State<AdminSuppliersScreen> createState() => _AdminSuppliersScreenState();
 }
 
-class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
+class _AdminSuppliersScreenState extends State<AdminSuppliersScreen>
+    with SingleTickerProviderStateMixin {
   static const int _pageSize = 20;
   static const double _prefetchExtentAfterFactor = 2.5;
   static _AdminSuppliersCache? _cache;
 
   final ScrollController _scrollController = ScrollController();
   final List<AdminUserListEntry> _items = [];
+  late final AnimationController _contentRevealController;
+  late final Animation<double> _contentReveal;
 
   AdminSupplierSummary _summary = const AdminSupplierSummary(
     totalSuppliers: 0,
@@ -45,6 +48,15 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
   @override
   void initState() {
     super.initState();
+    _contentRevealController = AnimationController(
+      vsync: this,
+      duration: AppMotion.pageEnter,
+    )..forward();
+    _contentReveal = CurvedAnimation(
+      parent: _contentRevealController,
+      curve: AppMotion.pageIn,
+      reverseCurve: AppMotion.pageOut,
+    );
     _scrollController.addListener(_handleScroll);
     _bootstrap();
   }
@@ -53,6 +65,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
   void dispose() {
     _scrollController.removeListener(_handleScroll);
     _scrollController.dispose();
+    _contentRevealController.dispose();
     super.dispose();
   }
 
@@ -365,8 +378,6 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final route = ModalRoute.of(context);
-    final routeAnimation = route?.animation;
     return AppShell(
       drawer: AdminNavigationDrawer(
         selectedIndex: 1,
@@ -383,17 +394,11 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
           : AppRefreshIndicator(
               onRefresh: _reload,
               child: AnimatedBuilder(
-                animation: routeAnimation ?? const AlwaysStoppedAnimation(1),
+                animation: _contentReveal,
                 builder: (context, _) {
-                  final routeValue = routeAnimation == null
-                      ? 1.0
-                      : CurvedAnimation(
-                          parent: routeAnimation,
-                          curve: AppMotion.pageIn,
-                          reverseCurve: AppMotion.pageOut,
-                        ).value;
-                  final summaryFactor = (1 - routeValue).clamp(0.0, 1.0);
-                  final listFactor = routeValue.clamp(0.0, 1.0);
+                  final contentValue = _contentReveal.value.clamp(0.0, 1.0);
+                  final summaryFactor = (1 - contentValue).clamp(0.0, 1.0);
+                  final listFactor = contentValue;
                   return ListView(
                     controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(0, 0, 0, 116),
