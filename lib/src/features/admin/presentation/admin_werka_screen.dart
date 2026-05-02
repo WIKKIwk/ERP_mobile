@@ -180,9 +180,9 @@ class _AdminWerkaScreenState extends State<AdminWerkaScreen> {
             _fill(current);
             final scheme = theme.colorScheme;
             return ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
               children: [
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text('Code', style: theme.textTheme.bodySmall),
                 const SizedBox(height: 6),
                 _AdminWerkaField(
@@ -225,7 +225,7 @@ class _AdminWerkaScreenState extends State<AdminWerkaScreen> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 TextField(
                   controller: name,
                   decoration: InputDecoration(
@@ -304,7 +304,7 @@ class _AdminWerkaField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(radius),
