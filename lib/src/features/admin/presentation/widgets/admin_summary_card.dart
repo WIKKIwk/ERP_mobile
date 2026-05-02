@@ -12,6 +12,7 @@ class AdminSummaryCard extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.showChevron = true,
+    this.valueStyle,
     this.backgroundColor,
     this.borderRadiusOverride,
   });
@@ -24,6 +25,7 @@ class AdminSummaryCard extends StatelessWidget {
   final String? subtitle;
   final Widget? leading;
   final bool showChevron;
+  final TextStyle? valueStyle;
   final Color? backgroundColor;
   final BorderRadius? borderRadiusOverride;
 
@@ -87,11 +89,12 @@ class AdminSummaryCard extends StatelessWidget {
               const SizedBox(width: 16),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: 18.5,
-                      fontWeight: FontWeight.w700,
-                      color: scheme.onSurface,
-                    ),
+                style: valueStyle ??
+                    Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18.5,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.onSurface,
+                        ),
               ),
             ],
             if (showChevron) ...[

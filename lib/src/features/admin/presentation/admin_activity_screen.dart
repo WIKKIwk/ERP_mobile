@@ -8,9 +8,11 @@ import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/app_retry_state.dart';
 import '../../../core/widgets/m3_confirm_dialog.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
 import '../../shared/models/app_models.dart';
 import '../state/admin_store.dart';
 import 'widgets/admin_dock.dart';
+import 'widgets/admin_summary_card.dart';
 import 'package:flutter/material.dart';
 
 class AdminActivityScreen extends StatefulWidget {
@@ -165,40 +167,30 @@ class _AdminActivitySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color: scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        children: [
-          for (int index = 0; index < items.length; index++) ...[
-            _AdminActivityRow(
-              item: items[index],
-              isFirst: index == 0,
-              isLast: index == items.length - 1,
+    return M3SegmentSpacedColumn(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      children: [
+        for (int index = 0; index < items.length; index++)
+          _AdminActivityCard(
+            slot: M3SegmentedListGeometry.standaloneListSlotForIndex(
+              index,
+              items.length,
             ),
-            if (index != items.length - 1)
-              const Divider(height: 1, thickness: 1),
-          ],
-        ],
-      ),
+            item: items[index],
+          ),
+      ],
     );
   }
 }
 
-class _AdminActivityRow extends StatelessWidget {
-  const _AdminActivityRow({
+class _AdminActivityCard extends StatelessWidget {
+  const _AdminActivityCard({
+    required this.slot,
     required this.item,
-    required this.isFirst,
-    required this.isLast,
   });
 
+  final M3SegmentVerticalSlot slot;
   final DispatchRecord item;
-  final bool isFirst;
-  final bool isLast;
 
   String _metricLine() {
     final sent = '${item.sentQty.toStringAsFixed(0)} ${item.uom} jo‘natildi';
@@ -212,47 +204,20 @@ class _AdminActivityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  item.supplierName,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              const SizedBox(width: 12),
-              _ActivityStatusBadge(status: item.status),
-            ],
+    final scheme = Theme.of(context).colorScheme;
+    return AdminSummaryCard(
+      slot: slot,
+      cornerRadius: M3SegmentedListGeometry.cornerRadiusForSlot(slot),
+      title: item.supplierName,
+      value: item.createdLabel,
+      valueStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 8),
-          Text(
-            _secondary(),
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _metricLine(),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                item.createdLabel,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ],
-      ),
+      subtitle: '${_secondary()}\n${_metricLine()}',
+      leading: _ActivityStatusBadge(status: item.status),
+      showChevron: false,
+      backgroundColor: scheme.surfaceContainerLow,
     );
   }
 }
