@@ -369,7 +369,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
         selectedIndex: 1,
         onNavigate: _openDrawerRoute,
       ),
-      title: 'Suppliers',
+      title: 'Users',
       subtitle: '',
       nativeTopBar: true,
       nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),

@@ -51,6 +51,7 @@ import '../features/werka/presentation/werka_unannounced_supplier_screen.dart';
 import '../features/werka/presentation/werka_status_detail_screen.dart';
 import '../features/werka/presentation/werka_status_breakdown_screen.dart';
 import '../features/werka/presentation/werka_success_screen.dart';
+import '../core/theme/app_motion.dart';
 import 'package:full_screen_back_gesture/cupertino.dart'
     as fullscreen_cupertino;
 import 'package:flutter/foundation.dart';
@@ -79,9 +80,12 @@ class AppRoutes {
   static const String werkaNotifications = '/werka-notifications';
   static const String werkaArchive = '/werka-archive';
   static const String werkaArchiveSentHub = '/werka-archive-sent-hub';
-  static const String werkaArchiveDailyCalendar = '/werka-archive-daily-calendar';
-  static const String werkaArchiveMonthlyCalendar = '/werka-archive-monthly-calendar';
-  static const String werkaArchiveYearlyCalendar = '/werka-archive-yearly-calendar';
+  static const String werkaArchiveDailyCalendar =
+      '/werka-archive-daily-calendar';
+  static const String werkaArchiveMonthlyCalendar =
+      '/werka-archive-monthly-calendar';
+  static const String werkaArchiveYearlyCalendar =
+      '/werka-archive-yearly-calendar';
   static const String werkaArchivePeriods = '/werka-archive-periods';
   static const String werkaArchiveList = '/werka-archive-list';
   static const String werkaStatusBreakdown = '/werka-status-breakdown';
@@ -404,6 +408,42 @@ class AppRouter {
   }
 
   static PageRoute<dynamic> _buildRoute(RouteSettings settings, Widget child) {
+    if (_usesAdminPageTransition(settings.name)) {
+      return PageRouteBuilder<dynamic>(
+        settings: settings,
+        transitionDuration: AppMotion.pageEnter,
+        reverseTransitionDuration: AppMotion.pageExit,
+        pageBuilder: (context, animation, secondaryAnimation) => child,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final enter = CurvedAnimation(
+            parent: animation,
+            curve: AppMotion.pageIn,
+            reverseCurve: AppMotion.pageOut,
+          );
+          final exit = CurvedAnimation(
+            parent: secondaryAnimation,
+            curve: AppMotion.pageOut,
+          );
+          final outgoingOpacity = Tween<double>(
+            begin: 1.0,
+            end: 0.0,
+          ).animate(exit);
+          return FadeTransition(
+            opacity: enter,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.035, 0),
+                end: Offset.zero,
+              ).animate(enter),
+              child: FadeTransition(
+                opacity: outgoingOpacity,
+                child: child,
+              ),
+            ),
+          );
+        },
+      );
+    }
     if (_shouldUseEdgeSwipeBack(settings)) {
       return fullscreen_cupertino.CupertinoPageRoute<dynamic>(
         settings: settings,
@@ -444,5 +484,10 @@ class AppRouter {
     return !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
         edgeSwipeBackRoutes.contains(settings.name);
+  }
+
+  static bool _usesAdminPageTransition(String? routeName) {
+    return routeName == AppRoutes.adminHome ||
+        routeName == AppRoutes.adminSuppliers;
   }
 }
