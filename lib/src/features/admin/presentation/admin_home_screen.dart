@@ -1,13 +1,18 @@
 import '../../../app/app_router.dart';
-import '../../../core/theme/app_motion.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/notifications/refresh_hub.dart';
+import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
-import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/app_retry_state.dart';
+import '../../../core/widgets/app_shell.dart';
+import '../../../core/widgets/m3_segmented_list.dart';
 import '../../../core/widgets/motion_widgets.dart';
+import '../../../core/widgets/top_refresh_scroll_physics.dart';
+import '../../shared/models/app_models.dart';
 import '../state/admin_store.dart';
 import 'widgets/admin_dock.dart';
+import 'widgets/admin_navigation_drawer.dart';
 import 'package:flutter/material.dart';
 
 class AdminHomeScreen extends StatefulWidget {
@@ -48,6 +53,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     await AdminStore.instance.refreshSummary();
   }
 
+  void _openDrawerRoute(String route) {
+    final current = ModalRoute.of(context)?.settings.name;
+    if (current == route) {
+      return;
+    }
+    Navigator.of(context).pushReplacementNamed(route);
+  }
+
   Future<void> _openAndReload(String routeName) async {
     await Navigator.of(context).pushNamed(routeName);
     if (!mounted) {
@@ -62,9 +75,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return AppShell(
       title: context.l10n.adminRoleName,
       subtitle: '',
-      preferNativeTitle: true,
-      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
+      nativeTopBar: true,
+      nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
+      drawer: AdminNavigationDrawer(
+        selectedIndex: 0,
+        onNavigate: _openDrawerRoute,
+      ),
       bottom: const AdminDock(activeTab: AdminDockTab.home),
+      bottomDockFadeStrength: null,
+      contentPadding: EdgeInsets.zero,
       child: AnimatedBuilder(
         animation: AdminStore.instance,
         builder: (context, _) {
@@ -79,12 +98,37 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           final summaryValue = store.summary;
           return AppRefreshIndicator(
             onRefresh: _reload,
+            allowRefreshOnShortContent: true,
             child: ListView(
+              physics: const TopRefreshScrollPhysics(),
               padding: EdgeInsets.only(bottom: bottomPadding),
               children: [
+                const SizedBox(height: 4),
                 SmoothAppear(
                   delay: const Duration(milliseconds: 20),
-                  child: _AdminModulesSection(
+                  child: _AdminSummaryList(
+                    summary: summaryValue,
+                    onTapTotal: () => _openAndReload(AppRoutes.adminSuppliers),
+                    onTapActive: () => _openAndReload(AppRoutes.adminSuppliers),
+                    onTapBlocked: () =>
+                        _openAndReload(AppRoutes.adminInactiveSuppliers),
+                  ),
+                ),
+                if (summaryValue.blockedSuppliers > 0) ...[
+                  const SizedBox(height: 16),
+                  SmoothAppear(
+                    delay: const Duration(milliseconds: 80),
+                    child: _AdminBlockedSuppliersSection(
+                      count: summaryValue.blockedSuppliers,
+                      onTap: () =>
+                          _openAndReload(AppRoutes.adminInactiveSuppliers),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                SmoothAppear(
+                  delay: const Duration(milliseconds: 120),
+                  child: _AdminQuickActionsSection(
                     onTapSettings: () =>
                         _openAndReload(AppRoutes.adminSettings),
                     onTapSuppliers: () =>
@@ -92,17 +136,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     onTapWerka: () => _openAndReload(AppRoutes.adminWerka),
                   ),
                 ),
-                if (summaryValue.blockedSuppliers > 0) ...[
-                  const SizedBox(height: 12),
-                  SmoothAppear(
-                    delay: const Duration(milliseconds: 60),
-                    child: _AdminBlockedSuppliersCard(
-                      count: summaryValue.blockedSuppliers,
-                      onTap: () =>
-                          _openAndReload(AppRoutes.adminInactiveSuppliers),
-                    ),
-                  ),
-                ],
               ],
             ),
           );
@@ -112,8 +145,207 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 }
 
-class _AdminModulesSection extends StatelessWidget {
-  const _AdminModulesSection({
+class _AdminSummaryList extends StatelessWidget {
+  const _AdminSummaryList({
+    required this.summary,
+    required this.onTapTotal,
+    required this.onTapActive,
+    required this.onTapBlocked,
+  });
+
+  final AdminSupplierSummary summary;
+  final VoidCallback onTapTotal;
+  final VoidCallback onTapActive;
+  final VoidCallback onTapBlocked;
+
+  @override
+  Widget build(BuildContext context) {
+    return M3SegmentSpacedColumn(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      children: [
+        _AdminSummarySegmentCard(
+          slot: M3SegmentVerticalSlot.top,
+          cornerRadius: M3SegmentedListGeometry.cornerLarge,
+          label: 'Jami supplierlar',
+          value: summary.totalSuppliers.toString(),
+          onTap: onTapTotal,
+        ),
+        _AdminSummarySegmentCard(
+          slot: M3SegmentVerticalSlot.middle,
+          cornerRadius: M3SegmentedListGeometry.cornerMiddle,
+          label: 'Faol supplierlar',
+          value: summary.activeSuppliers.toString(),
+          onTap: onTapActive,
+        ),
+        _AdminSummarySegmentCard(
+          slot: M3SegmentVerticalSlot.bottom,
+          cornerRadius: M3SegmentedListGeometry.cornerLarge,
+          label: 'Bloklangan supplierlar',
+          value: summary.blockedSuppliers.toString(),
+          onTap: onTapBlocked,
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminSummarySegmentCard extends StatelessWidget {
+  const _AdminSummarySegmentCard({
+    required this.slot,
+    required this.cornerRadius,
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final M3SegmentVerticalSlot slot;
+  final double cornerRadius;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final BorderRadius radius =
+        M3SegmentedListGeometry.borderRadius(slot, cornerRadius);
+    final Color bg = switch (theme.brightness) {
+      Brightness.dark => scheme.surfaceContainerLow,
+      Brightness.light => scheme.surfaceContainerHighest,
+    };
+    final Color foreground = scheme.onSurface;
+    final Color accent = scheme.onSurfaceVariant;
+
+    return Material(
+      color: Colors.transparent,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: radius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: radius,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 66),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 18.5,
+                        fontWeight: FontWeight.w700,
+                        color: foreground,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    value,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontSize: 18.5,
+                      fontWeight: FontWeight.w700,
+                      color: foreground,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 22,
+                    color: accent,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminBlockedSuppliersSection extends StatelessWidget {
+  const _AdminBlockedSuppliersSection({
+    required this.count,
+    required this.onTap,
+  });
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          M3SegmentFilledSurface(
+            slot: M3SegmentVerticalSlot.top,
+            cornerRadius: M3SegmentedListGeometry.cornerLarge,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Blok nazorati',
+                      style: theme.textTheme.titleLarge,
+                    ),
+                  ),
+                  Icon(
+                    Icons.block_rounded,
+                    size: 22,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: M3SegmentedListGeometry.gap),
+          M3SegmentFilledSurface(
+            slot: M3SegmentVerticalSlot.bottom,
+            cornerRadius: M3SegmentedListGeometry.cornerLarge,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Bloklangan supplierlar: $count ta',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 22,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminQuickActionsSection extends StatelessWidget {
+  const _AdminQuickActionsSection({
     required this.onTapSettings,
     required this.onTapSuppliers,
     required this.onTapWerka,
@@ -125,9 +357,10 @@ class _AdminModulesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final bool isDark = theme.brightness == Brightness.dark;
+
     return Card.filled(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
@@ -143,7 +376,7 @@ class _AdminModulesSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Modullar',
+                'Tez kirish',
                 style: theme.textTheme.titleLarge,
               ),
             ),
@@ -156,7 +389,7 @@ class _AdminModulesSection extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _AdminModuleRow(
+                  _AdminQuickActionRow(
                     title: context.l10n.adminErpSettingsTitle,
                     subtitle: context.l10n.erpConnectionSubtitle,
                     onTap: onTapSettings,
@@ -170,7 +403,7 @@ class _AdminModulesSection extends StatelessWidget {
                     endIndent: 16,
                     color: scheme.outlineVariant.withValues(alpha: 0.55),
                   ),
-                  _AdminModuleRow(
+                  _AdminQuickActionRow(
                     title: 'Suppliers',
                     subtitle: 'List, mahsulot biriktirish va block nazorati',
                     onTap: onTapSuppliers,
@@ -182,7 +415,7 @@ class _AdminModulesSection extends StatelessWidget {
                     endIndent: 16,
                     color: scheme.outlineVariant.withValues(alpha: 0.55),
                   ),
-                  _AdminModuleRow(
+                  _AdminQuickActionRow(
                     title: context.l10n.adminCreateWerkaTitle,
                     subtitle: context.l10n.adminCreateWerkaSubtitle,
                     onTap: onTapWerka,
@@ -198,8 +431,8 @@ class _AdminModulesSection extends StatelessWidget {
   }
 }
 
-class _AdminModuleRow extends StatelessWidget {
-  const _AdminModuleRow({
+class _AdminQuickActionRow extends StatelessWidget {
+  const _AdminQuickActionRow({
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -283,88 +516,6 @@ class _AdminModuleRow extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AdminBlockedSuppliersCard extends StatelessWidget {
-  const _AdminBlockedSuppliersCard({
-    required this.count,
-    required this.onTap,
-  });
-
-  final int count;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final bool isDark = theme.brightness == Brightness.dark;
-
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color: scheme.surfaceContainerLow,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Blok nazorati',
-                style: theme.textTheme.titleLarge,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Card.filled(
-              margin: EdgeInsets.zero,
-              color: isDark ? const Color(0xFF2A2931) : scheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: onTap,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.block_rounded,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Bloklangan supplierlar: $count ta',
-                            style: theme.textTheme.titleMedium,
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          size: 22,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
