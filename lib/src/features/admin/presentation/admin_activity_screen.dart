@@ -9,6 +9,7 @@ import '../../../core/widgets/m3_confirm_dialog.dart';
 import '../../shared/models/app_models.dart';
 import '../state/admin_store.dart';
 import 'widgets/admin_dock.dart';
+import 'widgets/admin_navigation_drawer.dart';
 import 'package:flutter/material.dart';
 
 class AdminActivityScreen extends StatefulWidget {
@@ -74,9 +75,24 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
     await AdminStore.instance.refreshActivity();
   }
 
+  void _openDrawerRoute(String routeName) {
+    final current = ModalRoute.of(context)?.settings.name;
+    if (current == routeName) {
+      return;
+    }
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      routeName,
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppShell(
+      drawer: AdminNavigationDrawer(
+        selectedIndex: 2,
+        onNavigate: _openDrawerRoute,
+      ),
       title: context.l10n.adminActivityTitle,
       subtitle: '',
       contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),

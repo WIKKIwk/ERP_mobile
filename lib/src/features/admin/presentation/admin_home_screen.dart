@@ -53,6 +53,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     await AdminStore.instance.refreshSummary();
   }
 
+  void _openDrawerRoute(String routeName) {
+    final current = ModalRoute.of(context)?.settings.name;
+    if (current == routeName) {
+      return;
+    }
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      routeName,
+      (route) => false,
+    );
+  }
+
   Future<void> _openAndReload(String routeName) async {
     await Navigator.of(context).pushNamed(routeName);
     if (!mounted) {
@@ -65,9 +76,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.viewPaddingOf(context).bottom + 136.0;
     return AppShell(
-      leading: AppShellIconAction(
-        icon: Icons.menu_rounded,
-        onTap: () => showAdminNavigationDrawer(context),
+      drawer: AdminNavigationDrawer(
+        selectedIndex: 0,
+        onNavigate: _openDrawerRoute,
       ),
       title: context.l10n.adminRoleName,
       subtitle: '',

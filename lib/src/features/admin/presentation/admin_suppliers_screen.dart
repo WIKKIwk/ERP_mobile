@@ -9,6 +9,7 @@ import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/m3_segmented_list.dart';
 import '../../shared/models/app_models.dart';
 import 'widgets/admin_dock.dart';
+import 'widgets/admin_navigation_drawer.dart';
 import 'widgets/admin_supplier_list_module.dart';
 import 'widgets/admin_summary_card.dart';
 
@@ -55,6 +56,17 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
 
   Future<void> _reload() async {
     await _bootstrap(forceRefresh: true);
+  }
+
+  void _openDrawerRoute(String routeName) {
+    final current = ModalRoute.of(context)?.settings.name;
+    if (current == routeName) {
+      return;
+    }
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      routeName,
+      (route) => false,
+    );
   }
 
   void _handleScroll() {
@@ -306,7 +318,8 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
   Future<void> _openUser(AdminUserListEntry item) async {
     bool changed = false;
     if (item.kind == AdminUserKind.werka) {
-      final result = await Navigator.of(context).pushNamed(AppRoutes.adminWerka);
+      final result =
+          await Navigator.of(context).pushNamed(AppRoutes.adminWerka);
       changed = result == true;
     } else if (item.kind == AdminUserKind.customer) {
       final result = await Navigator.of(context).pushNamed(
@@ -351,6 +364,10 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
   @override
   Widget build(BuildContext context) {
     return AppShell(
+      drawer: AdminNavigationDrawer(
+        selectedIndex: 1,
+        onNavigate: _openDrawerRoute,
+      ),
       title: 'Suppliers',
       subtitle: '',
       contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),

@@ -4,6 +4,7 @@ import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/common_widgets.dart';
 import '../../../core/widgets/motion_widgets.dart';
 import 'widgets/admin_dock.dart';
+import 'widgets/admin_navigation_drawer.dart';
 import 'package:flutter/material.dart';
 
 class AdminCreateHubScreen extends StatelessWidget {
@@ -12,6 +13,15 @@ class AdminCreateHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppShell(
+      drawer: AdminNavigationDrawer(
+        selectedIndex: 0,
+        onNavigate: (routeName) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            routeName,
+            (route) => false,
+          );
+        },
+      ),
       title: context.l10n.adminCreateTitle,
       subtitle: '',
       bottom: const AdminDock(activeTab: AdminDockTab.settings),
