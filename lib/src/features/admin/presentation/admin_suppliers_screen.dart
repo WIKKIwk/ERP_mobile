@@ -383,6 +383,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 116),
                 children: [
+                  const SizedBox(height: 4),
                   _AdminSuppliersSummarySection(
                     summary: _summary,
                     onTapBlocked: () => Navigator.of(context).pushNamed(
