@@ -1,9 +1,9 @@
 import '../../../core/api/mobile_api.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_shell.dart';
 import '../../../core/widgets/app_loading_indicator.dart';
 import '../../../core/widgets/app_retry_state.dart';
-import '../../../core/widgets/native_back_button.dart';
 import '../../shared/models/app_models.dart';
+import 'widgets/admin_dock.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -141,9 +141,17 @@ class _AdminWerkaScreenState extends State<AdminWerkaScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: AppTheme.shellStart(context),
-      body: SafeArea(
+    return AppShell(
+      leading: AppShellIconAction(
+        icon: Icons.arrow_back_rounded,
+        onTap: () => Navigator.of(context).maybePop(),
+      ),
+      title: 'Werka',
+      subtitle: '',
+      bottom: const AdminDock(activeTab: AdminDockTab.settings),
+      contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
+      child: SafeArea(
+        top: false,
         child: FutureBuilder<AdminSettings>(
           future: _future,
           builder: (context, snapshot) {
@@ -295,15 +303,8 @@ class _AdminWerkaHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showFlutterBackButton = !useNativeBackButton(context);
     return Row(
       children: [
-        if (showFlutterBackButton) ...[
-          NativeBackButtonSlot(
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          const SizedBox(width: 14),
-        ],
         Expanded(
           child: Text(
             'Werka',

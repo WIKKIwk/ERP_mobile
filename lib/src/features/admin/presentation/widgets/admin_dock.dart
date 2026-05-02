@@ -2,6 +2,7 @@ import '../../../../app/app_router.dart';
 import '../../../../core/navigation/profile_route_overlay_notifier.dart';
 import '../../../../core/native_dock_bridge.dart';
 import '../../../../core/widgets/app_navigation_bar.dart';
+import 'admin_create_hub_sheet.dart';
 import 'package:flutter/material.dart';
 
 enum AdminDockTab {
@@ -44,136 +45,136 @@ class AdminDock extends StatelessWidget {
           null => 0,
         };
 
-        void handleSelection(int index) {
-          if (index == 0) {
-            if (activeTab == AdminDockTab.home) return;
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.adminHome,
-              (route) => false,
-            );
-            return;
-          }
-          if (index == 1) {
-            if (activeTab == AdminDockTab.suppliers) return;
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.adminSuppliers,
-              (route) => false,
-            );
-            return;
-          }
-          if (index == 2) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.adminCreateHub,
-              (route) => false,
-            );
-            return;
-          }
-          if (index == 3) {
-            if (activeTab == AdminDockTab.activity) return;
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.adminActivity,
-              (route) => false,
-            );
-            return;
-          }
-        }
+        return ValueListenableBuilder<bool>(
+          valueListenable: adminCreateHubMenuOpen,
+          builder: (context, menuOpen, _) {
+            void handleSelection(int index) {
+              if (index == 0) {
+                if (activeTab == AdminDockTab.home) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.adminHome,
+                  (route) => false,
+                );
+                return;
+              }
+              if (index == 1) {
+                if (activeTab == AdminDockTab.suppliers) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.adminSuppliers,
+                  (route) => false,
+                );
+                return;
+              }
+              if (index == 2) {
+                showAdminCreateHubSheet(context);
+                return;
+              }
+              if (index == 3) {
+                if (activeTab == AdminDockTab.activity) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.adminActivity,
+                  (route) => false,
+                );
+                return;
+              }
+            }
 
-        final useNativeDock = NativeDockBridge.isSupportedPlatform &&
-            NativeDockBridge.instance.supportsSystemDock;
-        if (useNativeDock) {
-          NativeDockBridge.instance.register(
-            NativeDockState(
-              visible: true,
-              compact: compact,
-              tightToEdges: tightToEdges,
-              items: [
-                NativeDockItem(
-                  id: 'admin-home',
-                  label: 'Uy',
-                  iconCodePoint: Icons.home_outlined.codePoint,
-                  selectedIconCodePoint: Icons.home_rounded.codePoint,
-                  active: activeTab == AdminDockTab.home,
-                  primary: false,
-                  showBadge: false,
-                  routeName: AppRoutes.adminHome,
-                  replaceStack: true,
-                  onTap: () => handleSelection(0),
+            final useNativeDock = NativeDockBridge.isSupportedPlatform &&
+                NativeDockBridge.instance.supportsSystemDock;
+            if (useNativeDock) {
+              NativeDockBridge.instance.register(
+                NativeDockState(
+                  visible: true,
+                  compact: compact,
+                  tightToEdges: tightToEdges,
+                  items: [
+                    NativeDockItem(
+                      id: 'admin-home',
+                      label: 'Uy',
+                      iconCodePoint: Icons.home_outlined.codePoint,
+                      selectedIconCodePoint: Icons.home_rounded.codePoint,
+                      active: activeTab == AdminDockTab.home,
+                      primary: false,
+                      showBadge: false,
+                      routeName: AppRoutes.adminHome,
+                      replaceStack: true,
+                      onTap: () => handleSelection(0),
+                    ),
+                    NativeDockItem(
+                      id: 'admin-suppliers',
+                      label: 'Yetkazuvchilar',
+                      iconCodePoint: Icons.groups_outlined.codePoint,
+                      selectedIconCodePoint: Icons.groups_rounded.codePoint,
+                      active: activeTab == AdminDockTab.suppliers,
+                      primary: false,
+                      showBadge: false,
+                      routeName: AppRoutes.adminSuppliers,
+                      replaceStack: true,
+                      onTap: () => handleSelection(1),
+                    ),
+                    if (!menuOpen && effectiveShowPrimaryFab)
+                      NativeDockItem(
+                        id: 'admin-create',
+                        label: 'Yangi',
+                        iconCodePoint: Icons.add_rounded.codePoint,
+                        selectedIconCodePoint: Icons.add_rounded.codePoint,
+                        active: activeTab == AdminDockTab.settings,
+                        primary: true,
+                        showBadge: false,
+                        onTap: () => handleSelection(2),
+                      ),
+                    NativeDockItem(
+                      id: 'admin-activity',
+                      label: 'Faoliyat',
+                      iconCodePoint: Icons.history_outlined.codePoint,
+                      selectedIconCodePoint: Icons.history_rounded.codePoint,
+                      active: activeTab == AdminDockTab.activity,
+                      primary: false,
+                      showBadge: false,
+                      routeName: AppRoutes.adminActivity,
+                      replaceStack: true,
+                      onTap: () => handleSelection(3),
+                    ),
+                  ],
                 ),
-                NativeDockItem(
-                  id: 'admin-suppliers',
-                  label: 'Yetkazuvchilar',
-                  iconCodePoint: Icons.groups_outlined.codePoint,
-                  selectedIconCodePoint: Icons.groups_rounded.codePoint,
-                  active: activeTab == AdminDockTab.suppliers,
-                  primary: false,
-                  showBadge: false,
-                  routeName: AppRoutes.adminSuppliers,
-                  replaceStack: true,
-                  onTap: () => handleSelection(1),
-                ),
-                if (effectiveShowPrimaryFab)
-                  NativeDockItem(
-                    id: 'admin-create',
-                    label: 'Yangi',
-                    iconCodePoint: Icons.add_rounded.codePoint,
-                    selectedIconCodePoint: Icons.add_rounded.codePoint,
-                    active: activeTab == AdminDockTab.settings,
-                    primary: true,
-                    showBadge: false,
-                    routeName: AppRoutes.adminCreateHub,
-                    replaceStack: true,
-                    onTap: () => handleSelection(2),
+              );
+              return const SizedBox.shrink();
+            }
+
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: tightToEdges ? 0 : 8),
+              child: AppNavigationBar(
+                height: compact ? 60 : 64,
+                selectionVisible: selectionVisible,
+                selectedIndex: selectedIndex,
+                primaryVisible: !menuOpen && effectiveShowPrimaryFab,
+                destinations: const [
+                  AppNavigationDestination(
+                    label: 'Uy',
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home_rounded),
                   ),
-                NativeDockItem(
-                  id: 'admin-activity',
-                  label: 'Faoliyat',
-                  iconCodePoint: Icons.history_outlined.codePoint,
-                  selectedIconCodePoint: Icons.history_rounded.codePoint,
-                  active: activeTab == AdminDockTab.activity,
-                  primary: false,
-                  showBadge: false,
-                  routeName: AppRoutes.adminActivity,
-                  replaceStack: true,
-                  onTap: () => handleSelection(3),
-                ),
-              ],
-            ),
-          );
-          return const SizedBox.shrink();
-        }
-
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: tightToEdges ? 0 : 8),
-          child: AppNavigationBar(
-            height: compact ? 60 : 64,
-            selectionVisible: selectionVisible,
-            selectedIndex: selectedIndex,
-            primaryVisible: effectiveShowPrimaryFab,
-            destinations: const [
-              AppNavigationDestination(
-                label: 'Uy',
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home_rounded),
+                  AppNavigationDestination(
+                    label: 'Yetkazuvchilar',
+                    icon: Icon(Icons.groups_outlined),
+                    selectedIcon: Icon(Icons.groups_rounded),
+                  ),
+                  AppNavigationDestination(
+                    label: 'Yangi',
+                    icon: Icon(Icons.add_rounded),
+                    selectedIcon: Icon(Icons.add_rounded),
+                    isPrimary: true,
+                  ),
+                  AppNavigationDestination(
+                    label: 'Faoliyat',
+                    icon: Icon(Icons.history_outlined),
+                    selectedIcon: Icon(Icons.history_rounded),
+                  ),
+                ],
+                onDestinationSelected: handleSelection,
               ),
-              AppNavigationDestination(
-                label: 'Yetkazuvchilar',
-                icon: Icon(Icons.groups_outlined),
-                selectedIcon: Icon(Icons.groups_rounded),
-              ),
-              AppNavigationDestination(
-                label: 'Yangi',
-                icon: Icon(Icons.add_rounded),
-                selectedIcon: Icon(Icons.add_rounded),
-                isPrimary: true,
-              ),
-              AppNavigationDestination(
-                label: 'Faoliyat',
-                icon: Icon(Icons.history_outlined),
-                selectedIcon: Icon(Icons.history_rounded),
-              ),
-            ],
-            onDestinationSelected: handleSelection,
-          ),
+            );
+          },
         );
       },
     );
