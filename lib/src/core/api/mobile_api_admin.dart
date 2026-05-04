@@ -277,10 +277,35 @@ extension MobileApiAdmin on MobileApi {
   }
 
   Future<List<SupplierItem>> adminItems({String query = ''}) async {
+    const pageSize = 200;
+    final items = <SupplierItem>[];
+    for (var offset = 0;; offset += pageSize) {
+      final page = await adminItemsPage(
+        query: query,
+        limit: pageSize,
+        offset: offset,
+      );
+      items.addAll(page);
+      if (page.length < pageSize) {
+        break;
+      }
+    }
+    return items;
+  }
+
+  Future<List<SupplierItem>> adminItemsPage({
+    String query = '',
+    int limit = 50,
+    int offset = 0,
+  }) async {
     final response = await _sendAuthorized(
       () => http.get(
         Uri.parse('$baseUrl/v1/mobile/admin/items').replace(
-          queryParameters: query.trim().isEmpty ? null : {'q': query.trim()},
+          queryParameters: {
+            if (query.trim().isNotEmpty) 'q': query.trim(),
+            if (limit > 0) 'limit': '$limit',
+            if (offset > 0) 'offset': '$offset',
+          },
         ),
         headers: _headers(requireToken()),
       ),
@@ -292,6 +317,29 @@ extension MobileApiAdmin on MobileApi {
     return json
         .map((item) => SupplierItem.fromJson(item as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<AdminItemGroupBulkMoveResult> adminMoveItemsToGroup({
+    required List<String> itemCodes,
+    required String itemGroup,
+  }) async {
+    final response = await _sendAuthorized(
+      () => http.post(
+        Uri.parse('$baseUrl/v1/mobile/admin/items/bulk-move-group'),
+        headers: _headers(requireToken())
+          ..['Content-Type'] = 'application/json',
+        body: jsonEncode({
+          'item_codes': itemCodes,
+          'item_group': itemGroup,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin item group bulk move failed');
+    }
+    return AdminItemGroupBulkMoveResult.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   Future<SupplierItem> adminCreateItem({

@@ -24,6 +24,7 @@ class AdminHomeScreen extends StatefulWidget {
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
   int _refreshVersion = 0;
+  bool _openingRoute = false;
 
   @override
   void initState() {
@@ -54,10 +55,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   void _openDrawerRoute(String routeName) {
+    if (_openingRoute) {
+      return;
+    }
     final current = ModalRoute.of(context)?.settings.name;
     if (current == routeName) {
       return;
     }
+    _openingRoute = true;
     Navigator.of(context).pushNamedAndRemoveUntil(
       routeName,
       (route) => false,
@@ -65,11 +70,23 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Future<void> _openAndReload(String routeName) async {
-    await Navigator.of(context).pushNamed(routeName);
-    if (!mounted) {
+    if (_openingRoute) {
       return;
     }
-    await _reload();
+    _openingRoute = true;
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).pushNamed(routeName);
+      if (!mounted) {
+        return;
+      }
+      await _reload();
+    } finally {
+      _openingRoute = false;
+    }
   }
 
   @override
@@ -153,7 +170,7 @@ class _AdminSummaryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return M3SegmentSpacedColumn(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       children: [
         AdminSummaryCard(
           slot: M3SegmentVerticalSlot.top,
@@ -195,7 +212,7 @@ class _AdminBlockedSuppliersSection extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

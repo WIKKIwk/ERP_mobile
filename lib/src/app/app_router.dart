@@ -16,6 +16,7 @@ import '../features/admin/presentation/admin_customer_detail_screen.dart';
 import '../features/admin/presentation/admin_supplier_detail_screen.dart';
 import '../features/admin/presentation/admin_supplier_items_add_screen.dart';
 import '../features/admin/presentation/admin_supplier_items_view_screen.dart';
+import '../features/admin/presentation/admin_item_group_bulk_move_screen.dart';
 import '../features/admin/presentation/admin_suppliers_screen.dart';
 import '../features/admin/presentation/admin_werka_screen.dart';
 import '../features/shared/models/app_models.dart';
@@ -111,6 +112,7 @@ class AppRoutes {
   static const String adminCustomerDetail = '/admin-customer-detail';
   static const String adminInactiveSuppliers = '/admin-inactive-suppliers';
   static const String adminItemCreate = '/admin-item-create';
+  static const String adminItemBulkMove = '/admin-item-bulk-move';
   static const String adminSupplierDetail = '/admin-supplier-detail';
   static const String adminSupplierItemsView = '/admin-supplier-items-view';
   static const String adminSupplierItemsAdd = '/admin-supplier-items-add';
@@ -165,6 +167,7 @@ class AppRouter {
     AppRoutes.adminCustomerDetail,
     AppRoutes.adminInactiveSuppliers,
     AppRoutes.adminItemCreate,
+    AppRoutes.adminItemBulkMove,
     AppRoutes.adminSupplierDetail,
     AppRoutes.adminSupplierItemsView,
     AppRoutes.adminSupplierItemsAdd,
@@ -382,6 +385,8 @@ class AppRouter {
         return _buildRoute(settings, const AdminInactiveSuppliersScreen());
       case AppRoutes.adminItemCreate:
         return _buildRoute(settings, const AdminItemCreateScreen());
+      case AppRoutes.adminItemBulkMove:
+        return _buildRoute(settings, const AdminItemGroupBulkMoveScreen());
       case AppRoutes.adminSupplierDetail:
         final String supplierRef = settings.arguments as String;
         return _buildRoute(
@@ -422,7 +427,8 @@ class AppRouter {
           );
           final fadeIn = CurvedAnimation(
             parent: animation,
-            curve: const Interval(0.08, 1.0, curve: AppMotion.emphasizedDecelerate),
+            curve: const Interval(0.08, 1.0,
+                curve: AppMotion.emphasizedDecelerate),
             reverseCurve: AppMotion.pageOut,
           );
           final slideIn = Tween<Offset>(

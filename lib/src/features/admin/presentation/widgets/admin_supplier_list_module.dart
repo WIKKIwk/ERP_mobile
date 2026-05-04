@@ -17,7 +17,7 @@ class AdminSupplierListModule extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         child: Text(
           'Userlar topilmadi',
           style: Theme.of(context).textTheme.bodyLarge,
@@ -26,6 +26,7 @@ class AdminSupplierListModule extends StatelessWidget {
     }
 
     return M3SegmentSpacedColumn(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       children: [
         for (int index = 0; index < items.length; index++)
           _AdminUserRow(

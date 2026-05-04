@@ -900,6 +900,40 @@ class AdminSettings {
   }
 }
 
+class AdminItemGroupBulkMoveResult {
+  const AdminItemGroupBulkMoveResult({
+    required this.itemGroup,
+    required this.requestedCount,
+    required this.updatedCount,
+    required this.failedCount,
+    required this.updatedItemCodes,
+    required this.failedItemCodes,
+  });
+
+  final String itemGroup;
+  final int requestedCount;
+  final int updatedCount;
+  final int failedCount;
+  final List<String> updatedItemCodes;
+  final List<String> failedItemCodes;
+
+  factory AdminItemGroupBulkMoveResult.fromJson(Map<String, dynamic> json) {
+    return AdminItemGroupBulkMoveResult(
+      itemGroup: json['item_group'] as String? ?? '',
+      requestedCount: json['requested_count'] as int? ?? 0,
+      updatedCount: json['updated_count'] as int? ?? 0,
+      failedCount: json['failed_count'] as int? ?? 0,
+      updatedItemCodes:
+          (json['updated_item_codes'] as List<dynamic>? ?? const [])
+              .map((item) => item as String)
+              .toList(),
+      failedItemCodes: (json['failed_item_codes'] as List<dynamic>? ?? const [])
+          .map((item) => item as String)
+          .toList(),
+    );
+  }
+}
+
 class AdminSupplier {
   const AdminSupplier({
     required this.ref,
