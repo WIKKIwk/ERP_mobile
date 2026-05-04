@@ -102,7 +102,7 @@ class AdminDock extends StatelessWidget {
                     ),
                     NativeDockItem(
                       id: 'admin-suppliers',
-                      label: 'Yetkazuvchilar',
+                      label: 'Foydalanuvchilar',
                       iconCodePoint: Icons.groups_outlined.codePoint,
                       selectedIconCodePoint: Icons.groups_rounded.codePoint,
                       active: activeTab == AdminDockTab.suppliers,
@@ -155,7 +155,7 @@ class AdminDock extends StatelessWidget {
                     selectedIcon: Icon(Icons.home_rounded),
                   ),
                   AppNavigationDestination(
-                    label: 'Yetkazuvchilar',
+                    label: 'Foydalanuvchilar',
                     icon: Icon(Icons.groups_outlined),
                     selectedIcon: Icon(Icons.groups_rounded),
                   ),
