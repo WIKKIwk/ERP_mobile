@@ -71,12 +71,14 @@ class SupplierItem {
     required this.name,
     required this.uom,
     required this.warehouse,
+    this.itemGroup = '',
   });
 
   final String code;
   final String name;
   final String uom;
   final String warehouse;
+  final String itemGroup;
 
   factory SupplierItem.fromJson(Map<String, dynamic> json) {
     return SupplierItem(
@@ -84,6 +86,7 @@ class SupplierItem {
       name: json['name'] as String? ?? '',
       uom: json['uom'] as String? ?? '',
       warehouse: json['warehouse'] as String? ?? '',
+      itemGroup: json['item_group'] as String? ?? '',
     );
   }
 }

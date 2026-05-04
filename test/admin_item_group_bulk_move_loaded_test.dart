@@ -67,7 +67,8 @@ void main() {
         expect(find.text('Group tanlang'), findsOneWidget);
         expect(find.text("A'lo Ta'm Kanada"), findsOneWidget);
         expect(find.text('Item 001'), findsOneWidget);
-        expect(find.text('ITEM-001 • Kg • Main'), findsOneWidget);
+        expect(
+            find.text('ITEM-001 • Kg • Main\nGroup: General'), findsOneWidget);
         expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
 
         await tester.pump(const Duration(seconds: 5));
@@ -143,6 +144,7 @@ class _FakeHttpClient implements HttpClient {
           'name': "A'lo Ta'm Kanada",
           'uom': 'Kg',
           'warehouse': 'Stores - A',
+          'item_group': 'Foods',
         };
       }
       final number = index.toString().padLeft(3, '0');
@@ -151,6 +153,7 @@ class _FakeHttpClient implements HttpClient {
         'name': 'Item $number',
         'uom': 'Kg',
         'warehouse': 'Main',
+        'item_group': number == '010' ? 'Special Group' : 'General',
       };
     }),
     'GET /v1/mobile/admin/items?limit=30&offset=30':
@@ -184,6 +187,7 @@ class _FakeHttpClient implements HttpClient {
           map['name'],
           map['uom'],
           map['warehouse'],
+          map['item_group'],
         ].whereType<String>().join(' ').toLowerCase();
         return haystack.contains(query);
       }).toList();

@@ -418,6 +418,7 @@ class _AdminItemGroupBulkMoveScreenState
               item.name,
               item.uom,
               item.warehouse,
+              item.itemGroup,
             ],
           ),
         )
@@ -433,9 +434,19 @@ class _AdminItemGroupBulkMoveScreenState
       return compareSearchRelevance(
         query: normalized,
         leftPrimary: leftPrimary,
-        leftSecondary: <String>[left.code, left.uom, left.warehouse],
+        leftSecondary: <String>[
+          left.code,
+          left.uom,
+          left.warehouse,
+          left.itemGroup,
+        ],
         rightPrimary: rightPrimary,
-        rightSecondary: <String>[right.code, right.uom, right.warehouse],
+        rightSecondary: <String>[
+          right.code,
+          right.uom,
+          right.warehouse,
+          right.itemGroup,
+        ],
       );
     });
     return matches;
@@ -1088,12 +1099,17 @@ class _ItemRow extends StatelessWidget {
       if (item.uom.isNotEmpty) item.uom,
       if (item.warehouse.isNotEmpty) item.warehouse,
     ].where((part) => part.isNotEmpty).join(' • ');
+    final groupLine = item.itemGroup.trim().isEmpty
+        ? null
+        : 'Group: ${item.itemGroup.trim()}';
+    final subtitleText =
+        groupLine == null ? subtitleLine : '$subtitleLine\n$groupLine';
 
     return AdminSummaryCard(
       slot: slot,
       cornerRadius: M3SegmentedListGeometry.cornerRadiusForSlot(slot),
       onTap: onTap,
-      fixedHeight: 61,
+      fixedHeight: 72,
       padding: const EdgeInsets.fromLTRB(14, 8, 10, 8),
       value: '',
       showChevron: false,
@@ -1116,9 +1132,9 @@ class _ItemRow extends StatelessWidget {
         ),
       ),
       title: item.name.isEmpty ? item.code : item.name,
-      subtitle: subtitleLine,
+      subtitle: subtitleText,
       titleMaxLines: 1,
-      subtitleMaxLines: 1,
+      subtitleMaxLines: 2,
       titleStyle: titleStyle,
       subtitleStyle: subtitleStyle,
     );
