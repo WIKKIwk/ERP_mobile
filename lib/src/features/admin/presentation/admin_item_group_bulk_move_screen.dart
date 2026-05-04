@@ -650,7 +650,9 @@ class _AdminDockWithScrollTop extends StatelessWidget {
     const double buttonSize = 48;
     final double buttonBottom =
         appNavigationBarPrimaryButtonBottom(dockHeight: dockHeight) +
-            ((appNavigationBarPrimaryButtonSize - buttonSize) / 2);
+            (appNavigationBarPrimaryButtonSize / 2) -
+            (buttonSize / 2) -
+            7;
     final double buttonEnd = appNavigationBarPrimaryEndMargin +
         appNavigationBarPrimaryButtonSize +
         appNavigationBarPrimaryNavGap;
