@@ -1087,6 +1087,7 @@ class _ItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final displayTitle = item.name.isEmpty ? item.code : item.name;
     final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,
         );
@@ -1095,21 +1096,18 @@ class _ItemRow extends StatelessWidget {
           height: 1.05,
         );
     final subtitleLine = <String>[
-      item.code,
+      if (item.code.isNotEmpty && !_sameSearchText(item.code, displayTitle))
+        item.code,
       if (item.uom.isNotEmpty) item.uom,
+      if (item.itemGroup.isNotEmpty) 'Group: ${item.itemGroup.trim()}',
       if (item.warehouse.isNotEmpty) item.warehouse,
     ].where((part) => part.isNotEmpty).join(' • ');
-    final groupLine = item.itemGroup.trim().isEmpty
-        ? null
-        : 'Group: ${item.itemGroup.trim()}';
-    final subtitleText =
-        groupLine == null ? subtitleLine : '$subtitleLine\n$groupLine';
 
     return AdminSummaryCard(
       slot: slot,
       cornerRadius: M3SegmentedListGeometry.cornerRadiusForSlot(slot),
       onTap: onTap,
-      fixedHeight: 72,
+      fixedHeight: 61,
       padding: const EdgeInsets.fromLTRB(14, 8, 10, 8),
       value: '',
       showChevron: false,
@@ -1131,13 +1129,17 @@ class _ItemRow extends StatelessWidget {
           ),
         ),
       ),
-      title: item.name.isEmpty ? item.code : item.name,
-      subtitle: subtitleText,
+      title: displayTitle,
+      subtitle: subtitleLine,
       titleMaxLines: 1,
-      subtitleMaxLines: 2,
+      subtitleMaxLines: 1,
       titleStyle: titleStyle,
       subtitleStyle: subtitleStyle,
     );
+  }
+
+  bool _sameSearchText(String left, String right) {
+    return normalizeForSearch(left) == normalizeForSearch(right);
   }
 }
 

@@ -68,7 +68,7 @@ void main() {
         expect(find.text("A'lo Ta'm Kanada"), findsOneWidget);
         expect(find.text('Item 001'), findsOneWidget);
         expect(
-            find.text('ITEM-001 • Kg • Main\nGroup: General'), findsOneWidget);
+            find.text('ITEM-001 • Kg • Group: General • Main'), findsOneWidget);
         expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
 
         await tester.pump(const Duration(seconds: 5));
