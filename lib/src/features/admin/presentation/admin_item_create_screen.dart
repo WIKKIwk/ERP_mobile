@@ -18,14 +18,14 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
   final TextEditingController name = TextEditingController();
   final TextEditingController itemGroup = TextEditingController();
   final TextEditingController uom = TextEditingController(text: 'Kg');
-  late Future<List<String>> itemGroupsFuture;
+  final Future<List<String>> itemGroupsFuture =
+      MobileApi.instance.adminItemGroups();
   bool saving = false;
   SupplierItem? createdItem;
 
   @override
   void initState() {
     super.initState();
-    itemGroupsFuture = MobileApi.instance.adminItemGroups();
     _hydrateDefaultUom();
   }
 
