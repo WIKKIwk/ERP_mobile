@@ -284,6 +284,7 @@ extension MobileApiAdmin on MobileApi {
     required String code,
     required String name,
     required String uom,
+    required String itemGroup,
   }) async {
     final response = await _sendAuthorized(
       () => http.post(
@@ -294,6 +295,7 @@ extension MobileApiAdmin on MobileApi {
           'code': code,
           'name': name,
           'uom': uom,
+          'item_group': itemGroup,
         }),
       ),
     );

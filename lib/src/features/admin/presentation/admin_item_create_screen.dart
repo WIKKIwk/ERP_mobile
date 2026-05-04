@@ -16,6 +16,8 @@ class AdminItemCreateScreen extends StatefulWidget {
 class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
   final TextEditingController code = TextEditingController();
   final TextEditingController name = TextEditingController();
+  final TextEditingController itemGroup =
+      TextEditingController(text: 'All Item Groups');
   final TextEditingController uom = TextEditingController(text: 'Kg');
   bool saving = false;
   SupplierItem? createdItem;
@@ -30,6 +32,7 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
   void dispose() {
     code.dispose();
     name.dispose();
+    itemGroup.dispose();
     uom.dispose();
     super.dispose();
   }
@@ -55,6 +58,7 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
         code: code.text.trim(),
         name: name.text.trim(),
         uom: uom.text.trim(),
+        itemGroup: itemGroup.text.trim(),
       );
       if (!mounted) {
         return;
@@ -64,6 +68,18 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
       });
       code.clear();
       name.clear();
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Item yaratildi: ${item.code}')),
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Item yaratilmadi: $error')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => saving = false);
@@ -109,6 +125,11 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
           TextField(
             controller: name,
             decoration: const InputDecoration(labelText: 'Item name'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: itemGroup,
+            decoration: const InputDecoration(labelText: 'Item group'),
           ),
           const SizedBox(height: 12),
           TextField(
