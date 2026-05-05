@@ -21,6 +21,7 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
   final Future<List<String>> itemGroupsFuture =
       MobileApi.instance.adminItemGroups();
   bool saving = false;
+  bool groupMenuOpen = false;
   SupplierItem? createdItem;
 
   @override
@@ -36,6 +37,24 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
     itemGroup.dispose();
     uom.dispose();
     super.dispose();
+  }
+
+  void _toggleGroupMenu(bool open) {
+    if (groupMenuOpen == open) {
+      return;
+    }
+    setState(() => groupMenuOpen = open);
+  }
+
+  void _selectGroup(String group) {
+    if (itemGroup.text.trim() == group) {
+      _toggleGroupMenu(false);
+      return;
+    }
+    setState(() {
+      itemGroup.text = group;
+      groupMenuOpen = false;
+    });
   }
 
   Future<void> _hydrateDefaultUom() async {
@@ -144,42 +163,183 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
           FutureBuilder<List<String>>(
             future: itemGroupsFuture,
             builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return TextField(
-                  controller: itemGroup,
-                  decoration: const InputDecoration(labelText: 'Item group'),
-                );
-              }
-              if (snapshot.hasError) {
-                return TextField(
-                  controller: itemGroup,
-                  decoration: const InputDecoration(labelText: 'Item group'),
-                );
-              }
               final groups = snapshot.data ?? const <String>[];
-              _syncItemGroupSelection(groups);
-              return DropdownButtonFormField<String>(
-                initialValue:
-                    itemGroup.text.trim().isEmpty ? null : itemGroup.text.trim(),
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Item group'),
-                items: groups
-                    .map(
-                      (group) => DropdownMenuItem<String>(
-                        value: group,
-                        child: Text(group, overflow: TextOverflow.ellipsis),
+              if (snapshot.connectionState == ConnectionState.done &&
+                  !snapshot.hasError) {
+                _syncItemGroupSelection(groups);
+              }
+              final selectedGroup = itemGroup.text.trim().isEmpty
+                  ? null
+                  : itemGroup.text.trim();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Item group',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 6),
+                  _TapBox(
+                    onTap: snapshot.connectionState == ConnectionState.done &&
+                            !snapshot.hasError &&
+                            !saving
+                        ? () => _toggleGroupMenu(!groupMenuOpen)
+                        : null,
+                    borderRadius: 14,
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 56),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    itemGroup.text = value ?? '';
-                  });
-                },
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              selectedGroup ?? 'Group tanlang',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: selectedGroup == null
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Icon(
+                            Icons.expand_more_rounded,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.topCenter,
+                    child: groupMenuOpen
+                        ? Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainer,
+                              borderRadius: BorderRadius.zero,
+                              border: Border(
+                                left: BorderSide(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant,
+                                ),
+                                right: BorderSide(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant,
+                                ),
+                                top: BorderSide(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant,
+                                ),
+                                bottom: BorderSide(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant,
+                                ),
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (int index = 0; index < groups.length; index++) ...[
+                                  if (index > 0)
+                                    Divider(
+                                      height: 1,
+                                      thickness: 1,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outlineVariant
+                                          .withValues(alpha: 0.6),
+                                    ),
+                                  Material(
+                                    color: groups[index] == selectedGroup
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withValues(alpha: 0.55)
+                                        : Colors.transparent,
+                                    child: InkWell(
+                                      onTap: saving
+                                          ? null
+                                          : () => _selectGroup(groups[index]),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 13,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                groups[index],
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
+                                                ),
+                                              ),
+                                            ),
+                                            if (groups[index] == selectedGroup)
+                                              Icon(
+                                                Icons.check_rounded,
+                                                size: 18,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  const SizedBox(height: 12),
+                ],
               );
             },
           ),
-          const SizedBox(height: 12),
           TextField(
             controller: uom,
             decoration: const InputDecoration(labelText: 'UOM'),
@@ -193,6 +353,30 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TapBox extends StatelessWidget {
+  const _TapBox({
+    required this.child,
+    required this.onTap,
+    required this.borderRadius,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: child,
       ),
     );
   }
