@@ -19,6 +19,7 @@ import '../features/admin/presentation/admin_supplier_items_view_screen.dart';
 import '../features/admin/presentation/admin_item_group_bulk_move_screen.dart';
 import '../features/admin/presentation/admin_suppliers_screen.dart';
 import '../features/admin/presentation/admin_werka_screen.dart';
+import '../features/gscale/presentation/gscale_mode_screen.dart';
 import '../features/shared/models/app_models.dart';
 import '../features/shared/presentation/pin_setup_confirm_screen.dart';
 import '../features/shared/presentation/pin_setup_entry_screen.dart';
@@ -48,6 +49,8 @@ import '../features/werka/presentation/werka_create_hub_screen.dart';
 import '../features/werka/presentation/werka_customer_issue_customer_screen.dart';
 import '../features/werka/presentation/werka_customer_delivery_detail_screen.dart';
 import '../features/werka/presentation/werka_notifications_screen.dart';
+import '../features/werka/presentation/werka_stock_entry_lookup_screen.dart';
+import '../features/werka/presentation/werka_stock_entry_qr_scan_screen.dart';
 import '../features/werka/presentation/werka_unannounced_supplier_screen.dart';
 import '../features/werka/presentation/werka_status_detail_screen.dart';
 import '../features/werka/presentation/werka_status_breakdown_screen.dart';
@@ -78,6 +81,8 @@ class AppRoutes {
   static const String werkaCustomerIssueCustomer =
       '/werka-customer-issue-customer';
   static const String werkaUnannouncedSupplier = '/werka-unannounced-supplier';
+  static const String werkaStockEntryQrScan = '/werka-stock-entry-qr-scan';
+  static const String werkaStockEntryLookup = '/werka-stock-entry-lookup';
   static const String werkaNotifications = '/werka-notifications';
   static const String werkaArchive = '/werka-archive';
   static const String werkaArchiveSentHub = '/werka-archive-sent-hub';
@@ -117,6 +122,7 @@ class AppRoutes {
   static const String adminSupplierItemsView = '/admin-supplier-items-view';
   static const String adminSupplierItemsAdd = '/admin-supplier-items-add';
   static const String adminWerka = '/admin-werka';
+  static const String gscaleMode = '/gscale-mode';
 }
 
 class AppRouter {
@@ -161,6 +167,8 @@ class AppRouter {
     AppRoutes.werkaBatchDispatch,
     AppRoutes.werkaCustomerIssueCustomer,
     AppRoutes.werkaUnannouncedSupplier,
+    AppRoutes.werkaStockEntryQrScan,
+    AppRoutes.werkaStockEntryLookup,
     AppRoutes.adminSettings,
     AppRoutes.adminSupplierCreate,
     AppRoutes.adminCustomerCreate,
@@ -256,6 +264,15 @@ class AppRouter {
         return _buildRoute(
           settings,
           WerkaUnannouncedSupplierScreen(prefill: args),
+        );
+      case AppRoutes.werkaStockEntryQrScan:
+        return _buildRoute(settings, const WerkaStockEntryQrScanScreen());
+      case AppRoutes.werkaStockEntryLookup:
+        final WerkaStockEntryLookupArgs args =
+            settings.arguments as WerkaStockEntryLookupArgs;
+        return _buildRoute(
+          settings,
+          WerkaStockEntryLookupScreen(args: args),
         );
       case AppRoutes.werkaNotifications:
         return _buildRoute(settings, const WerkaNotificationsScreen());
@@ -407,6 +424,8 @@ class AppRouter {
         );
       case AppRoutes.adminWerka:
         return _buildRoute(settings, const AdminWerkaScreen());
+      case AppRoutes.gscaleMode:
+        return _buildRoute(settings, const GScaleModeScreen());
       default:
         return _buildRoute(settings, const LoginScreen());
     }

@@ -17,6 +17,7 @@ import 'theme_controller.dart';
 /// **Earthy** variant atrof-muhit ranglarini bir xil issiqroq tonlarda yig‘adi; bu spesifikatsiya buzilish emas,
 /// lekin ikkilamchi matnlar uchun [onSurfaceVariant] va konteynerlar oralig‘ini ehtiyotkorlik bilan tanlash kerak.
 class AppTheme {
+  static const double appBarHeight = 50;
   static const double headerActionSize = 44;
   static const double headerActionIconSize = 22;
 

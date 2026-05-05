@@ -36,11 +36,16 @@ class AdminNavigationDrawer extends StatelessWidget {
                 0 => AppRoutes.adminHome,
                 1 => AppRoutes.adminSuppliers,
                 2 => AppRoutes.adminActivity,
-                _ => AppRoutes.profile,
+                3 => AppRoutes.profile,
+                _ => AppRoutes.gscaleMode,
               };
               Navigator.of(context).pop();
               await Future<void>.delayed(const Duration(milliseconds: 220));
               if (!context.mounted) {
+                return;
+              }
+              if (route == AppRoutes.gscaleMode) {
+                Navigator.of(context).pushNamed(route);
                 return;
               }
               onNavigate(route);
@@ -67,7 +72,7 @@ class AdminNavigationDrawer extends StatelessWidget {
               NavigationDrawerDestination(
                 icon: Icon(Icons.groups_outlined),
                 selectedIcon: Icon(Icons.groups_rounded),
-                label: Text('Yetkazuvchilar'),
+                label: Text('Users'),
               ),
               NavigationDrawerDestination(
                 icon: Icon(Icons.history_outlined),
@@ -78,6 +83,11 @@ class AdminNavigationDrawer extends StatelessWidget {
                 icon: Icon(Icons.person_outline_rounded),
                 selectedIcon: Icon(Icons.person_rounded),
                 label: Text('Profil'),
+              ),
+              NavigationDrawerDestination(
+                icon: Icon(Icons.swap_horiz_rounded),
+                selectedIcon: Icon(Icons.swap_horiz_rounded),
+                label: Text('GScale Mode'),
               ),
               SizedBox(height: 80),
             ],

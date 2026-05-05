@@ -6,7 +6,6 @@ import '../../../../core/session/session.dart';
 import '../../../../core/widgets/navigation/app_navigation_bar.dart';
 import 'werka_create_hub_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 enum WerkaDockTab {
   home,
@@ -177,8 +176,8 @@ class WerkaDock extends StatelessWidget {
                   ),
                   const AppNavigationDestination(
                     label: 'Arxiv',
-                    icon: _WerkaDockSvgIcon(),
-                    selectedIcon: _WerkaDockSvgIcon(),
+                    icon: Icon(Icons.archive_outlined),
+                    selectedIcon: Icon(Icons.archive_rounded),
                   ),
                 ],
                 onDestinationSelected: handleSelection,
@@ -187,26 +186,6 @@ class WerkaDock extends StatelessWidget {
           },
         );
       },
-    );
-  }
-}
-
-class _WerkaDockSvgIcon extends StatelessWidget {
-  const _WerkaDockSvgIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    final iconTheme = IconTheme.of(context);
-    final color = iconTheme.color ?? Theme.of(context).colorScheme.onSurface;
-    final size = (iconTheme.size ?? 24) + 5;
-    return SvgPicture.asset(
-      'assets/icons/data-check.svg',
-      width: size,
-      height: size,
-      colorFilter: ColorFilter.mode(
-        color,
-        BlendMode.srcIn,
-      ),
     );
   }
 }

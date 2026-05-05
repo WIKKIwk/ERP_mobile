@@ -630,9 +630,8 @@ class _AdminMorphFabButton extends StatelessWidget {
             height: buttonSize,
             child: Material(
               color: containerColor,
-              elevation: 6,
+              elevation: 0,
               surfaceTintColor: Colors.transparent,
-              shadowColor: theme.shadowColor,
               shape: shape,
               clipBehavior: Clip.antiAlias,
               child: InkWell(

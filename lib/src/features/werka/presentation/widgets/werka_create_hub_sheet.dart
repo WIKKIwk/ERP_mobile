@@ -264,31 +264,39 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
 
   List<_WerkaHubAction> _actions(BuildContext context) {
     final l10n = context.l10n;
-    const n = 3;
+    const n = 4;
     return [
+      _WerkaHubAction(
+        key: const ValueKey('werka-hub-qr-scan'),
+        title: 'QR scan',
+        icon: Icons.qr_code_scanner_rounded,
+        routeName: AppRoutes.werkaStockEntryQrScan,
+        row: 0,
+        staggerOrder: n - 1 - 0,
+      ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-unannounced'),
         title: l10n.unannouncedTitle,
         icon: Icons.inventory_2_outlined,
         routeName: AppRoutes.werkaUnannouncedSupplier,
-        row: 0,
-        staggerOrder: n - 1 - 0,
+        row: 1,
+        staggerOrder: n - 1 - 1,
       ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-customer-issue'),
         title: l10n.customerIssueTitle,
         icon: Icons.send_outlined,
         routeName: AppRoutes.werkaCustomerIssueCustomer,
-        row: 1,
-        staggerOrder: n - 1 - 1,
+        row: 2,
+        staggerOrder: n - 1 - 2,
       ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-batch-dispatch'),
         title: l10n.batchDispatchTitle,
         icon: Icons.playlist_add_check_rounded,
         routeName: AppRoutes.werkaBatchDispatch,
-        row: 2,
-        staggerOrder: n - 1 - 2,
+        row: 3,
+        staggerOrder: n - 1 - 3,
       ),
     ];
   }
@@ -611,9 +619,8 @@ class _WerkaMorphFabButton extends StatelessWidget {
             height: buttonSize,
             child: Material(
               color: containerColor,
-              elevation: 6,
+              elevation: 0,
               surfaceTintColor: Colors.transparent,
-              shadowColor: theme.shadowColor,
               shape: shape,
               clipBehavior: Clip.antiAlias,
               child: InkWell(

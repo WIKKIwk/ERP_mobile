@@ -309,8 +309,7 @@ class _AppPrimaryNavigationButton extends StatelessWidget {
       label: destination.label,
       child: Material(
         color: background,
-        elevation: 8,
-        shadowColor: scheme.primary.withValues(alpha: 0.28),
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius:
               BorderRadius.circular(appNavigationBarPrimaryButtonBorderRadius),

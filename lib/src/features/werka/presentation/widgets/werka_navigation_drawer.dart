@@ -36,11 +36,16 @@ class WerkaNavigationDrawer extends StatelessWidget {
                 0 => AppRoutes.werkaHome,
                 1 => AppRoutes.werkaNotifications,
                 2 => AppRoutes.werkaArchive,
-                _ => AppRoutes.profile,
+                3 => AppRoutes.profile,
+                _ => AppRoutes.gscaleMode,
               };
               Navigator.of(context).pop();
               await Future<void>.delayed(const Duration(milliseconds: 220));
               if (!context.mounted) {
+                return;
+              }
+              if (route == AppRoutes.gscaleMode) {
+                Navigator.of(context).pushNamed(route);
                 return;
               }
               onNavigate(route);
@@ -78,6 +83,11 @@ class WerkaNavigationDrawer extends StatelessWidget {
                 icon: Icon(Icons.person_outline_rounded),
                 selectedIcon: Icon(Icons.person_rounded),
                 label: Text('Profil'),
+              ),
+              NavigationDrawerDestination(
+                icon: Icon(Icons.swap_horiz_rounded),
+                selectedIcon: Icon(Icons.swap_horiz_rounded),
+                label: Text('GScale Mode'),
               ),
               SizedBox(height: 80),
             ],

@@ -44,6 +44,51 @@ extension MobileApiWerka on MobileApi {
     return payload ?? <String, dynamic>{};
   }
 
+  Future<StockEntryBarcodeLookup> werkaStockEntryLookup({
+    required String barcode,
+    int limit = 20,
+  }) async {
+    final http.Response response = await _sendAuthorized(
+      () => http.get(
+        Uri.parse('$baseUrl/v1/mobile/stock-entry/lookup').replace(
+          queryParameters: {
+            'barcode': barcode.trim(),
+            if (limit > 0) 'limit': '$limit',
+          },
+        ),
+        headers: _headers(requireToken()),
+      ),
+    );
+
+    Map<String, dynamic>? payload;
+    if (response.body.trim().isNotEmpty) {
+      try {
+        payload = jsonDecode(response.body) as Map<String, dynamic>;
+      } catch (_) {
+        payload = null;
+      }
+    }
+
+    if (response.statusCode != 200) {
+      final String code = switch (response.statusCode) {
+        400 => 'stock_entry_lookup_bad_request',
+        404 => 'stock_entry_not_found',
+        503 => 'direct_db_lookup_unavailable',
+        _ => 'stock_entry_lookup_failed',
+      };
+      throw MobileApiException(
+        code: code,
+        message: (payload?['error'] as String? ?? 'Stock entry lookup failed')
+            .trim(),
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Map<String, dynamic> json =
+        jsonDecode(response.body) as Map<String, dynamic>;
+    return StockEntryBarcodeLookup.fromJson(json);
+  }
+
   Future<List<DispatchRecord>> werkaPending() async {
     final http.Response response = await _sendAuthorized(
       () => http.get(
