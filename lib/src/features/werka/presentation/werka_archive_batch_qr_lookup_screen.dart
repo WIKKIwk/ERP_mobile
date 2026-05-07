@@ -250,7 +250,13 @@ class _ArchiveBatchQrCard extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     _MetaChip(
-                        label: 'Qty', value: '${formatQty(payload.qty)} Kg'),
+                      label: 'Netto',
+                      value: '${formatQty(payload.nettoQty)} Kg',
+                    ),
+                    _MetaChip(
+                      label: 'Brutto',
+                      value: '${formatQty(payload.bruttoQty)} Kg',
+                    ),
                     _MetaChip(label: 'Session', value: payload.sessionID),
                     if (payload.batchTime.trim().isNotEmpty)
                       _MetaChip(label: 'Date', value: payload.batchTime),

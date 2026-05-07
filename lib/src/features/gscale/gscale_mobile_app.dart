@@ -1399,8 +1399,10 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
       return;
     }
     final itemName = session.displayItemName;
+    final netQty = session.netQty > 0 ? session.netQty : session.totalQty;
+    final grossQty = session.grossQty > 0 ? session.grossQty : netQty;
     final qtyText =
-        '${formatCompactKg(session.totalQty)} ${session.displayUnit}';
+        'BRUTTO ${formatCompactKg(grossQty)} ${session.displayUnit} / NETTO ${formatCompactKg(netQty)} ${session.displayUnit}';
     final batchTime = session.endedAt.isNotEmpty
         ? formatArchiveTimestamp(session.endedAt)
         : formatArchiveTimestamp(session.startedAt);
@@ -2037,6 +2039,9 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
     if (session.warehouse.isNotEmpty) {
       parts.add(session.warehouse);
     }
+    if (session.tareEnabled && session.tareKg > 0) {
+      parts.add('Tare ${formatCompactKg(session.tareKg)} kg');
+    }
     return parts.join(' • ');
   }
 
@@ -2074,9 +2079,10 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
     final unit = session.displayUnit;
     final title = session.displayItemName;
     final subtitle = _formatArchiveSessionSubtitle(session);
-    final totalLabel = session.totalQty == 0
-        ? '0.000 $unit'
-        : '${session.totalQty.toStringAsFixed(3)} $unit';
+    final netQty = session.netQty > 0 ? session.netQty : session.totalQty;
+    final grossQty = session.grossQty > 0 ? session.grossQty : netQty;
+    final totalLabel =
+        '${grossQty.toStringAsFixed(3)} / ${netQty.toStringAsFixed(3)} $unit';
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -2125,6 +2131,13 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
                 color: scheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(height: 2),
+            Text(
+              'Brutto / Netto',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
         children: [
@@ -2149,7 +2162,7 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
                   color: scheme.primary,
                 ),
                 title: Text(
-                  '${entry.qty.toStringAsFixed(3)} ${entry.unit}',
+                  'B ${entry.grossQty.toStringAsFixed(3)} / N ${entry.netQty.toStringAsFixed(3)} ${entry.unit}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -4419,6 +4432,8 @@ class MobileArchivePrintEntry {
     required this.itemCode,
     required this.itemName,
     required this.qty,
+    required this.grossQty,
+    required this.netQty,
     required this.unit,
     required this.printedAt,
     required this.draftName,
@@ -4426,10 +4441,15 @@ class MobileArchivePrintEntry {
   });
 
   factory MobileArchivePrintEntry.fromJson(Map<String, dynamic> json) {
+    final qty = (json['qty'] as num?)?.toDouble() ?? 0;
+    final netQty = (json['net_qty'] as num?)?.toDouble() ?? qty;
+    final grossQty = (json['gross_qty'] as num?)?.toDouble() ?? netQty;
     return MobileArchivePrintEntry(
       itemCode: _text(json['item_code']),
       itemName: _text(json['item_name']),
-      qty: (json['qty'] as num?)?.toDouble() ?? 0,
+      qty: qty,
+      grossQty: grossQty,
+      netQty: netQty,
       unit: _text(json['unit'], fallback: 'kg'),
       printedAt: _text(json['printed_at']),
       draftName: _text(json['draft_name']),
@@ -4440,6 +4460,8 @@ class MobileArchivePrintEntry {
   final String itemCode;
   final String itemName;
   final double qty;
+  final double grossQty;
+  final double netQty;
   final String unit;
   final String printedAt;
   final String draftName;
@@ -4456,7 +4478,11 @@ class MobileArchiveSession {
     required this.startedAt,
     required this.endedAt,
     required this.totalQty,
+    required this.grossQty,
+    required this.netQty,
     required this.unit,
+    required this.tareEnabled,
+    required this.tareKg,
     required this.printCount,
     required this.prints,
   });
@@ -4473,7 +4499,11 @@ class MobileArchiveSession {
       startedAt: _text(json['started_at']),
       endedAt: _text(json['ended_at']),
       totalQty: (json['total_qty'] as num?)?.toDouble() ?? 0,
+      grossQty: (json['gross_qty'] as num?)?.toDouble() ?? 0,
+      netQty: (json['net_qty'] as num?)?.toDouble() ?? 0,
       unit: _text(json['unit'], fallback: 'kg'),
+      tareEnabled: json['tare_enabled'] == true,
+      tareKg: (json['tare_kg'] as num?)?.toDouble() ?? 0,
       printCount: (json['print_count'] as num?)?.toInt() ?? rawPrints.length,
       prints: rawPrints
           .map(MobileArchivePrintEntry.fromJson)
@@ -4489,7 +4519,11 @@ class MobileArchiveSession {
   final String startedAt;
   final String endedAt;
   final double totalQty;
+  final double grossQty;
+  final double netQty;
   final String unit;
+  final bool tareEnabled;
+  final double tareKg;
   final int printCount;
   final List<MobileArchivePrintEntry> prints;
 

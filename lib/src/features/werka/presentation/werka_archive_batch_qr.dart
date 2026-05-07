@@ -6,6 +6,10 @@ class WerkaArchiveBatchQrPayload {
     required this.itemName,
     required this.qtyText,
     required this.qty,
+    required this.bruttoText,
+    required this.bruttoQty,
+    required this.nettoText,
+    required this.nettoQty,
     required this.batchTime,
     required this.rawValue,
   });
@@ -14,6 +18,10 @@ class WerkaArchiveBatchQrPayload {
   final String itemName;
   final String qtyText;
   final double qty;
+  final String bruttoText;
+  final double bruttoQty;
+  final String nettoText;
+  final double nettoQty;
   final String batchTime;
   final String rawValue;
 
@@ -39,8 +47,13 @@ class WerkaArchiveBatchQrPayload {
       return null;
     }
 
-    final qtyText = lines[3];
-    final qty = double.tryParse(qtyText.replaceAll(',', '.')) ?? 0;
+    final hasSeparatedWeights = lines.length >= 6;
+    final bruttoText = hasSeparatedWeights ? lines[3] : lines[3];
+    final nettoText = hasSeparatedWeights ? lines[4] : lines[3];
+    final qtyText = nettoText;
+    final qty = _parseQty(qtyText);
+    final bruttoQty = _parseQty(bruttoText);
+    final nettoQty = _parseQty(nettoText);
     if (qty <= 0) {
       return null;
     }
@@ -50,9 +63,21 @@ class WerkaArchiveBatchQrPayload {
       itemName: lines[2],
       qtyText: qtyText,
       qty: qty,
-      batchTime: lines[4],
+      bruttoText: bruttoText,
+      bruttoQty: bruttoQty > 0 ? bruttoQty : qty,
+      nettoText: nettoText,
+      nettoQty: nettoQty > 0 ? nettoQty : qty,
+      batchTime: hasSeparatedWeights ? lines[5] : lines[4],
       rawValue: raw,
     );
+  }
+
+  static double _parseQty(String text) {
+    final normalized = text
+        .trim()
+        .replaceAll(',', '.')
+        .replaceAll(RegExp(r'[^0-9.\-]'), '');
+    return double.tryParse(normalized) ?? 0;
   }
 
   static String? _archiveEncodedPayload(String raw) {
