@@ -1,3 +1,4 @@
+import 'package:erpnext_stock_mobile/src/app/app_router.dart';
 import 'package:erpnext_stock_mobile/src/core/localization/app_localizations.dart';
 import 'package:erpnext_stock_mobile/src/features/werka/presentation/widgets/werka_create_hub_sheet.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,7 @@ void main() {
     expect(find.byIcon(Icons.add_rounded), findsOneWidget);
   });
 
-  testWidgets('Werka create hub keeps the original 3-card stack',
+  testWidgets('Werka create hub keeps the ordered action stack',
       (tester) async {
     await tester.pumpWidget(
       _wrap(
@@ -75,13 +76,19 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
 
-    final bottom = find.byKey(const ValueKey('werka-hub-batch-dispatch'));
-    final middle = find.byKey(const ValueKey('werka-hub-customer-issue'));
-    final top = find.byKey(const ValueKey('werka-hub-unannounced'));
-
-    expect(bottom, findsOneWidget);
-    expect(middle, findsOneWidget);
-    expect(top, findsOneWidget);
+    final orderedKeys = [
+      const ValueKey('werka-hub-unannounced'),
+      const ValueKey('werka-hub-qr-scan'),
+      const ValueKey('werka-hub-gscale-mode'),
+      const ValueKey('werka-hub-customer-issue'),
+      const ValueKey('werka-hub-batch-dispatch'),
+    ];
+    final orderedFinders = [
+      for (final key in orderedKeys) find.byKey(key),
+    ];
+    for (final finder in orderedFinders) {
+      expect(finder, findsOneWidget);
+    }
 
     final toggleSize =
         tester.getSize(find.byKey(const ValueKey('werka-hub-toggle-button')));
@@ -89,30 +96,58 @@ void main() {
     expect(toggleSize.height, closeTo(56, 1.5));
     expect(find.byIcon(Icons.close_rounded), findsOneWidget);
 
-    final bottomWidth = tester.getSize(bottom).width;
-    final middleWidth = tester.getSize(middle).width;
-    final topWidth = tester.getSize(top).width;
-    expect(bottomWidth, isNot(equals(middleWidth)));
-    expect(topWidth, isNot(equals(bottomWidth)));
+    final centers = [
+      for (final finder in orderedFinders) tester.getCenter(finder),
+    ];
+    for (var i = 1; i < centers.length; i++) {
+      expect(
+        centers[i].dy - centers[i - 1].dy,
+        inInclusiveRange(60.0, 68.0),
+      );
+    }
 
-    final bottomCenter = tester.getCenter(bottom);
-    final middleCenter = tester.getCenter(middle);
-    final topCenter = tester.getCenter(top);
-    expect(
-      bottomCenter.dy - middleCenter.dy,
-      inInclusiveRange(60.0, 68.0),
+    final bottomRect = tester.getRect(
+      find.byKey(const ValueKey('werka-hub-batch-dispatch')),
     );
-    expect(
-      middleCenter.dy - topCenter.dy,
-      inInclusiveRange(60.0, 68.0),
+    final toggleRect = tester.getRect(
+      find.byKey(const ValueKey('werka-hub-toggle-button')),
     );
-
-    final bottomRect = tester.getRect(bottom);
-    final toggleRect =
-        tester.getRect(find.byKey(const ValueKey('werka-hub-toggle-button')));
     expect(
       toggleRect.top - bottomRect.bottom,
       inInclusiveRange(8.0, 14.0),
+    );
+  });
+
+  testWidgets('Werka create hub exposes GScale switch action', (tester) async {
+    final observer = _TestNavigatorObserver();
+
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showWerkaCreateHubSheet(context);
+            });
+            return const SizedBox.shrink();
+          },
+        ),
+        navigatorObservers: [observer],
+      ),
+    );
+
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    final switchFinder = find.byKey(const ValueKey('werka-hub-gscale-mode'));
+    expect(switchFinder, findsOneWidget);
+    expect(find.text('Switch'), findsOneWidget);
+
+    await tester.tap(switchFinder);
+    await tester.pumpAndSettle();
+
+    expect(
+      observer.pushedRouteNames,
+      contains(AppRoutes.gscaleMode),
     );
   });
 
@@ -242,4 +277,14 @@ void main() {
     expect(
         find.byKey(const ValueKey('werka-hub-batch-dispatch')), findsOneWidget);
   });
+}
+
+class _TestNavigatorObserver extends NavigatorObserver {
+  final List<String?> pushedRouteNames = <String?>[];
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushedRouteNames.add(route.settings.name);
+    super.didPush(route, previousRoute);
+  }
 }

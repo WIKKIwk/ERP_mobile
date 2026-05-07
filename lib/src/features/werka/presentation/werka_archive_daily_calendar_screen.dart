@@ -207,7 +207,7 @@ class _WerkaArchiveDailyCalendarScreenState
             margin: EdgeInsets.zero,
             color: scheme.surfaceContainerLow,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
@@ -217,7 +217,7 @@ class _WerkaArchiveDailyCalendarScreenState
                   Container(
                     decoration: BoxDecoration(
                       color: scheme.surface.withValues(alpha: 0.28),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: scheme.outlineVariant.withValues(alpha: 0.40),
                       ),

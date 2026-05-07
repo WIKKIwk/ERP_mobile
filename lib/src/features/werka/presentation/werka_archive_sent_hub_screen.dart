@@ -271,6 +271,7 @@ class _WerkaArchiveSentHubScreenState extends State<WerkaArchiveSentHubScreen> {
     return AppShell(
       title: l10n.archiveSentTitle,
       subtitle: l10n.archiveChoosePeriod,
+      nativeTopBar: true,
       leading: NativeBackButtonSlot(
         onPressed: () => Navigator.of(context).maybePop(),
       ),
@@ -515,83 +516,76 @@ class _SentArchiveExpandableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color: scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: scheme.surface.withValues(alpha: 0.28),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.40),
-                ),
-              ),
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.40),
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              value,
-                              style: AppTheme.archiveSelectionValueStyle(
-                                context,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      FilledButton.tonalIcon(
-                        onPressed: onToggle,
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 48),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
-                        icon: Icon(
-                          open
-                              ? Icons.keyboard_arrow_up_rounded
-                              : Icons.calendar_month_outlined,
+                        const SizedBox(height: 4),
+                        Text(
+                          value,
+                          style: AppTheme.archiveSelectionValueStyle(
+                            context,
+                          ),
                         ),
-                        label: Text(actionLabel),
-                      ),
-                    ],
-                  ),
-                  _AnimatedSentCalendarReveal(
-                    open: open,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: topGap),
-                      child: child,
+                      ],
                     ),
+                  ),
+                  FilledButton.tonalIcon(
+                    onPressed: onToggle,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    icon: Icon(
+                      open
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.calendar_month_outlined,
+                    ),
+                    label: Text(actionLabel),
                   ),
                 ],
               ),
-            ),
-          ],
+              _AnimatedSentCalendarReveal(
+                open: open,
+                child: Padding(
+                  padding: EdgeInsets.only(top: topGap),
+                  child: child,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -648,7 +642,7 @@ class _SentHubMonthCell extends StatelessWidget {
         color: active
             ? scheme.primaryContainer
             : scheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(8),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
@@ -656,7 +650,7 @@ class _SentHubMonthCell extends StatelessWidget {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(8),
               border:
                   active ? Border.all(color: scheme.primary, width: 1.2) : null,
             ),
@@ -700,7 +694,7 @@ class _SentHubYearCell extends StatelessWidget {
         color: active
             ? scheme.primaryContainer
             : scheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(8),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
@@ -708,7 +702,7 @@ class _SentHubYearCell extends StatelessWidget {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(8),
               border:
                   active ? Border.all(color: scheme.primary, width: 1.2) : null,
             ),

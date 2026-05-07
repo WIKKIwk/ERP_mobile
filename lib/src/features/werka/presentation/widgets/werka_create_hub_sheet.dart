@@ -264,39 +264,47 @@ class _WerkaCreateHubOverlayState extends State<_WerkaCreateHubOverlay>
 
   List<_WerkaHubAction> _actions(BuildContext context) {
     final l10n = context.l10n;
-    const n = 4;
+    const n = 5;
     return [
-      _WerkaHubAction(
-        key: const ValueKey('werka-hub-qr-scan'),
-        title: 'QR scan',
-        icon: Icons.qr_code_scanner_rounded,
-        routeName: AppRoutes.werkaStockEntryQrScan,
-        row: 0,
-        staggerOrder: n - 1 - 0,
-      ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-unannounced'),
         title: l10n.unannouncedTitle,
         icon: Icons.inventory_2_outlined,
         routeName: AppRoutes.werkaUnannouncedSupplier,
+        row: 0,
+        staggerOrder: n - 1 - 0,
+      ),
+      _WerkaHubAction(
+        key: const ValueKey('werka-hub-qr-scan'),
+        title: 'QR scan',
+        icon: Icons.qr_code_scanner_rounded,
+        routeName: AppRoutes.werkaStockEntryQrScan,
         row: 1,
         staggerOrder: n - 1 - 1,
+      ),
+      _WerkaHubAction(
+        key: const ValueKey('werka-hub-gscale-mode'),
+        title: 'Switch',
+        icon: Icons.swap_horiz_rounded,
+        routeName: AppRoutes.gscaleMode,
+        row: 2,
+        staggerOrder: n - 1 - 2,
       ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-customer-issue'),
         title: l10n.customerIssueTitle,
         icon: Icons.send_outlined,
         routeName: AppRoutes.werkaCustomerIssueCustomer,
-        row: 2,
-        staggerOrder: n - 1 - 2,
+        row: 3,
+        staggerOrder: n - 1 - 3,
       ),
       _WerkaHubAction(
         key: const ValueKey('werka-hub-batch-dispatch'),
         title: l10n.batchDispatchTitle,
         icon: Icons.playlist_add_check_rounded,
         routeName: AppRoutes.werkaBatchDispatch,
-        row: 3,
-        staggerOrder: n - 1 - 3,
+        row: 4,
+        staggerOrder: n - 1 - 4,
       ),
     ];
   }
@@ -625,6 +633,8 @@ class _WerkaMorphFabButton extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               child: InkWell(
                 customBorder: shape,
+                splashColor: scheme.primary.withValues(alpha: 0.14),
+                highlightColor: scheme.primary.withValues(alpha: 0.08),
                 onTap: onTap,
                 child: SizedBox.expand(
                   child: Stack(

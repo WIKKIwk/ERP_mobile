@@ -341,6 +341,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
         leading: const _NotificationBackButton(),
         title: 'Batafsil',
         subtitle: '',
+        nativeTopBar: true,
         bottom: role == UserRole.supplier
             ? const SupplierDock(activeTab: null)
             : role == UserRole.werka
@@ -353,6 +354,7 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
       leading: const _NotificationBackButton(),
       title: 'Batafsil',
       subtitle: '',
+      nativeTopBar: true,
       contentPadding: const EdgeInsets.fromLTRB(12, 0, 14, 0),
       bottom: role == UserRole.supplier
           ? const SupplierDock(activeTab: null)
@@ -426,15 +428,15 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
               children: [
-                _NotificationSummaryCard(record: record),
+                _NotificationSummarySection(record: record),
                 if (record.note.trim().isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  _NotificationNoteCard(note: record.note),
+                  _NotificationNoteSection(note: record.note),
                 ],
                 if (isSupplierAckEvent &&
                     record.highlight.trim().isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  _NotificationNoteCard(
+                  _NotificationNoteSection(
                     note: record.highlight,
                     emphasized: true,
                   ),
@@ -444,6 +446,11 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                       onPressed: () => Navigator.of(context).pushNamed(
                         AppRoutes.werkaDetail,
                         arguments: record,
@@ -552,41 +559,45 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                   ),
                   const SizedBox(height: 12),
                   if (detail.comments.isEmpty)
-                    const Card.filled(
-                      margin: EdgeInsets.zero,
-                      child: Padding(
-                        padding: EdgeInsets.all(18),
-                        child: Text('Hozircha izoh yo‘q.'),
-                      ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 2),
+                      child: Text('Hozircha izoh yo‘q.'),
                     )
                   else
                     ...detail.comments.map(
                       (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Card.filled(
-                          margin: EdgeInsets.zero,
-                          child: Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.authorLabel,
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  item.body,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  item.createdLabel,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 10,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.authorLabel,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                item.body,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                item.createdLabel,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 10),
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: Theme.of(context)
+                                    .dividerColor
+                                    .withValues(alpha: 0.45),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -634,8 +645,8 @@ class _NotificationBackButton extends StatelessWidget {
   }
 }
 
-class _NotificationSummaryCard extends StatelessWidget {
-  const _NotificationSummaryCard({
+class _NotificationSummarySection extends StatelessWidget {
+  const _NotificationSummarySection({
     required this.record,
   });
 
@@ -657,66 +668,60 @@ class _NotificationSummaryCard extends StatelessWidget {
         value: '${record.acceptedQty.toStringAsFixed(2)} ${record.uom}',
       ),
     ];
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color: scheme.surfaceContainerLow,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    record.supplierName,
-                    style: theme.textTheme.headlineMedium,
-                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  record.supplierName,
+                  style: theme.textTheme.headlineMedium,
                 ),
-                _DetailStatusChip(label: _statusLabel(record.status)),
+              ),
+              _DetailStatusChip(label: _statusLabel(record.status)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Container(
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerLow.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.45),
+              ),
+            ),
+            child: Column(
+              children: [
+                for (int index = 0; index < detailRows.length; index++) ...[
+                  _NotificationInfoRow(
+                    label: detailRows[index].label,
+                    value: detailRows[index].value,
+                    isFirst: index == 0,
+                    isLast: index == detailRows.length - 1,
+                  ),
+                  if (index != detailRows.length - 1)
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: scheme.outlineVariant.withValues(alpha: 0.40),
+                    ),
+                ],
               ],
             ),
-            const SizedBox(height: 18),
-            Card.filled(
-              margin: EdgeInsets.zero,
-              color: scheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                children: [
-                  for (int index = 0; index < detailRows.length; index++) ...[
-                    _NotificationInfoRow(
-                      label: detailRows[index].label,
-                      value: detailRows[index].value,
-                      isFirst: index == 0,
-                      isLast: index == detailRows.length - 1,
-                    ),
-                    if (index != detailRows.length - 1)
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: scheme.outlineVariant.withValues(alpha: 0.55),
-                      ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _NotificationNoteCard extends StatelessWidget {
-  const _NotificationNoteCard({
+class _NotificationNoteSection extends StatelessWidget {
+  const _NotificationNoteSection({
     required this.note,
     this.emphasized = false,
   });
@@ -727,15 +732,22 @@ class _NotificationNoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      color:
-          emphasized ? scheme.secondaryContainer : scheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Padding(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: emphasized
+              ? scheme.secondaryContainer.withValues(alpha: 0.72)
+              : scheme.surfaceContainerLow.withValues(alpha: 0.60),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: emphasized
+                ? scheme.secondary.withValues(alpha: 0.22)
+                : scheme.outlineVariant.withValues(alpha: 0.38),
+          ),
+        ),
         child: Text(
           note,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(

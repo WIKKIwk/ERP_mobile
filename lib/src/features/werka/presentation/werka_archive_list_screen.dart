@@ -355,6 +355,7 @@ class _WerkaArchiveListScreenState extends State<WerkaArchiveListScreen> {
     return AppShell(
       title: title,
       subtitle: _subtitle(context),
+      nativeTopBar: true,
       actions: [
         IconButton.filledTonal(
           onPressed: (_data?.items.isNotEmpty ?? false) && !_downloading
