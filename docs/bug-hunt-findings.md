@@ -147,8 +147,10 @@ Throttle unsupported QR feedback, or temporarily pause detection after an unsupp
 
 Severity: Low
 
-Current behavior:
-Analyzer reports deprecated uses such as `MaterialStateProperty`, `MaterialState`, and `onPopInvoked`.
+Status: Fixed in working tree. GScale now uses `WidgetStateProperty`, `WidgetState`, and `onPopInvokedWithResult`.
+
+Previous behavior:
+Analyzer reported deprecated uses such as `MaterialStateProperty`, `MaterialState`, and `onPopInvoked`.
 
 Risk:
 The app still works, but future Flutter upgrades may increase warnings or require changes.

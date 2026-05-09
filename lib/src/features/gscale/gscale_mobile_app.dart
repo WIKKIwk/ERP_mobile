@@ -277,7 +277,7 @@ class _ServerPickerPageState extends State<ServerPickerPage> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, _) {
         if (!didPop) {
           unawaited(_confirmExitAndClose());
         }
@@ -454,26 +454,26 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
   ButtonStyle _segmentStyle(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return ButtonStyle(
-      padding: const MaterialStatePropertyAll(
+      padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      shape: MaterialStatePropertyAll(
+      shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      side: MaterialStatePropertyAll(
+      side: WidgetStatePropertyAll(
         BorderSide(color: scheme.outlineVariant, width: 1),
       ),
-      backgroundColor: MaterialStateProperty.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
           return scheme.primaryContainer;
         }
         return scheme.surfaceContainerHighest.withValues(alpha: 0.22);
       }),
-      foregroundColor: MaterialStateProperty.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
           return scheme.onPrimaryContainer;
         }
         return scheme.onSurfaceVariant;
@@ -1541,7 +1541,7 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, _) {
         if (!didPop) {
           widget.onChangeServer();
         }
