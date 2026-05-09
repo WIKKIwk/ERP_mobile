@@ -12,6 +12,7 @@ import '../../../core/widgets/shell/app_shell.dart';
 import '../../shared/models/app_models.dart';
 import '../../shared/models/stock_entry_lookup.dart';
 import 'werka_success_screen.dart';
+import 'widgets/m3_picker_sheet.dart';
 import 'package:flutter/material.dart';
 
 class WerkaStockEntryLookupArgs {
@@ -113,10 +114,11 @@ class _WerkaStockEntryLookupScreenState
 
   Future<void> _createCustomerIssueFromEntry(
     StockEntryBarcodeEntry entry,
+    CustomerDirectoryEntry customer,
   ) async {
     final l10n = context.l10n;
     final itemCode = entry.itemCode.trim();
-    if (itemCode.isEmpty || entry.qty <= 0) {
+    if (itemCode.isEmpty || entry.qty <= 0 || customer.ref.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.qtyRequired)),
       );
@@ -126,27 +128,15 @@ class _WerkaStockEntryLookupScreenState
     final key = _entryKey(entry);
     setState(() => _submittingEntryKey = key);
     try {
-      final customers = await MobileApi.instance.werkaCustomersForItem(
-        itemCode: itemCode,
-        itemName: entry.itemName,
-        limit: 200,
-        offset: 0,
-      );
-      final customer = preferPrimaryCustomer<CustomerDirectoryEntry>(
-        customers,
-        customerName: (item) => item.name,
-      );
-      if (customer == null) {
-        throw const MobileApiException(
-          code: 'customer_not_found',
-          message: 'Customer not found',
-        );
-      }
-
       final created = await MobileApi.instance.createWerkaCustomerIssue(
         customerRef: customer.ref,
         itemCode: itemCode,
         qty: entry.qty,
+        sourceBarcode: entry.barcode.trim().isNotEmpty
+            ? entry.barcode
+            : widget.args.scannedBarcode,
+        sourceStockEntryName: entry.stockEntryName,
+        sourceLineIndex: entry.lineIndex,
       );
       await SearchActivityStore.instance.recordItemSelection(created.itemCode);
       if (!mounted) {
@@ -185,12 +175,16 @@ class _WerkaStockEntryLookupScreenState
       if (!mounted) {
         return;
       }
-      final message = error is MobileApiException &&
-              error.code == 'insufficient_stock'
-          ? l10n.insufficientStockMessage
-          : error is MobileApiException && error.code == 'customer_not_found'
-              ? 'Bu mahsulot uchun customer topilmadi.'
-              : l10n.customerIssueFailed(error);
+      final message =
+          error is MobileApiException && error.code == 'insufficient_stock'
+              ? l10n.insufficientStockMessage
+              : error is MobileApiException &&
+                      error.code == 'duplicate_customer_issue_source'
+                  ? 'Bu QR oldin customerga jo‘natilgan.'
+                  : error is MobileApiException &&
+                          error.code == 'customer_not_found'
+                      ? 'Bu mahsulot uchun customer topilmadi.'
+                      : l10n.customerIssueFailed(error);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -467,8 +461,10 @@ class _ResultView extends StatelessWidget {
   final String Function(String source, String target) warehouseText;
   final String Function(StockEntryBarcodeEntry entry) entryKey;
   final String? submittingEntryKey;
-  final Future<void> Function(StockEntryBarcodeEntry entry)
-      onCreateCustomerIssue;
+  final Future<void> Function(
+    StockEntryBarcodeEntry entry,
+    CustomerDirectoryEntry customer,
+  ) onCreateCustomerIssue;
 
   @override
   Widget build(BuildContext context) {
@@ -595,7 +591,7 @@ class _LookupSummary extends StatelessWidget {
   }
 }
 
-class _LookupEntryPanel extends StatelessWidget {
+class _LookupEntryPanel extends StatefulWidget {
   const _LookupEntryPanel({
     required this.entry,
     required this.formatQty,
@@ -610,11 +606,130 @@ class _LookupEntryPanel extends StatelessWidget {
   final String Function(int value) docStatusLabel;
   final String Function(String source, String target) warehouseText;
   final bool isSubmitting;
-  final Future<void> Function(StockEntryBarcodeEntry entry)
-      onCreateCustomerIssue;
+  final Future<void> Function(
+    StockEntryBarcodeEntry entry,
+    CustomerDirectoryEntry customer,
+  ) onCreateCustomerIssue;
+
+  @override
+  State<_LookupEntryPanel> createState() => _LookupEntryPanelState();
+}
+
+class _LookupEntryPanelState extends State<_LookupEntryPanel> {
+  CustomerDirectoryEntry? _selectedCustomer;
+  bool _loadingCustomer = true;
+  Object? _customerError;
+  int _customerGeneration = 0;
+
+  StockEntryBarcodeEntry get entry => widget.entry;
 
   bool get _canCreateCustomerIssue {
-    return entry.itemCode.trim().isNotEmpty && entry.qty > 0;
+    return entry.itemCode.trim().isNotEmpty &&
+        entry.qty > 0 &&
+        _selectedCustomer != null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadDefaultCustomer());
+  }
+
+  @override
+  void didUpdateWidget(covariant _LookupEntryPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.entry.itemCode != widget.entry.itemCode ||
+        oldWidget.entry.itemName != widget.entry.itemName ||
+        oldWidget.entry.lineIndex != widget.entry.lineIndex) {
+      _selectedCustomer = null;
+      unawaited(_loadDefaultCustomer());
+    }
+  }
+
+  Future<void> _loadDefaultCustomer() async {
+    final itemCode = entry.itemCode.trim();
+    final generation = ++_customerGeneration;
+    if (itemCode.isEmpty) {
+      setState(() {
+        _loadingCustomer = false;
+        _customerError = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _loadingCustomer = true;
+      _customerError = null;
+    });
+    try {
+      final customers = await MobileApi.instance.werkaCustomersForItem(
+        itemCode: itemCode,
+        itemName: entry.itemName,
+        limit: 200,
+        offset: 0,
+      );
+      final customer = preferPrimaryCustomer<CustomerDirectoryEntry>(
+        customers,
+        customerName: (item) => item.name,
+      );
+      if (!mounted || generation != _customerGeneration) {
+        return;
+      }
+      setState(() {
+        _selectedCustomer = customer;
+        _loadingCustomer = false;
+      });
+    } catch (error) {
+      if (!mounted || generation != _customerGeneration) {
+        return;
+      }
+      setState(() {
+        _customerError = error;
+        _loadingCustomer = false;
+      });
+    }
+  }
+
+  Future<void> _pickCustomer() async {
+    if (widget.isSubmitting || entry.itemCode.trim().isEmpty) {
+      return;
+    }
+
+    final picked = await showModalBottomSheet<CustomerDirectoryEntry>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      sheetAnimationStyle: kM3PickerSheetAnimation,
+      builder: (context) {
+        return M3AsyncPickerSheet<CustomerDirectoryEntry>(
+          title: context.l10n.selectCustomer,
+          supportingText: entry.itemName,
+          hintText: context.l10n.searchCustomer,
+          loadPage: (query, offset, limit) =>
+              MobileApi.instance.werkaCustomersForItem(
+            itemCode: entry.itemCode,
+            itemName: entry.itemName,
+            query: query,
+            offset: offset,
+            limit: limit,
+          ),
+          itemTitle: (item) => item.name,
+          itemSubtitle: (item) => item.phone,
+          onSelected: (item) => Navigator.of(context).pop(item),
+        );
+      },
+    );
+    if (!mounted || picked == null) {
+      return;
+    }
+    setState(() {
+      _selectedCustomer = picked;
+      _customerError = null;
+      _loadingCustomer = false;
+    });
   }
 
   @override
@@ -622,6 +737,7 @@ class _LookupEntryPanel extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final itemTitle = entry.itemName.isEmpty ? entry.itemCode : entry.itemName;
+    final customer = _selectedCustomer;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLow,
@@ -661,7 +777,7 @@ class _LookupEntryPanel extends StatelessWidget {
                   ),
                 ),
                 _StatusBadge(
-                  label: docStatusLabel(entry.docStatus),
+                  label: widget.docStatusLabel(entry.docStatus),
                 ),
               ],
             ),
@@ -671,7 +787,7 @@ class _LookupEntryPanel extends StatelessWidget {
                 Expanded(
                   child: _MetricTile(
                     label: 'Miqdor',
-                    value: '${formatQty(entry.qty)} ${entry.uom}',
+                    value: '${widget.formatQty(entry.qty)} ${entry.uom}',
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -679,7 +795,7 @@ class _LookupEntryPanel extends StatelessWidget {
                   child: _MetricTile(
                     label: 'Holat',
                     value: entry.status.trim().isEmpty
-                        ? docStatusLabel(entry.docStatus)
+                        ? widget.docStatusLabel(entry.docStatus)
                         : entry.status,
                   ),
                 ),
@@ -699,6 +815,18 @@ class _LookupEntryPanel extends StatelessWidget {
                 label: 'Kompaniya',
                 value: entry.company,
               ),
+            _InfoRow(
+              label: 'Haridor',
+              value: _customerLabel,
+              icon: Icons.person_outline_rounded,
+              onTap: _loadingCustomer ? null : _pickCustomer,
+              trailing: _loadingCustomer
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.expand_more_rounded),
+            ),
             if (entry.barcode.trim().isNotEmpty)
               _InfoRow(
                 label: 'Barcode',
@@ -709,7 +837,7 @@ class _LookupEntryPanel extends StatelessWidget {
                 entry.targetWarehouse.trim().isNotEmpty)
               _InfoRow(
                 label: 'Ombor',
-                value: warehouseText(
+                value: widget.warehouseText(
                   entry.sourceWarehouse,
                   entry.targetWarehouse,
                 ),
@@ -736,17 +864,21 @@ class _LookupEntryPanel extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: _canCreateCustomerIssue && !isSubmitting
-                    ? () => unawaited(onCreateCustomerIssue(entry))
+                onPressed: _canCreateCustomerIssue && !widget.isSubmitting
+                    ? () => unawaited(
+                          widget.onCreateCustomerIssue(entry, customer!),
+                        )
                     : null,
-                icon: isSubmitting
+                icon: widget.isSubmitting
                     ? const SizedBox.square(
                         dimension: 18,
                         child: CircularProgressIndicator(strokeWidth: 2.4),
                       )
                     : const Icon(Icons.local_shipping_outlined),
                 label: Text(
-                  isSubmitting ? 'Jo‘natilmoqda...' : 'Customerga jo‘natish',
+                  widget.isSubmitting
+                      ? 'Jo‘natilmoqda...'
+                      : 'Customerga jo‘natish',
                 ),
               ),
             ),
@@ -754,6 +886,20 @@ class _LookupEntryPanel extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String get _customerLabel {
+    if (_loadingCustomer) {
+      return 'Haridor qidirilmoqda...';
+    }
+    final customer = _selectedCustomer;
+    if (customer != null && customer.name.trim().isNotEmpty) {
+      return customer.name;
+    }
+    if (_customerError != null) {
+      return 'Haridorni yuklab bo‘lmadi';
+    }
+    return 'Haridor topilmadi';
   }
 }
 
@@ -843,12 +989,16 @@ class _InfoRow extends StatelessWidget {
     required this.value,
     this.icon,
     this.selectable = false,
+    this.trailing,
+    this.onTap,
   });
 
   final String label;
   final String value;
   final IconData? icon;
   final bool selectable;
+  final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -858,8 +1008,11 @@ class _InfoRow extends StatelessWidget {
     final valueStyle = theme.textTheme.bodyMedium?.copyWith(
       fontWeight: FontWeight.w700,
     );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
+    final child = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: onTap == null ? 0 : 10,
+        vertical: 7,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -894,7 +1047,32 @@ class _InfoRow extends StatelessWidget {
                     style: valueStyle,
                   ),
           ),
+          if (trailing != null) ...[
+            const SizedBox(width: 6),
+            IconTheme.merge(
+              data: IconThemeData(
+                color: scheme.onSurfaceVariant,
+                size: 20,
+              ),
+              child: trailing!,
+            ),
+          ],
         ],
+      ),
+    );
+    if (onTap == null) {
+      return child;
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: child,
+        ),
       ),
     );
   }

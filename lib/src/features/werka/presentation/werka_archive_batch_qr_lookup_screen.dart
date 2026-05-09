@@ -1,5 +1,6 @@
 import '../../../app/app_router.dart';
 import '../../../core/api/mobile_api.dart';
+import '../../../core/customer/customer_priority.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/notifications/hub/refresh_hub.dart';
 import '../../../core/notifications/store/werka_runtime_store.dart';
@@ -10,6 +11,49 @@ import '../../shared/models/app_models.dart';
 import 'package:flutter/material.dart';
 import 'werka_archive_batch_qr.dart';
 import 'werka_success_screen.dart';
+import 'widgets/m3_picker_sheet.dart';
+
+CustomerItemOption? resolveExactArchiveBatchItemOption(
+  String itemName,
+  List<CustomerItemOption> options,
+) {
+  final normalizedItem = _normalizeArchiveBatchItem(itemName);
+  if (normalizedItem.isEmpty) {
+    return null;
+  }
+  for (final option in options) {
+    if (_normalizeArchiveBatchItem(option.itemName) == normalizedItem ||
+        _normalizeArchiveBatchItem(option.itemCode) == normalizedItem) {
+      return option;
+    }
+  }
+  return null;
+}
+
+String _normalizeArchiveBatchItem(String value) {
+  return value.trim().toLowerCase();
+}
+
+CustomerDirectoryEntry archiveBatchCustomerFromOption(
+  CustomerItemOption option,
+) {
+  return CustomerDirectoryEntry(
+    ref: option.customerRef,
+    name: option.customerName,
+    phone: option.customerPhone,
+  );
+}
+
+CustomerDirectoryEntry resolveArchiveBatchDefaultCustomer(
+  CustomerItemOption option,
+  List<CustomerDirectoryEntry> customers,
+) {
+  return preferPrimaryCustomer<CustomerDirectoryEntry>(
+        customers.where((item) => item.ref.trim().isNotEmpty),
+        customerName: (item) => item.name,
+      ) ??
+      archiveBatchCustomerFromOption(option);
+}
 
 class WerkaArchiveBatchQrLookupArgs {
   const WerkaArchiveBatchQrLookupArgs({
@@ -34,7 +78,8 @@ class WerkaArchiveBatchQrLookupScreen extends StatefulWidget {
 
 class _WerkaArchiveBatchQrLookupScreenState
     extends State<WerkaArchiveBatchQrLookupScreen> {
-  late Future<CustomerItemOption> _future;
+  late Future<_ArchiveBatchQrResolution> _future;
+  CustomerDirectoryEntry? _selectedCustomer;
   bool _submitting = false;
 
   @override
@@ -43,27 +88,34 @@ class _WerkaArchiveBatchQrLookupScreenState
     _future = _resolveItem();
   }
 
-  Future<CustomerItemOption> _resolveItem() async {
+  Future<_ArchiveBatchQrResolution> _resolveItem() async {
     final payload = widget.args.payload;
     final options = await MobileApi.instance.werkaCustomerItemOptions(
       query: payload.itemName,
       limit: 200,
     );
-    if (options.isEmpty) {
+    final option = resolveExactArchiveBatchItemOption(
+      payload.itemName,
+      options,
+    );
+    if (option == null) {
       throw StateError('batch_item_not_found');
     }
-
-    final normalizedItem = _normalize(payload.itemName);
-    return options.firstWhere(
-      (option) =>
-          _normalize(option.itemName) == normalizedItem ||
-          _normalize(option.itemCode) == normalizedItem,
-      orElse: () => options.first,
+    var customers = <CustomerDirectoryEntry>[];
+    try {
+      customers = await MobileApi.instance.werkaCustomersForItem(
+        itemCode: option.itemCode,
+        itemName: option.itemName,
+        limit: 200,
+        offset: 0,
+      );
+    } catch (_) {
+      customers = const <CustomerDirectoryEntry>[];
+    }
+    return _ArchiveBatchQrResolution(
+      option: option,
+      defaultCustomer: resolveArchiveBatchDefaultCustomer(option, customers),
     );
-  }
-
-  String _normalize(String value) {
-    return value.trim().toLowerCase();
   }
 
   String _formatQty(double qty) {
@@ -76,10 +128,51 @@ class _WerkaArchiveBatchQrLookupScreenState
         .replaceFirst(RegExp(r'\.$'), '');
   }
 
-  Future<void> _send(CustomerItemOption option) async {
+  Future<void> _pickCustomer(_ArchiveBatchQrResolution resolved) async {
+    if (_submitting) {
+      return;
+    }
+
+    final option = resolved.option;
+    final picked = await showModalBottomSheet<CustomerDirectoryEntry>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      sheetAnimationStyle: kM3PickerSheetAnimation,
+      builder: (context) {
+        return M3AsyncPickerSheet<CustomerDirectoryEntry>(
+          title: context.l10n.selectCustomer,
+          supportingText: option.itemName,
+          hintText: context.l10n.searchCustomer,
+          loadPage: (query, offset, limit) =>
+              MobileApi.instance.werkaCustomersForItem(
+            itemCode: option.itemCode,
+            itemName: option.itemName,
+            query: query,
+            offset: offset,
+            limit: limit,
+          ),
+          itemTitle: (item) => item.name,
+          itemSubtitle: (item) => item.phone,
+          onSelected: (item) => Navigator.of(context).pop(item),
+        );
+      },
+    );
+    if (picked == null || !mounted) {
+      return;
+    }
+    setState(() => _selectedCustomer = picked);
+  }
+
+  Future<void> _send(_ArchiveBatchQrResolution resolved) async {
+    final option = resolved.option;
+    final customer = _selectedCustomer ?? resolved.defaultCustomer;
     final payload = widget.args.payload;
     final l10n = context.l10n;
-    if (option.customerRef.trim().isEmpty || option.itemCode.trim().isEmpty) {
+    if (customer.ref.trim().isEmpty || option.itemCode.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Customer yoki mahsulot topilmadi.')),
       );
@@ -89,7 +182,7 @@ class _WerkaArchiveBatchQrLookupScreenState
     setState(() => _submitting = true);
     try {
       final created = await MobileApi.instance.createWerkaCustomerIssue(
-        customerRef: option.customerRef,
+        customerRef: customer.ref,
         itemCode: option.itemCode,
         qty: payload.qty,
       );
@@ -157,7 +250,7 @@ class _WerkaArchiveBatchQrLookupScreenState
       nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       contentPadding: EdgeInsets.zero,
       backgroundColor: scheme.surface,
-      child: FutureBuilder<CustomerItemOption>(
+      child: FutureBuilder<_ArchiveBatchQrResolution>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -189,25 +282,40 @@ class _WerkaArchiveBatchQrLookupScreenState
             );
           }
 
-          final option = snapshot.data!;
+          final resolved = snapshot.data!;
+          final option = resolved.option;
+          final selectedCustomer =
+              _selectedCustomer ?? resolved.defaultCustomer;
           return _ArchiveBatchQrPanel(
             payload: payload,
             title: option.itemName,
-            subtitle: option.customerName,
+            subtitle: selectedCustomer.name,
             trailing: Icon(
               Icons.check_circle_rounded,
               color: scheme.primary,
             ),
             formatQty: _formatQty,
             resolvedOption: option,
+            selectedCustomer: selectedCustomer,
+            onPickCustomer: () => _pickCustomer(resolved),
             isSubmitting: _submitting,
-            onSend: _submitting ? null : () => _send(option),
+            onSend: _submitting ? null : () => _send(resolved),
             showScanActions: true,
           );
         },
       ),
     );
   }
+}
+
+class _ArchiveBatchQrResolution {
+  const _ArchiveBatchQrResolution({
+    required this.option,
+    required this.defaultCustomer,
+  });
+
+  final CustomerItemOption option;
+  final CustomerDirectoryEntry defaultCustomer;
 }
 
 class _ArchiveBatchQrPanel extends StatelessWidget {
@@ -221,6 +329,8 @@ class _ArchiveBatchQrPanel extends StatelessWidget {
     this.isSubmitting = false,
     this.onSend,
     this.showScanActions = false,
+    this.selectedCustomer,
+    this.onPickCustomer,
   });
 
   final WerkaArchiveBatchQrPayload payload;
@@ -232,6 +342,8 @@ class _ArchiveBatchQrPanel extends StatelessWidget {
   final bool isSubmitting;
   final Future<void> Function()? onSend;
   final bool showScanActions;
+  final CustomerDirectoryEntry? selectedCustomer;
+  final VoidCallback? onPickCustomer;
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +418,14 @@ class _ArchiveBatchQrPanel extends StatelessWidget {
                   _InfoRow(label: 'Sana', value: payload.batchTime),
                 if (option != null)
                   _InfoRow(label: 'Kod', value: option.itemCode),
+                if (selectedCustomer != null)
+                  _InfoRow(
+                    label: 'Haridor',
+                    value: selectedCustomer!.name,
+                    icon: Icons.person_outline_rounded,
+                    onTap: onPickCustomer,
+                    trailing: const Icon(Icons.expand_more_rounded),
+                  ),
                 if (option?.warehouse.trim().isNotEmpty ?? false)
                   _InfoRow(
                     label: 'Ombor',
@@ -426,19 +546,26 @@ class _InfoRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.icon,
+    this.trailing,
+    this.onTap,
   });
 
   final String label;
   final String value;
   final IconData? icon;
+  final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final displayValue = value.trim().isEmpty ? '—' : value.trim();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
+    final child = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: onTap == null ? 0 : 10,
+        vertical: 7,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -465,12 +592,38 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               displayValue,
+              textAlign: trailing == null ? TextAlign.start : TextAlign.end,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
+          if (trailing != null) ...[
+            const SizedBox(width: 6),
+            IconTheme.merge(
+              data: IconThemeData(
+                color: scheme.onSurfaceVariant,
+                size: 20,
+              ),
+              child: trailing!,
+            ),
+          ],
         ],
+      ),
+    );
+    if (onTap == null) {
+      return child;
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: child,
+        ),
       ),
     );
   }

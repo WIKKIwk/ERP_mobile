@@ -379,6 +379,9 @@ extension MobileApiWerka on MobileApi {
     required String customerRef,
     required String itemCode,
     required double qty,
+    String sourceBarcode = '',
+    String sourceStockEntryName = '',
+    int sourceLineIndex = 0,
   }) async {
     final response = await _sendAuthorized(
       () => http.post(
@@ -389,6 +392,11 @@ extension MobileApiWerka on MobileApi {
           'customer_ref': customerRef,
           'item_code': itemCode,
           'qty': qty,
+          if (sourceBarcode.trim().isNotEmpty)
+            'source_barcode': sourceBarcode.trim(),
+          if (sourceStockEntryName.trim().isNotEmpty)
+            'source_stock_entry': sourceStockEntryName.trim(),
+          if (sourceLineIndex > 0) 'source_line_index': sourceLineIndex,
         }),
       ),
     );
@@ -402,6 +410,13 @@ extension MobileApiWerka on MobileApi {
         throw const MobileApiException(
           code: 'insufficient_stock',
           message: 'Insufficient stock',
+          statusCode: 409,
+        );
+      }
+      if (code == 'duplicate_customer_issue_source') {
+        throw const MobileApiException(
+          code: 'duplicate_customer_issue_source',
+          message: 'QR already dispatched',
           statusCode: 409,
         );
       }
