@@ -184,8 +184,10 @@ Add tests for exact item matching, preferred customer selection, and direct subm
 
 Severity: Low to Medium
 
-Current behavior:
-The QR result dispatch flow has no focused test proving that source barcode or stock entry metadata is preserved.
+Status: Fixed in working tree. QR result dispatch now has widget tests proving source metadata propagation, scanned-barcode fallback, and duplicate source feedback.
+
+Previous behavior:
+The QR result dispatch flow had no focused test proving that source barcode or stock entry metadata was preserved.
 
 Risk:
 Even after source tracking is added, a future change could silently remove it.

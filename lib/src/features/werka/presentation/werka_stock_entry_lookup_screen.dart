@@ -25,13 +25,85 @@ class WerkaStockEntryLookupArgs {
   final String rawValue;
 }
 
+abstract class WerkaStockEntryLookupApi {
+  Future<StockEntryBarcodeLookup> stockEntryLookup({
+    required String barcode,
+  });
+
+  Future<List<CustomerDirectoryEntry>> customersForItem({
+    required String itemCode,
+    required String itemName,
+    String query = '',
+    required int limit,
+    int offset = 0,
+  });
+
+  Future<WerkaCustomerIssueRecord> createCustomerIssue({
+    required String customerRef,
+    required String itemCode,
+    required double qty,
+    required String sourceBarcode,
+    required String sourceStockEntryName,
+    required int sourceLineIndex,
+  });
+}
+
+class MobileWerkaStockEntryLookupApi implements WerkaStockEntryLookupApi {
+  const MobileWerkaStockEntryLookupApi();
+
+  @override
+  Future<StockEntryBarcodeLookup> stockEntryLookup({
+    required String barcode,
+  }) {
+    return MobileApi.instance.werkaStockEntryLookup(barcode: barcode);
+  }
+
+  @override
+  Future<List<CustomerDirectoryEntry>> customersForItem({
+    required String itemCode,
+    required String itemName,
+    String query = '',
+    required int limit,
+    int offset = 0,
+  }) {
+    return MobileApi.instance.werkaCustomersForItem(
+      itemCode: itemCode,
+      itemName: itemName,
+      query: query,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  @override
+  Future<WerkaCustomerIssueRecord> createCustomerIssue({
+    required String customerRef,
+    required String itemCode,
+    required double qty,
+    required String sourceBarcode,
+    required String sourceStockEntryName,
+    required int sourceLineIndex,
+  }) {
+    return MobileApi.instance.createWerkaCustomerIssue(
+      customerRef: customerRef,
+      itemCode: itemCode,
+      qty: qty,
+      sourceBarcode: sourceBarcode,
+      sourceStockEntryName: sourceStockEntryName,
+      sourceLineIndex: sourceLineIndex,
+    );
+  }
+}
+
 class WerkaStockEntryLookupScreen extends StatefulWidget {
   const WerkaStockEntryLookupScreen({
     super.key,
     required this.args,
+    this.api = const MobileWerkaStockEntryLookupApi(),
   });
 
   final WerkaStockEntryLookupArgs args;
+  final WerkaStockEntryLookupApi api;
 
   @override
   State<WerkaStockEntryLookupScreen> createState() =>
@@ -51,7 +123,7 @@ class _WerkaStockEntryLookupScreenState
   }
 
   Future<StockEntryBarcodeLookup> _load() {
-    return MobileApi.instance.werkaStockEntryLookup(
+    return widget.api.stockEntryLookup(
       barcode: widget.args.scannedBarcode,
     );
   }
@@ -128,7 +200,7 @@ class _WerkaStockEntryLookupScreenState
     final key = _entryKey(entry);
     setState(() => _submittingEntryKey = key);
     try {
-      final created = await MobileApi.instance.createWerkaCustomerIssue(
+      final created = await widget.api.createCustomerIssue(
         customerRef: customer.ref,
         itemCode: itemCode,
         qty: entry.qty,
@@ -247,6 +319,7 @@ class _WerkaStockEntryLookupScreenState
             warehouseText: _warehouseText,
             submittingEntryKey: _submittingEntryKey,
             entryKey: _entryKey,
+            api: widget.api,
             onCreateCustomerIssue: _createCustomerIssueFromEntry,
           );
         },
@@ -451,11 +524,13 @@ class _ResultView extends StatelessWidget {
     required this.warehouseText,
     required this.submittingEntryKey,
     required this.entryKey,
+    required this.api,
     required this.onCreateCustomerIssue,
   });
 
   final StockEntryBarcodeLookup lookup;
   final WerkaStockEntryLookupArgs args;
+  final WerkaStockEntryLookupApi api;
   final String Function(double value) formatQty;
   final String Function(int value) docStatusLabel;
   final String Function(String source, String target) warehouseText;
@@ -485,6 +560,7 @@ class _ResultView extends StatelessWidget {
             formatQty: formatQty,
             docStatusLabel: docStatusLabel,
             warehouseText: warehouseText,
+            api: api,
             isSubmitting: submittingEntryKey == entryKey(lookup.entries[index]),
             onCreateCustomerIssue: onCreateCustomerIssue,
           ),
@@ -597,11 +673,13 @@ class _LookupEntryPanel extends StatefulWidget {
     required this.formatQty,
     required this.docStatusLabel,
     required this.warehouseText,
+    required this.api,
     required this.isSubmitting,
     required this.onCreateCustomerIssue,
   });
 
   final StockEntryBarcodeEntry entry;
+  final WerkaStockEntryLookupApi api;
   final String Function(double value) formatQty;
   final String Function(int value) docStatusLabel;
   final String Function(String source, String target) warehouseText;
@@ -662,7 +740,7 @@ class _LookupEntryPanelState extends State<_LookupEntryPanel> {
       _customerError = null;
     });
     try {
-      final customers = await MobileApi.instance.werkaCustomersForItem(
+      final customers = await widget.api.customersForItem(
         itemCode: itemCode,
         itemName: entry.itemName,
         limit: 200,
@@ -708,8 +786,7 @@ class _LookupEntryPanelState extends State<_LookupEntryPanel> {
           title: context.l10n.selectCustomer,
           supportingText: entry.itemName,
           hintText: context.l10n.searchCustomer,
-          loadPage: (query, offset, limit) =>
-              MobileApi.instance.werkaCustomersForItem(
+          loadPage: (query, offset, limit) => widget.api.customersForItem(
             itemCode: entry.itemCode,
             itemName: entry.itemName,
             query: query,
