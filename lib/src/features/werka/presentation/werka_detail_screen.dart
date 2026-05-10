@@ -438,7 +438,10 @@ class _QuantityFieldRow extends StatelessWidget {
           child: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              const _MaxNumericValueFormatter(100000),
+            ],
             textAlign: TextAlign.right,
             style: textTheme.headlineMedium?.copyWith(
               fontSize: 30,
@@ -464,14 +467,37 @@ class _QuantityFieldRow extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: Text(
             unit,
-            style: textTheme.titleMedium?.copyWith(
+            style: textTheme.titleLarge?.copyWith(
+              fontSize: 18,
               color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
       ],
     );
+  }
+}
+
+class _MaxNumericValueFormatter extends TextInputFormatter {
+  const _MaxNumericValueFormatter(this.maxValue);
+
+  final int maxValue;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    if (text.isEmpty) {
+      return newValue;
+    }
+    final value = int.tryParse(text);
+    if (value == null || value > maxValue) {
+      return oldValue;
+    }
+    return newValue;
   }
 }
 
