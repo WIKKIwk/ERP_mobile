@@ -41,8 +41,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
   @override
   void initState() {
     super.initState();
-    controller =
-        TextEditingController(text: widget.record.sentQty.toStringAsFixed(0));
+    controller = TextEditingController();
     returnedController = TextEditingController();
     returnCommentController = TextEditingController();
   }
@@ -226,7 +225,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
             unit: widget.record.uom,
             textTheme: textTheme,
             scheme: scheme,
-            hintText: '0',
+            hintText: '',
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -242,8 +241,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
                     showReturnFields = false;
                     returnedController.clear();
                   } else {
-                    controller.text = _acceptedQtyBeforeFullReturn ??
-                        widget.record.sentQty.toStringAsFixed(0);
+                    controller.text = _acceptedQtyBeforeFullReturn ?? '';
                     showReturnFields = false;
                   }
                 });
@@ -309,7 +307,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
               unit: widget.record.uom,
               textTheme: textTheme,
               scheme: scheme,
-              hintText: '0',
+              hintText: '',
               labelText: 'Qaytarilayotgan',
             ),
             const SizedBox(height: 18),
