@@ -61,6 +61,21 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
     return value.toStringAsFixed(2);
   }
 
+  void _toggleFullReturnMode() {
+    setState(() {
+      fullReturnMode = !fullReturnMode;
+      if (fullReturnMode) {
+        _acceptedQtyBeforeFullReturn = controller.text;
+        controller.text = '0';
+        showReturnFields = false;
+        returnedController.clear();
+        return;
+      }
+      controller.text = _acceptedQtyBeforeFullReturn ?? '';
+      showReturnFields = false;
+    });
+  }
+
   Future<void> _submit() async {
     final double acceptedQty =
         fullReturnMode ? 0.0 : (double.tryParse(controller.text.trim()) ?? 0.0);
@@ -228,33 +243,7 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
             hintText: '',
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              style: _outlinedActionStyle(scheme),
-              onPressed: () {
-                setState(() {
-                  fullReturnMode = !fullReturnMode;
-                  if (fullReturnMode) {
-                    _acceptedQtyBeforeFullReturn = controller.text;
-                    controller.text = '0';
-                    showReturnFields = false;
-                    returnedController.clear();
-                  } else {
-                    controller.text = _acceptedQtyBeforeFullReturn ?? '';
-                    showReturnFields = false;
-                  }
-                });
-              },
-              child: Text(
-                fullReturnMode
-                    ? 'Hammasini qaytarish tanlangan'
-                    : 'Hammasini qaytarish',
-              ),
-            ),
-          ),
           if (fullReturnMode) ...[
-            const SizedBox(height: 28),
             Text(
               'Sabab',
               style: textTheme.titleMedium,
@@ -345,16 +334,14 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              style: _filledActionStyle(scheme),
-              onPressed: submitting ? null : _submit,
-              child: Text(
-                submitting ? 'Saqlanmoqda...' : 'Yakunlash',
-              ),
-            ),
+          SizedBox(height: fullReturnMode || showReturnFields ? 28 : 0),
+          _ReceiptActionGroup(
+            fullReturnMode: fullReturnMode,
+            submitting: submitting,
+            scheme: scheme,
+            textTheme: textTheme,
+            onReturnPressed: _toggleFullReturnMode,
+            onSubmitPressed: _submit,
           ),
         ],
       ),
@@ -385,19 +372,127 @@ class _WerkaDetailScreenState extends State<WerkaDetailScreen> {
       ),
     );
   }
+}
 
-  ButtonStyle _outlinedActionStyle(ColorScheme scheme) {
-    return OutlinedButton.styleFrom(
-      minimumSize: const Size.fromHeight(56),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      side: BorderSide(color: scheme.outline),
+class _ReceiptActionGroup extends StatelessWidget {
+  const _ReceiptActionGroup({
+    required this.fullReturnMode,
+    required this.submitting,
+    required this.scheme,
+    required this.textTheme,
+    required this.onReturnPressed,
+    required this.onSubmitPressed,
+  });
+
+  final bool fullReturnMode;
+  final bool submitting;
+  final ColorScheme scheme;
+  final TextTheme textTheme;
+  final VoidCallback onReturnPressed;
+  final VoidCallback onSubmitPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = textTheme.labelLarge?.copyWith(
+      fontSize: 14,
+      fontWeight: FontWeight.w800,
+    );
+    return SizedBox(
+      height: 58,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 7,
+            child: _ReceiptActionSegment(
+              label: fullReturnMode
+                  ? 'Qaytarish tanlangan'
+                  : 'Hammasini qaytarish',
+              backgroundColor: fullReturnMode
+                  ? scheme.secondaryContainer
+                  : scheme.surfaceContainerHigh,
+              foregroundColor: fullReturnMode
+                  ? scheme.onSecondaryContainer
+                  : scheme.onSurface,
+              borderColor: scheme.outlineVariant,
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(18),
+                right: Radius.circular(6),
+              ),
+              textStyle: labelStyle,
+              onTap: submitting ? null : onReturnPressed,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            flex: 5,
+            child: _ReceiptActionSegment(
+              label: submitting ? 'Saqlanmoqda...' : 'Yakunlash',
+              backgroundColor: scheme.primary,
+              foregroundColor: scheme.onPrimary,
+              borderColor: scheme.primary,
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(6),
+                right: Radius.circular(18),
+              ),
+              textStyle: labelStyle,
+              onTap: submitting ? null : onSubmitPressed,
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  ButtonStyle _filledActionStyle(ColorScheme scheme) {
-    return FilledButton.styleFrom(
-      minimumSize: const Size.fromHeight(58),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+class _ReceiptActionSegment extends StatelessWidget {
+  const _ReceiptActionSegment({
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
+    required this.borderRadius,
+    required this.onTap,
+    this.textStyle,
+  });
+
+  final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+  final BorderRadius borderRadius;
+  final VoidCallback? onTap;
+  final TextStyle? textStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: onTap == null
+                ? backgroundColor.withValues(alpha: 0.56)
+                : backgroundColor,
+            borderRadius: borderRadius,
+            border: Border.all(color: borderColor),
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: textStyle?.copyWith(color: foregroundColor),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
