@@ -3,10 +3,11 @@ import '../../theme/app_theme.dart';
 import '../../native_back_button_bridge.dart';
 import '../../native_dock_bridge.dart';
 import '../display/shared_header_title.dart';
+import 'app_loading_indicator.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
-/// [AppShell] AppBar [bottom] va [AppRefreshIndicator] uchun bir xil chiziqli progress.
+/// [AppShell] AppBar [bottom] uchun chiziqli progress.
 Widget _appShellStyleLinearProgress(
   ThemeData theme, {
   double? value,
@@ -766,9 +767,10 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final progress = (_pullExtent / _triggerDistance).clamp(0.0, 1.0);
     final visible = _refreshing || _pullExtent > 0.0;
+    final indicatorScale = _refreshing ? 1.0 : (0.64 + (0.36 * progress));
+    final indicatorOpacity = _refreshing ? 1.0 : progress.clamp(0.0, 1.0);
     final contentTranslateY = _refreshing
         ? 0.0
         : _pullExtent.clamp(0.0, widget.displacement + 12.0).toDouble();
@@ -804,9 +806,28 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
                   child: AnimatedOpacity(
                     duration: AppMotion.fast,
                     opacity: visible ? 1 : 0,
-                    child: _appShellStyleLinearProgress(
-                      theme,
-                      value: _refreshing ? null : progress,
+                    child: Semantics(
+                      label: widget.semanticsLabel,
+                      value: widget.semanticsValue,
+                      child: SizedBox(
+                        height: widget.displacement + 28,
+                        child: Center(
+                          child: AnimatedScale(
+                            duration:
+                                _userPulling ? Duration.zero : AppMotion.fast,
+                            curve: AppMotion.emphasizedDecelerate,
+                            scale: indicatorScale,
+                            child: AnimatedOpacity(
+                              duration: AppMotion.fast,
+                              opacity: indicatorOpacity,
+                              child: const AppLoadingIndicator(
+                                size: 56,
+                                glyphSize: 30,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),

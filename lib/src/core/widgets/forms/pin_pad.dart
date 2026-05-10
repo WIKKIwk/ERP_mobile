@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import '../../theme/app_motion.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 
 class PinCodeEditor extends StatefulWidget {
@@ -419,36 +420,6 @@ class _PinGlyph extends StatelessWidget {
     return const CircleBorder();
   }
 
-  ShapeBorder _shapeAt(double t) {
-    if (t < 0.56) {
-      return _startShape();
-    }
-    if (t < 0.84) {
-      final local = AppMotion.emphasizedDecelerate
-          .transform(((t - 0.56) / 0.28).clamp(0.0, 1.0));
-      return ShapeBorder.lerp(_startShape(), _midShape(), local)!;
-    }
-    final local = AppMotion.emphasizedDecelerate
-        .transform(((t - 0.84) / 0.16).clamp(0.0, 1.0));
-    return ShapeBorder.lerp(_midShape(), _settledShape(), local)!;
-  }
-
-  double _sizeAt(double t) {
-    if (t < 0.18) {
-      final local =
-          AppMotion.emphasizedDecelerate.transform((t / 0.18).clamp(0.0, 1.0));
-      return 20.0 + (18.0 * local);
-    }
-    if (t < 0.56) {
-      final local = AppMotion.emphasizedDecelerate
-          .transform(((t - 0.18) / 0.38).clamp(0.0, 1.0));
-      return 38.0 - (2.0 * local);
-    }
-    final local = AppMotion.emphasizedDecelerate
-        .transform(((t - 0.56) / 0.44).clamp(0.0, 1.0));
-    return 34.0 - (14.0 * local);
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -504,27 +475,123 @@ class _PinGlyph extends StatelessWidget {
       );
     }
 
-    return TweenAnimationBuilder<double>(
+    return _PinGlyphInsertMotion(
       key: ValueKey<String>('glyph-$variant-$animateTick'),
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 2760),
-      curve: AppMotion.emphasizedDecelerate,
-      builder: (context, value, _) {
-        final eased = AppMotion.emphasizedDecelerate.transform(value);
-        final size = _sizeAt(value);
+      startShape: _startShape(),
+      midShape: _midShape(),
+      settledShape: _settledShape(),
+      color: scheme.primary,
+    );
+  }
+}
+
+class _PinGlyphInsertMotion extends StatefulWidget {
+  const _PinGlyphInsertMotion({
+    super.key,
+    required this.startShape,
+    required this.midShape,
+    required this.settledShape,
+    required this.color,
+  });
+
+  final ShapeBorder startShape;
+  final ShapeBorder midShape;
+  final ShapeBorder settledShape;
+  final Color color;
+
+  @override
+  State<_PinGlyphInsertMotion> createState() => _PinGlyphInsertMotionState();
+}
+
+class _PinGlyphInsertMotionState extends State<_PinGlyphInsertMotion>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  );
+  Timer? _startTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer = Timer(const Duration(milliseconds: 64), _startMotion);
+  }
+
+  @override
+  void dispose() {
+    _startTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _startMotion() {
+    if (!mounted) {
+      return;
+    }
+    _controller.forward();
+  }
+
+  ShapeBorder _shapeAt(double t) {
+    if (t < 0.15) {
+      final local =
+          AppMotion.emphasizedDecelerate.transform((t / 0.15).clamp(0.0, 1.0));
+      return ShapeBorder.lerp(widget.settledShape, widget.startShape, local)!;
+    }
+    if (t < 0.26) {
+      return widget.startShape;
+    }
+    final settleT = ((t - 0.26) / 0.74).clamp(0.0, 1.0);
+    if (settleT < 0.58) {
+      final local = Curves.easeInOutCubicEmphasized
+          .transform((settleT / 0.58).clamp(0.0, 1.0));
+      return ShapeBorder.lerp(widget.startShape, widget.midShape, local)!;
+    }
+    final local = Curves.easeInOutCubicEmphasized
+        .transform(((settleT - 0.58) / 0.42).clamp(0.0, 1.0));
+    return ShapeBorder.lerp(widget.midShape, widget.settledShape, local)!;
+  }
+
+  double _sizeAt(double t) {
+    if (t < 0.15) {
+      final local =
+          AppMotion.emphasizedDecelerate.transform((t / 0.15).clamp(0.0, 1.0));
+      return 20 + (11 * local);
+    }
+    if (t < 0.26) {
+      return 31;
+    }
+    final local = Curves.easeInOutCubicEmphasized
+        .transform(((t - 0.26) / 0.74).clamp(0.0, 1.0));
+    return 31 - (11 * local);
+  }
+
+  double _scaleAt(double t) {
+    if (t < 0.15) {
+      final local =
+          AppMotion.emphasizedDecelerate.transform((t / 0.15).clamp(0.0, 1.0));
+      return _lerpDouble(1.0, 1.06, local);
+    }
+    final local = Curves.easeInOutCubicEmphasized
+        .transform(((t - 0.26) / 0.74).clamp(0.0, 1.0));
+    return _lerpDouble(1.06, 1.0, local);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final t = _controller.value.clamp(0.0, 1.0);
         return SizedBox(
           width: 40,
           height: 40,
           child: Center(
-            child: Transform.rotate(
-              angle: 0,
-              child: Transform.scale(
-                scale: 1.08 - (0.08 * eased),
-                child: _GlyphSurface(
-                  shape: _shapeAt(value),
-                  color: scheme.primary,
-                  size: size,
-                ),
+            child: Transform.scale(
+              scale: _scaleAt(t),
+              child: _GlyphSurface(
+                shape: _shapeAt(t),
+                color: widget.color,
+                size: _sizeAt(t),
               ),
             ),
           ),
@@ -739,20 +806,6 @@ class _PinDigitButton extends StatefulWidget {
 }
 
 class _PinDigitButtonState extends State<_PinDigitButton> {
-  bool _pressed = false;
-
-  void _press() {
-    if (!_pressed) {
-      setState(() => _pressed = true);
-    }
-  }
-
-  void _release() {
-    if (_pressed) {
-      setState(() => _pressed = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -760,62 +813,166 @@ class _PinDigitButtonState extends State<_PinDigitButton> {
     final pressedColor = scheme.secondaryContainer.withValues(alpha: 0.78);
     final foreground = scheme.onSurface;
     final overlayColor = scheme.secondaryContainer.withValues(alpha: 0.22);
+
+    return _PinPressMorphSurface(
+      enabled: widget.enabled,
+      onTap: widget.onTap,
+      idleColor: idleColor,
+      pressedColor: pressedColor,
+      overlayColor: overlayColor,
+      child: Text(
+        widget.label,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: widget.enabled
+                  ? foreground
+                  : foreground.withValues(alpha: 0.35),
+              fontWeight: FontWeight.w500,
+            ),
+      ),
+    );
+  }
+}
+
+class _PinPressMorphSurface extends StatefulWidget {
+  const _PinPressMorphSurface({
+    required this.enabled,
+    required this.onTap,
+    required this.idleColor,
+    required this.pressedColor,
+    required this.overlayColor,
+    required this.child,
+    this.borderColor = Colors.transparent,
+  });
+
+  final bool enabled;
+  final VoidCallback onTap;
+  final Color idleColor;
+  final Color pressedColor;
+  final Color overlayColor;
+  final Color borderColor;
+  final Widget child;
+
+  @override
+  State<_PinPressMorphSurface> createState() => _PinPressMorphSurfaceState();
+}
+
+class _PinPressMorphSurfaceState extends State<_PinPressMorphSurface>
+    with SingleTickerProviderStateMixin {
+  static const Duration _tapPulseHold = Duration(milliseconds: 120);
+
+  late final AnimationController _controller = AnimationController.unbounded(
+    vsync: this,
+    value: 0,
+  );
+  Timer? _releaseTimer;
+
+  @override
+  void dispose() {
+    _releaseTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PinPressMorphSurface oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.enabled && oldWidget.enabled) {
+      _releaseNow();
+    }
+  }
+
+  void _animateTo(double target) {
+    _controller.animateWith(
+      SpringSimulation(
+        AppMotion.m3ExpressiveFastSpatial,
+        _controller.value,
+        target,
+        _controller.velocity,
+        tolerance: const Tolerance(distance: 0.001, velocity: 0.001),
+      ),
+    );
+  }
+
+  void _press() {
+    if (widget.enabled) {
+      _releaseTimer?.cancel();
+      _animateTo(1);
+    }
+  }
+
+  void _releaseNow() {
+    _releaseTimer?.cancel();
+    _animateTo(0);
+  }
+
+  void _releaseAfterTapPulse() {
+    if (!widget.enabled) {
+      _releaseNow();
+      return;
+    }
+    _releaseTimer?.cancel();
+    _releaseTimer = Timer(_tapPulseHold, () {
+      if (mounted) {
+        _releaseNow();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTapDown: widget.enabled ? (_) => _press() : null,
-      onTapUp: widget.enabled ? (_) => _release() : null,
-      onTapCancel: widget.enabled
-          ? () {
-              _release();
-            }
-          : null,
+      onTapUp: widget.enabled ? (_) => _releaseAfterTapPulse() : null,
+      onTapCancel: widget.enabled ? _releaseAfterTapPulse : null,
       onTap: widget.enabled
           ? () {
               widget.onTap();
-              _release();
+              _releaseAfterTapPulse();
             }
           : null,
-      child: AnimatedContainer(
-        duration: _pressed
-            ? const Duration(milliseconds: 90)
-            : const Duration(milliseconds: 960),
-        curve: _pressed ? AppMotion.standardDecelerate : Curves.easeOutCubic,
-        width: 78,
-        height: 78,
-        decoration: BoxDecoration(
-          color: widget.enabled
-              ? (_pressed ? pressedColor : idleColor)
-              : idleColor.withValues(alpha: 0.28),
-          borderRadius: BorderRadius.circular(_pressed ? 28 : 999),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AnimatedOpacity(
-              duration: _pressed
-                  ? const Duration(milliseconds: 90)
-                  : const Duration(milliseconds: 900),
-              curve: Curves.easeOutCubic,
-              opacity: _pressed ? 1 : 0,
-              child: Container(
-                width: 78,
-                height: 78,
-                decoration: BoxDecoration(
-                  color: overlayColor,
-                  borderRadius: BorderRadius.circular(28),
-                ),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final t = _controller.value.clamp(0.0, 1.0);
+          final color = Color.lerp(widget.idleColor, widget.pressedColor, t)!;
+          final radius = _lerpDouble(999, 26, t);
+          final overlayOpacity = _lerpDouble(0, 1, t);
+          final scale = _lerpDouble(1.0, 0.97, t);
+
+          return Transform.scale(
+            scale: scale,
+            child: Container(
+              width: 78,
+              height: 78,
+              decoration: BoxDecoration(
+                color: widget.enabled
+                    ? color
+                    : widget.idleColor.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(radius),
+                border: Border.all(color: widget.borderColor),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Opacity(
+                    opacity: overlayOpacity,
+                    child: Container(
+                      width: 78,
+                      height: 78,
+                      decoration: BoxDecoration(
+                        color: widget.overlayColor,
+                        borderRadius: BorderRadius.circular(radius),
+                      ),
+                    ),
+                  ),
+                  child!,
+                ],
               ),
             ),
-            Text(
-              widget.label,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: widget.enabled
-                        ? foreground
-                        : foreground.withValues(alpha: 0.35),
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ],
-        ),
+          );
+        },
+        child: widget.child,
       ),
     );
   }
@@ -839,20 +996,6 @@ class _PinActionButton extends StatefulWidget {
 }
 
 class _PinActionButtonState extends State<_PinActionButton> {
-  bool _pressed = false;
-
-  void _press() {
-    if (!_pressed) {
-      setState(() => _pressed = true);
-    }
-  }
-
-  void _release() {
-    if (_pressed) {
-      setState(() => _pressed = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -870,65 +1013,20 @@ class _PinActionButtonState extends State<_PinActionButton> {
     final overlayColor = widget.emphasized
         ? scheme.onPrimaryContainer.withValues(alpha: 0.08)
         : scheme.secondaryContainer.withValues(alpha: 0.22);
-    return GestureDetector(
-      onTapDown: widget.enabled ? (_) => _press() : null,
-      onTapUp: widget.enabled ? (_) => _release() : null,
-      onTapCancel: widget.enabled
-          ? () {
-              _release();
-            }
-          : null,
-      onTap: widget.enabled
-          ? () {
-              widget.onTap();
-              _release();
-            }
-          : null,
-      child: AnimatedContainer(
-        duration: _pressed
-            ? const Duration(milliseconds: 90)
-            : const Duration(milliseconds: 960),
-        curve: _pressed ? AppMotion.standardDecelerate : Curves.easeOutCubic,
-        width: 78,
-        height: 78,
-        decoration: BoxDecoration(
-          color: widget.enabled
-              ? (_pressed ? pressedColor : idleColor)
-              : idleColor.withValues(alpha: 0.28),
-          borderRadius: BorderRadius.circular(_pressed ? 28 : 999),
-          border: Border.all(
-            color: widget.emphasized
-                ? scheme.outlineVariant.withValues(alpha: 0.28)
-                : Colors.transparent,
-          ),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AnimatedOpacity(
-              duration: _pressed
-                  ? const Duration(milliseconds: 90)
-                  : const Duration(milliseconds: 900),
-              curve: Curves.easeOutCubic,
-              opacity: _pressed ? 1 : 0,
-              child: Container(
-                width: 78,
-                height: 78,
-                decoration: BoxDecoration(
-                  color: overlayColor,
-                  borderRadius: BorderRadius.circular(28),
-                ),
-              ),
-            ),
-            Icon(
-              widget.icon,
-              color: widget.enabled
-                  ? foreground
-                  : foreground.withValues(alpha: 0.35),
-              size: 30,
-            ),
-          ],
-        ),
+
+    return _PinPressMorphSurface(
+      enabled: widget.enabled,
+      onTap: widget.onTap,
+      idleColor: idleColor,
+      pressedColor: pressedColor,
+      overlayColor: overlayColor,
+      borderColor: widget.emphasized
+          ? scheme.outlineVariant.withValues(alpha: 0.28)
+          : Colors.transparent,
+      child: Icon(
+        widget.icon,
+        color: widget.enabled ? foreground : foreground.withValues(alpha: 0.35),
+        size: 30,
       ),
     );
   }
