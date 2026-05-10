@@ -409,8 +409,8 @@ class _ReceiptActionGroup extends StatelessWidget {
               foregroundColor: scheme.onPrimary,
               borderColor: scheme.primary,
               borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(999),
-                right: Radius.circular(24),
+                left: Radius.circular(29),
+                right: Radius.circular(18),
               ),
               textStyle: labelStyle,
               onTap: submitting ? null : onSubmitPressed,
@@ -432,8 +432,8 @@ class _ReceiptActionGroup extends StatelessWidget {
                   : scheme.onSurface,
               borderColor: scheme.outlineVariant,
               borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(24),
-                right: Radius.circular(999),
+                left: Radius.circular(18),
+                right: Radius.circular(29),
               ),
               textStyle: labelStyle,
               onTap: submitting ? null : onReturnPressed,
