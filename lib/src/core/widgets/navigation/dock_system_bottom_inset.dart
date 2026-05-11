@@ -10,7 +10,7 @@ const double appDockGestureNavigationBottomInset = 15.0;
 /// [AppNavigationBar] dagi tugmali rejim: to‘liq media inset (ikki turdan kattasi).
 double dockMediaBottomInset(MediaQueryData data) {
   if (_isIPhoneLike(data)) {
-    return 0;
+    return appDockGestureNavigationBottomInset;
   }
   return math.max(data.viewPadding.bottom, data.systemGestureInsets.bottom);
 }
@@ -34,7 +34,7 @@ double dockLayoutBottomInset(
 /// Yangi dock layout uchun [dockLayoutBottomInset] afzal.
 double dockSystemBottomInset(MediaQueryData data) {
   if (_isIPhoneLike(data)) {
-    return 0;
+    return appDockGestureNavigationBottomInset;
   }
   final double vp = data.viewPadding.bottom;
   if (vp > 0) {
