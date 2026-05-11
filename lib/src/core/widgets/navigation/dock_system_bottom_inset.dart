@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 /// Gesture navigatsiya aniqlanganda pastki «tizim» qatoriga beriladigan qattiq balandlik (dp≈px).
@@ -8,6 +9,9 @@ const double appDockGestureNavigationBottomInset = 15.0;
 
 /// [AppNavigationBar] dagi tugmali rejim: to‘liq media inset (ikki turdan kattasi).
 double dockMediaBottomInset(MediaQueryData data) {
+  if (_isIPhoneLike(data)) {
+    return 0;
+  }
   return math.max(data.viewPadding.bottom, data.systemGestureInsets.bottom);
 }
 
@@ -29,9 +33,19 @@ double dockLayoutBottomInset(
 ///
 /// Yangi dock layout uchun [dockLayoutBottomInset] afzal.
 double dockSystemBottomInset(MediaQueryData data) {
+  if (_isIPhoneLike(data)) {
+    return 0;
+  }
   final double vp = data.viewPadding.bottom;
   if (vp > 0) {
     return vp;
   }
   return math.max(vp, data.systemGestureInsets.bottom);
+}
+
+bool _isIPhoneLike(MediaQueryData data) {
+  if (defaultTargetPlatform != TargetPlatform.iOS) {
+    return false;
+  }
+  return data.size.shortestSide < 600;
 }
