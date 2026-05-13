@@ -5,7 +5,6 @@ import '../../../../core/widgets/shell/app_loading_indicator.dart';
 import '../../../../core/widgets/lists/m3_segmented_list.dart';
 import 'werka_ai_search_service.dart';
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 const AnimationStyle kM3PickerSheetAnimation = AnimationStyle(
@@ -203,10 +202,8 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
     final visibleCount = visibleItems.length;
     final keyboardInset = media.viewInsets.bottom;
     final l10n = context.l10n;
-    final itemBackgroundColor =
-        scheme.surfaceContainerHighest.withValues(alpha: 0.28);
-    final searchBackgroundColor =
-        scheme.surfaceContainerHighest.withValues(alpha: 0.38);
+    final itemBackgroundColor = scheme.surfaceContainerHighest;
+    final searchBackgroundColor = scheme.surfaceContainerHighest;
 
     return AnimatedPadding(
       duration: AppMotion.medium,
@@ -219,7 +216,7 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
           alignment: Alignment.bottomCenter,
           child: GestureDetector(
             onTap: () {},
-            child: _M3BlurredPickerSurface(
+            child: _M3PickerSurface(
               constraints: BoxConstraints(
                 maxHeight: media.size.height * 0.66,
               ),
@@ -267,7 +264,15 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
                     SearchBar(
                       controller: _searchController,
                       hintText: widget.hintText,
-                      leading: const Icon(Icons.search_rounded),
+                      constraints: const BoxConstraints(minHeight: 58),
+                      padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                        EdgeInsets.symmetric(horizontal: 18),
+                      ),
+                      leading: Icon(
+                        Icons.search_rounded,
+                        size: 26,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       trailing: _scanTrailing(scheme),
                       elevation: const WidgetStatePropertyAll<double>(0),
                       backgroundColor: WidgetStatePropertyAll<Color>(
@@ -275,12 +280,24 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
                       ),
                       side: WidgetStatePropertyAll<BorderSide>(
                         BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.72),
+                          color: scheme.outlineVariant.withValues(alpha: 0.56),
+                        ),
+                      ),
+                      hintStyle: WidgetStatePropertyAll<TextStyle?>(
+                        theme.textTheme.titleMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      textStyle: WidgetStatePropertyAll<TextStyle?>(
+                        theme.textTheme.titleMedium?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       shape: WidgetStatePropertyAll<OutlinedBorder>(
                         RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                       onChanged: (value) {
@@ -813,10 +830,8 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
     final media = MediaQuery.of(context);
     final keyboardInset = media.viewInsets.bottom;
     final l10n = context.l10n;
-    final itemBackgroundColor =
-        scheme.surfaceContainerHighest.withValues(alpha: 0.28);
-    final searchBackgroundColor =
-        scheme.surfaceContainerHighest.withValues(alpha: 0.38);
+    final itemBackgroundColor = scheme.surfaceContainerHighest;
+    final searchBackgroundColor = scheme.surfaceContainerHighest;
 
     Widget body;
     if (_loading) {
@@ -927,7 +942,7 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
           alignment: Alignment.bottomCenter,
           child: GestureDetector(
             onTap: () {},
-            child: _M3BlurredPickerSurface(
+            child: _M3PickerSurface(
               constraints: BoxConstraints(
                 maxHeight: media.size.height * 0.66,
               ),
@@ -975,7 +990,15 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
                     SearchBar(
                       controller: _searchController,
                       hintText: widget.hintText,
-                      leading: const Icon(Icons.search_rounded),
+                      constraints: const BoxConstraints(minHeight: 58),
+                      padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                        EdgeInsets.symmetric(horizontal: 18),
+                      ),
+                      leading: Icon(
+                        Icons.search_rounded,
+                        size: 26,
+                        color: scheme.onSurfaceVariant,
+                      ),
                       trailing: _scanTrailing(scheme),
                       elevation: const WidgetStatePropertyAll<double>(0),
                       backgroundColor: WidgetStatePropertyAll<Color>(
@@ -983,12 +1006,24 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
                       ),
                       side: WidgetStatePropertyAll<BorderSide>(
                         BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.72),
+                          color: scheme.outlineVariant.withValues(alpha: 0.56),
+                        ),
+                      ),
+                      hintStyle: WidgetStatePropertyAll<TextStyle?>(
+                        theme.textTheme.titleMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      textStyle: WidgetStatePropertyAll<TextStyle?>(
+                        theme.textTheme.titleMedium?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       shape: WidgetStatePropertyAll<OutlinedBorder>(
                         RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                       onChanged: _scheduleReload,
@@ -1006,8 +1041,8 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
   }
 }
 
-class _M3BlurredPickerSurface extends StatelessWidget {
-  const _M3BlurredPickerSurface({
+class _M3PickerSurface extends StatelessWidget {
+  const _M3PickerSurface({
     required this.constraints,
     required this.child,
   });
@@ -1021,19 +1056,16 @@ class _M3BlurredPickerSurface extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: _pickerSheetBorderRadius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-        child: Container(
-          constraints: constraints,
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerLow.withValues(alpha: 0.56),
-            borderRadius: _pickerSheetBorderRadius,
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.28),
-            ),
+      child: Container(
+        constraints: constraints,
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerLow,
+          borderRadius: _pickerSheetBorderRadius,
+          border: Border.all(
+            color: scheme.outlineVariant.withValues(alpha: 0.24),
           ),
-          child: child,
         ),
+        child: child,
       ),
     );
   }
