@@ -203,6 +203,8 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
     final visibleCount = visibleItems.length;
     final keyboardInset = media.viewInsets.bottom;
     final l10n = context.l10n;
+    final itemBackgroundColor =
+        scheme.surfaceContainerHighest.withValues(alpha: 0.42);
 
     return AnimatedPadding(
       duration: AppMotion.medium,
@@ -326,6 +328,7 @@ class _M3PickerSheetState<T> extends State<M3PickerSheet<T>> {
                                 return M3SegmentFilledSurface(
                                   slot: slot,
                                   cornerRadius: cornerRadius,
+                                  backgroundColor: itemBackgroundColor,
                                   onTap: () => widget.onSelected(item),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -808,6 +811,8 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
     final media = MediaQuery.of(context);
     final keyboardInset = media.viewInsets.bottom;
     final l10n = context.l10n;
+    final itemBackgroundColor =
+        scheme.surfaceContainerHighest.withValues(alpha: 0.42);
 
     Widget body;
     if (_loading) {
@@ -874,6 +879,7 @@ class _M3AsyncPickerSheetState<T> extends State<M3AsyncPickerSheet<T>> {
           return M3SegmentFilledSurface(
             slot: slot,
             cornerRadius: cornerRadius,
+            backgroundColor: itemBackgroundColor,
             onTap: () => widget.onSelected(item),
             child: Padding(
               padding: const EdgeInsets.symmetric(
