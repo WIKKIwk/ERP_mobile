@@ -937,6 +937,29 @@ class AdminItemGroupBulkMoveResult {
   }
 }
 
+class AdminItemGroup {
+  const AdminItemGroup({
+    required this.name,
+    required this.itemGroupName,
+    required this.parentItemGroup,
+    required this.isGroup,
+  });
+
+  final String name;
+  final String itemGroupName;
+  final String parentItemGroup;
+  final bool isGroup;
+
+  factory AdminItemGroup.fromJson(Map<String, dynamic> json) {
+    return AdminItemGroup(
+      name: json['name'] as String? ?? '',
+      itemGroupName: json['item_group_name'] as String? ?? '',
+      parentItemGroup: json['parent_item_group'] as String? ?? '',
+      isGroup: json['is_group'] as bool? ?? false,
+    );
+  }
+}
+
 class AdminSupplier {
   const AdminSupplier({
     required this.ref,

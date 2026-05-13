@@ -73,6 +73,13 @@ class AdminCreateHubScreen extends StatelessWidget {
                   onTap: () => Navigator.of(context)
                       .pushNamed(AppRoutes.adminItemCreate),
                 ),
+                const Divider(height: 1, thickness: 1),
+                _CreateHubRow(
+                  title: context.l10n.adminCreateItemGroupTitle,
+                  subtitle: context.l10n.adminCreateItemGroupSubtitle,
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(AppRoutes.adminItemGroupCreate),
+                ),
               ],
             ),
           ),

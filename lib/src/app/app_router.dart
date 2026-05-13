@@ -9,6 +9,7 @@ import '../features/admin/presentation/admin_create_hub_screen.dart';
 import '../features/admin/presentation/admin_home_screen.dart';
 import '../features/admin/presentation/admin_inactive_suppliers_screen.dart';
 import '../features/admin/presentation/admin_item_create_screen.dart';
+import '../features/admin/presentation/admin_item_group_create_screen.dart';
 import '../features/admin/presentation/admin_settings_screen.dart';
 import '../features/admin/presentation/admin_supplier_create_screen.dart';
 import '../features/admin/presentation/admin_customer_create_screen.dart';
@@ -121,6 +122,7 @@ class AppRoutes {
   static const String adminCustomerDetail = '/admin-customer-detail';
   static const String adminInactiveSuppliers = '/admin-inactive-suppliers';
   static const String adminItemCreate = '/admin-item-create';
+  static const String adminItemGroupCreate = '/admin-item-group-create';
   static const String adminItemBulkMove = '/admin-item-bulk-move';
   static const String adminSupplierDetail = '/admin-supplier-detail';
   static const String adminSupplierItemsView = '/admin-supplier-items-view';
@@ -180,6 +182,7 @@ class AppRouter {
     AppRoutes.adminCustomerDetail,
     AppRoutes.adminInactiveSuppliers,
     AppRoutes.adminItemCreate,
+    AppRoutes.adminItemGroupCreate,
     AppRoutes.adminItemBulkMove,
     AppRoutes.adminSupplierDetail,
     AppRoutes.adminSupplierItemsView,
@@ -414,6 +417,8 @@ class AppRouter {
         return _buildRoute(settings, const AdminInactiveSuppliersScreen());
       case AppRoutes.adminItemCreate:
         return _buildRoute(settings, const AdminItemCreateScreen());
+      case AppRoutes.adminItemGroupCreate:
+        return _buildRoute(settings, const AdminItemGroupCreateScreen());
       case AppRoutes.adminItemBulkMove:
         return _buildRoute(settings, const AdminItemGroupBulkMoveScreen());
       case AppRoutes.adminSupplierDetail:

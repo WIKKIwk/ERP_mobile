@@ -64,6 +64,31 @@ extension MobileApiAdmin on MobileApi {
     return json.map((item) => item.toString()).toList();
   }
 
+  Future<AdminItemGroup> adminCreateItemGroup({
+    required String name,
+    required String parent,
+    required bool isGroup,
+  }) async {
+    final response = await _sendAuthorized(
+      () => http.post(
+        Uri.parse('$baseUrl/v1/mobile/admin/item-groups'),
+        headers: _headers(requireToken())
+          ..['Content-Type'] = 'application/json',
+        body: jsonEncode({
+          'name': name,
+          'parent': parent,
+          'is_group': isGroup,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Admin item group create failed');
+    }
+    return AdminItemGroup.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   Future<List<DispatchRecord>> adminActivity() async {
     final response = await _sendAuthorized(
       () => http.get(

@@ -265,7 +265,7 @@ class _AdminCreateHubOverlayState extends State<_AdminCreateHubOverlay>
 
   List<_AdminHubAction> _actions(BuildContext context) {
     final l10n = context.l10n;
-    const n = 6;
+    const n = 7;
     return [
       _AdminHubAction(
         key: const ValueKey('admin-hub-supplier-create'),
@@ -307,13 +307,21 @@ class _AdminCreateHubOverlayState extends State<_AdminCreateHubOverlay>
         row: 4,
         staggerOrder: n - 1 - 4,
       ),
+      _AdminHubAction(
+        key: const ValueKey('admin-hub-item-group-create'),
+        title: l10n.adminCreateItemGroupTitle,
+        icon: Icons.account_tree_outlined,
+        routeName: AppRoutes.adminItemGroupCreate,
+        row: 5,
+        staggerOrder: n - 1 - 5,
+      ),
       const _AdminHubAction(
         key: ValueKey('admin-hub-item-bulk-move'),
         title: 'Mahsulotlar',
         icon: Icons.grid_view_rounded,
         routeName: AppRoutes.adminItemBulkMove,
-        row: 5,
-        staggerOrder: n - 1 - 5,
+        row: 6,
+        staggerOrder: n - 1 - 6,
       ),
     ];
   }

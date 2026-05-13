@@ -651,6 +651,12 @@ class AppLocalizations {
       _t('Item qo‘shish', 'Add item', 'Добавить товар');
   String get adminCreateItemSubtitle =>
       _t('Yangi mahsulot yaratish', 'Create a new item', 'Создать новый товар');
+  String get adminCreateItemGroupTitle =>
+      _t('Item Group yaratish', 'Create item group', 'Создать группу товаров');
+  String get adminCreateItemGroupSubtitle => _t(
+      'Parent-child mahsulot guruhlarini yaratish',
+      'Create parent-child item groups',
+      'Создание родительских и дочерних групп товаров');
   String get adminSettingsSectionTitle =>
       _t('Omborchi sozlamalari', 'Werka defaults', 'Настройки кладовщика');
   String get adminSettingsSectionSubtitle => _t(
