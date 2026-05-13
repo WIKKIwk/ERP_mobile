@@ -144,104 +144,199 @@ class _AdminItemGroupCreateScreenState
       nativeTopBar: true,
       nativeTitleTextStyle: AppTheme.werkaNativeAppBarTitleStyle(context),
       bottom: const AdminDock(activeTab: AdminDockTab.settings),
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-        children: [
-          TextField(
-            controller: name,
-            decoration: _itemGroupInputDecoration('Group nomi'),
-          ),
-          const SizedBox(height: 12),
-          FutureBuilder<List<String>>(
-            future: itemGroupsFuture,
-            builder: (context, snapshot) {
-              final groups = snapshot.data ?? const <String>[];
-              if (snapshot.connectionState == ConnectionState.done &&
-                  !snapshot.hasError) {
-                _syncParentSelection(groups);
-              }
-              final selectedParent =
-                  parent.text.trim().isEmpty ? null : parent.text.trim();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Parent group',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 6),
-                  _TapBox(
-                    onTap: snapshot.connectionState == ConnectionState.done &&
-                            !snapshot.hasError &&
-                            !saving
-                        ? () => _toggleParentMenu(!parentMenuOpen)
-                        : null,
-                    borderRadius: _itemGroupCornerRadius,
-                    child: _SelectionBox(
-                      label: selectedParent ?? 'Parent tanlang',
-                      selected: selectedParent != null,
-                    ),
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: parentMenuOpen
-                        ? _ParentMenu(
-                            groups: groups,
-                            selectedParent: selectedParent,
-                            saving: saving,
-                            onSelect: _selectParent,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              );
-            },
-          ),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            value: isGroup,
-            onChanged:
-                saving ? null : (value) => setState(() => isGroup = value),
-            title: const Text('Ichida yana guruh bo‘ladi'),
-            subtitle: const Text(
-              'Parent sifatida ishlatiladigan group uchun yoqing. '
-              'Oxirgi/leaf group bo‘lsa o‘chiring.',
+      child: DefaultTabController(
+        length: 2,
+        child: Column(
+          children: [
+            const TabBar(
+              tabs: [
+                Tab(text: 'Group yaratish'),
+                Tab(text: 'Parent ko‘chirish'),
+              ],
             ),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: saving ? null : _save,
-              child: Text(
-                saving ? 'Yaratilmoqda...' : 'Item Group yaratish',
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _CreateGroupTab(
+                    name: name,
+                    parent: parent,
+                    itemGroupsFuture: itemGroupsFuture,
+                    saving: saving,
+                    isGroup: isGroup,
+                    parentMenuOpen: parentMenuOpen,
+                    onSyncParent: _syncParentSelection,
+                    onToggleParentMenu: _toggleParentMenu,
+                    onSelectParent: _selectParent,
+                    onIsGroupChanged: saving
+                        ? null
+                        : (value) => setState(() => isGroup = value),
+                    onSave: saving ? null : _save,
+                  ),
+                  _MoveParentTab(
+                    itemGroupsFuture: itemGroupsFuture,
+                    onMoved: _handleMoved,
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 18),
-          FutureBuilder<List<String>>(
-            future: itemGroupsFuture,
-            builder: (context, snapshot) {
-              final groups = snapshot.data ?? const <String>[];
-              if (snapshot.connectionState != ConnectionState.done ||
-                  snapshot.hasError ||
-                  groups.isEmpty) {
-                return const SizedBox.shrink();
-              }
-              return AdminItemGroupParentMovePanel(
-                groups: groups,
-                onMoved: _handleMoved,
-              );
-            },
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _CreateGroupTab extends StatelessWidget {
+  const _CreateGroupTab({
+    required this.name,
+    required this.parent,
+    required this.itemGroupsFuture,
+    required this.saving,
+    required this.isGroup,
+    required this.parentMenuOpen,
+    required this.onSyncParent,
+    required this.onToggleParentMenu,
+    required this.onSelectParent,
+    required this.onIsGroupChanged,
+    required this.onSave,
+  });
+
+  final TextEditingController name;
+  final TextEditingController parent;
+  final Future<List<String>> itemGroupsFuture;
+  final bool saving;
+  final bool isGroup;
+  final bool parentMenuOpen;
+  final ValueChanged<List<String>> onSyncParent;
+  final ValueChanged<bool> onToggleParentMenu;
+  final ValueChanged<String> onSelectParent;
+  final ValueChanged<bool>? onIsGroupChanged;
+  final VoidCallback? onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+      children: [
+        TextField(
+          controller: name,
+          decoration: _itemGroupInputDecoration('Group nomi'),
+        ),
+        const SizedBox(height: 12),
+        FutureBuilder<List<String>>(
+          future: itemGroupsFuture,
+          builder: (context, snapshot) {
+            final groups = snapshot.data ?? const <String>[];
+            if (snapshot.connectionState == ConnectionState.done &&
+                !snapshot.hasError) {
+              onSyncParent(groups);
+            }
+            final selectedParent =
+                parent.text.trim().isEmpty ? null : parent.text.trim();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Parent group',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                _TapBox(
+                  onTap: snapshot.connectionState == ConnectionState.done &&
+                          !snapshot.hasError &&
+                          !saving
+                      ? () => onToggleParentMenu(!parentMenuOpen)
+                      : null,
+                  borderRadius: _itemGroupCornerRadius,
+                  child: _SelectionBox(
+                    label: selectedParent ?? 'Parent tanlang',
+                    selected: selectedParent != null,
+                  ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: parentMenuOpen
+                      ? _ParentMenu(
+                          groups: groups,
+                          selectedParent: selectedParent,
+                          saving: saving,
+                          onSelect: onSelectParent,
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          },
+        ),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          value: isGroup,
+          onChanged: onIsGroupChanged,
+          title: const Text('Ichida yana guruh bo‘ladi'),
+          subtitle: const Text(
+            'Parent sifatida ishlatiladigan group uchun yoqing. '
+            'Oxirgi/leaf group bo‘lsa o‘chiring.',
+          ),
+        ),
+        const SizedBox(height: 18),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: onSave,
+            child: Text(saving ? 'Yaratilmoqda...' : 'Item Group yaratish'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MoveParentTab extends StatelessWidget {
+  const _MoveParentTab({
+    required this.itemGroupsFuture,
+    required this.onMoved,
+  });
+
+  final Future<List<String>> itemGroupsFuture;
+  final ValueChanged<AdminItemGroup> onMoved;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<String>>(
+      future: itemGroupsFuture,
+      builder: (context, snapshot) {
+        final groups = snapshot.data ?? const <String>[];
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError || groups.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'Item grouplar yuklanmadi',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+          children: [
+            AdminItemGroupParentMovePanel(
+              groups: groups,
+              onMoved: onMoved,
+            ),
+          ],
+        );
+      },
     );
   }
 }
