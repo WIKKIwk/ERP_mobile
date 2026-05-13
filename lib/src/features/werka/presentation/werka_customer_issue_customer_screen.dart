@@ -533,146 +533,133 @@ class _WerkaCustomerIssueCustomerScreenState
       bottom: const WerkaDock(activeTab: null),
       contentPadding: EdgeInsets.zero,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(4, 4, 4, 24),
+        padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
         children: [
-          M3SegmentFilledSurface(
-            slot: M3SegmentVerticalSlot.top,
-            cornerRadius: M3SegmentedListGeometry.cornerLarge,
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.customerIssueTitle,
+                style: theme.textTheme.headlineMedium,
+              ),
+              if (_qrPrefillActive && source != null && source.hasSource) ...[
+                const SizedBox(height: 12),
+                _QrPrefillBanner(prefill: source),
+              ],
+              const SizedBox(height: 18),
+              Text(l10n.itemLabel, style: theme.textTheme.bodySmall),
+              const SizedBox(height: 6),
+              Row(
                 children: [
-                  Text(
-                    l10n.customerIssueTitle,
-                    style: theme.textTheme.headlineMedium,
-                  ),
-                  if (_qrPrefillActive &&
-                      source != null &&
-                      source.hasSource) ...[
-                    const SizedBox(height: 12),
-                    _QrPrefillBanner(prefill: source),
-                  ],
-                  const SizedBox(height: 18),
-                  Text(l10n.itemLabel, style: theme.textTheme.bodySmall),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FilledButton.tonal(
-                          style: pickerButtonStyle,
-                          onPressed: _submitting ? null : _pickItem,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _selectedItem?.name ?? l10n.selectItem,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 20,
-                              ),
-                            ],
+                  Expanded(
+                    child: FilledButton.tonal(
+                      style: pickerButtonStyle,
+                      onPressed: _submitting ? null : _pickItem,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _selectedItem?.name ?? l10n.selectItem,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ),
-                      if (_selectedItem != null) ...[
-                        const SizedBox(width: 8),
-                        IconButton.filledTonal(
-                          tooltip: 'Clear item',
-                          onPressed: _submitting ? null : _clearSelectedItem,
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(l10n.customerLabel, style: theme.textTheme.bodySmall),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FilledButton.tonal(
-                          style: pickerButtonStyle,
-                          onPressed: _submitting ? null : _pickCustomer,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  customerLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (_prefillCustomerLoading)
-                                const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              else
-                                const Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  size: 20,
-                                ),
-                            ],
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 20,
                           ),
-                        ),
-                      ),
-                      if (_selectedCustomer != null) ...[
-                        const SizedBox(width: 8),
-                        IconButton.filledTonal(
-                          tooltip: 'Clear customer',
-                          onPressed:
-                              _submitting ? null : _clearSelectedCustomer,
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ],
-                    ],
-                  ),
-                  if (_selectedCustomer != null &&
-                      _selectedItem == null &&
-                      _selectedCustomer!.phone.trim().isNotEmpty) ...[
-                    const SizedBox(height: 18),
-                    Text(
-                      _selectedCustomer!.phone,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                   if (_selectedItem != null) ...[
-                    const SizedBox(height: 14),
-                    Text(l10n.amountLabel, style: theme.textTheme.bodySmall),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _qtyController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: qtyInputDecoration,
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      tooltip: 'Clear item',
+                      onPressed: _submitting ? null : _clearSelectedItem,
+                      icon: const Icon(Icons.close_rounded),
                     ),
                   ],
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: canSubmit ? _submit : null,
-                      child: Text(
-                        _submitting ? l10n.pinSaving : l10n.confirmTitle,
-                      ),
-                    ),
-                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 14),
+              Text(l10n.customerLabel, style: theme.textTheme.bodySmall),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonal(
+                      style: pickerButtonStyle,
+                      onPressed: _submitting ? null : _pickCustomer,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              customerLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (_prefillCustomerLoading)
+                            const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_selectedCustomer != null) ...[
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      tooltip: 'Clear customer',
+                      onPressed: _submitting ? null : _clearSelectedCustomer,
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ],
+              ),
+              if (_selectedCustomer != null &&
+                  _selectedItem == null &&
+                  _selectedCustomer!.phone.trim().isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Text(
+                  _selectedCustomer!.phone,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              if (_selectedItem != null) ...[
+                const SizedBox(height: 14),
+                Text(l10n.amountLabel, style: theme.textTheme.bodySmall),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _qtyController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: qtyInputDecoration,
+                ),
+              ],
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: canSubmit ? _submit : null,
+                  child: Text(
+                    _submitting ? l10n.pinSaving : l10n.confirmTitle,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
