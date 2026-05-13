@@ -3,14 +3,14 @@
 Accord Mobile is the Flutter client for the Accord operational workflow on top
 of ERPNext. The app is a presentation and device-integration layer: it renders
 role-specific mobile screens, keeps local session and UI state, talks to
-`accord_mobile_server`, and leaves business truth and document persistence to
+`accord_mobile_server_rs`, and leaves business truth and document persistence to
 ERPNext.
 
 ## System Topology
 
 ```mermaid
 graph LR
-  A[accord_mobile] --> B[accord_mobile_server]
+  A[accord_mobile] --> B[accord_mobile_server_rs]
   B --> C[ERPNext]
   D[accord_erp_custom_field] --> C
   B --> D
@@ -19,11 +19,50 @@ graph LR
 
 The normal Accord execution chain is:
 
-`accord_mobile -> accord_mobile_server -> ERPNext`
+`accord_mobile -> accord_mobile_server_rs -> ERPNext`
 
 The GScale mode has a separate local-network execution chain:
 
 `accord_mobile GScale mode -> gscale-zebra mobileapi -> scale / printer / ERPNext`
+
+## System Architecture
+
+```mermaid
+flowchart TB
+  App[Accord Mobile Flutter app]
+  Shell[App shell<br/>role routing, app lock, network gate,<br/>native back button, dock bridge]
+  Core[Core mobile runtime<br/>session, security, notifications,<br/>localization, theme, files, search]
+  Features[Role features<br/>Supplier, Werka, Customer, Admin, GScale]
+  Api[Mobile API client<br/>/v1/mobile/*]
+  Push[Firebase Messaging<br/>device token and local notifications]
+  Native[Device integrations<br/>camera, biometrics, files,<br/>iOS native scene bridges]
+
+  Backend[accord_mobile_server_rs<br/>primary Accord mobile backend]
+  ERP[ERPNext<br/>documents, workflow state, validations]
+  DB[(ERPNext MariaDB<br/>direct read models)]
+  FCM[Firebase Cloud Messaging]
+  Gemini[Gemini Vision<br/>AI-assisted search]
+  GScale[gscale-zebra mobileapi<br/>LAN scale and printer runtime]
+
+  App --> Shell
+  Shell --> Core
+  Shell --> Features
+  Features --> Api
+  Core --> Api
+  Core --> Push
+  Core --> Native
+  Api --> Backend
+  Backend --> ERP
+  Backend --> DB
+  Backend --> FCM
+  Backend --> Gemini
+  Features --> GScale
+```
+
+The app owns screens, navigation, local UX state, and device integration. The
+Rust backend owns the mobile HTTP contract and ERP-facing business operations.
+ERPNext remains the durable source for documents, item groups, workflow state,
+and validation rules.
 
 ## Repository Role
 
@@ -51,7 +90,7 @@ It requires:
 
 - Flutter SDK `>=3.24.0`
 - Dart SDK `>=3.5.0 <4.0.0`
-- `accord_mobile_server` for the main mobile API
+- `accord_mobile_server_rs` for the main mobile API
 - ERPNext for document persistence and workflow state
 - `accord_erp_custom_field` installed in the ERPNext bench so Accord custom
   fields exist on ERP documents
@@ -168,7 +207,8 @@ Admin flows cover:
 
 - supplier creation, detail, item assignment, inactive supplier restore/removal
 - customer creation, detail, code regeneration, item assignment, and removal
-- item creation and item group bulk move
+- item creation, item group creation, item group parent move, and item group
+  bulk move
 - Werka/admin module access
 - operational settings and activity review
 
@@ -408,6 +448,7 @@ Focused test coverage currently includes:
 - app navigation and retry state
 - native top-bar and bottom-nav behavior
 - admin supplier/customer/item workflows
+- admin item group creation, parent selection, and parent move UI behavior
 - customer delivery runtime and priority behavior
 - Supplier confirm flow
 - Werka archive, Batch QR, create hub, runtime store, and stock-entry lookup
@@ -416,7 +457,7 @@ Focused test coverage currently includes:
 
 ## Related Repositories
 
-- Mobile backend: `accord_mobile_server`
+- Primary mobile backend: `accord_mobile_server_rs`
 - ERP custom field app: `accord_erp_custom_field`
 - GScale mobileapi: `gscale-zebra`
 
@@ -424,8 +465,8 @@ Focused test coverage currently includes:
 
 - Use a public/domain backend for release builds, never `localhost` or
   `127.0.0.1`.
-- Keep business logic in `accord_mobile_server`, GScale mobileapi, and ERPNext,
-  not in this Flutter client.
+- Keep business logic in `accord_mobile_server_rs`, GScale mobileapi, and
+  ERPNext, not in this Flutter client.
 - Generated logs, pid files, tunnel state, and scratch output live in
   `garbage/`.
 - Keep `third_party/local_auth_darwin` vendored and excluded from app analysis.
