@@ -7,6 +7,10 @@ import 'app_loading_indicator.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
+const double _drawerEdgeDragWidth = 28;
+const double _drawerOpenDragDistance = 48;
+const double _drawerOpenDragVelocity = 450;
+
 /// [AppShell] AppBar [bottom] uchun chiziqli progress.
 Widget _appShellStyleLinearProgress(
   ThemeData theme, {
@@ -88,6 +92,7 @@ class _AppShellState extends State<AppShell>
   AnimationController? _expressiveDrawerController;
   CurvedAnimation? _expressiveDrawerCurve;
   LocalHistoryEntry? _expressiveDrawerHistory;
+  double _drawerEdgeDragDelta = 0;
 
   @override
   void initState() {
@@ -153,6 +158,36 @@ class _AppShellState extends State<AppShell>
 
   void _openExpressiveDrawer() {
     _expressiveDrawerController?.forward();
+  }
+
+  void _handleDrawerEdgeDragStart(DragStartDetails details) {
+    _drawerEdgeDragDelta = 0;
+  }
+
+  void _handleDrawerEdgeDragUpdate(DragUpdateDetails details) {
+    final c = _expressiveDrawerController;
+    if (c == null || !c.isDismissed) {
+      return;
+    }
+    _drawerEdgeDragDelta += details.primaryDelta ?? 0;
+    if (_drawerEdgeDragDelta >= _drawerOpenDragDistance) {
+      _openExpressiveDrawer();
+    }
+  }
+
+  void _handleDrawerEdgeDragEnd(DragEndDetails details) {
+    final c = _expressiveDrawerController;
+    if (c != null &&
+        c.isDismissed &&
+        details.primaryVelocity != null &&
+        details.primaryVelocity! >= _drawerOpenDragVelocity) {
+      _openExpressiveDrawer();
+    }
+    _drawerEdgeDragDelta = 0;
+  }
+
+  void _handleDrawerEdgeDragCancel() {
+    _drawerEdgeDragDelta = 0;
   }
 
   Widget? _nativeAppBarLeading(bool shouldHideLeading) {
@@ -300,6 +335,20 @@ class _AppShellState extends State<AppShell>
                 fit: StackFit.expand,
                 children: [
                   scaffold,
+                  if (!drawerBlocking)
+                    PositionedDirectional(
+                      start: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: _drawerEdgeDragWidth,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onHorizontalDragStart: _handleDrawerEdgeDragStart,
+                        onHorizontalDragUpdate: _handleDrawerEdgeDragUpdate,
+                        onHorizontalDragEnd: _handleDrawerEdgeDragEnd,
+                        onHorizontalDragCancel: _handleDrawerEdgeDragCancel,
+                      ),
+                    ),
                   if (drawerBlocking) ...[
                     Positioned.fill(
                       child: GestureDetector(

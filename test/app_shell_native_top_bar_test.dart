@@ -23,4 +23,31 @@ void main() {
     expect(find.byType(SharedHeaderTitle), findsNothing);
     expect(find.text('Werka'), findsOneWidget);
   });
+
+  testWidgets('AppShell opens drawer from left edge drag', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: true),
+        home: AppShell(
+          title: 'Werka',
+          subtitle: '',
+          drawer: const SizedBox(
+            width: 280,
+            child: ColoredBox(
+              color: Colors.white,
+              child: Text('Drawer content'),
+            ),
+          ),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    expect(find.text('Drawer content'), findsNothing);
+
+    await tester.dragFrom(const Offset(4, 320), const Offset(80, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Drawer content'), findsOneWidget);
+  });
 }
