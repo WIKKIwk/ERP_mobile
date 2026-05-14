@@ -4,6 +4,7 @@ import '../../../core/widgets/shell/app_shell.dart';
 import '../models/admin_item_group_tree_entry.dart';
 import '../../shared/models/app_models.dart';
 import 'widgets/admin_dock.dart';
+import 'widgets/admin_item_group_items_tab.dart';
 import 'widgets/admin_item_group_parent_move_tab.dart';
 import 'widgets/admin_item_group_tree_tab.dart';
 import 'widgets/admin_top_notice.dart';
@@ -30,6 +31,7 @@ class _AdminItemGroupCreateScreenState
   bool saving = false;
   bool isGroup = true;
   bool parentMenuOpen = false;
+  String? selectedItemGroup;
 
   @override
   void initState() {
@@ -93,6 +95,10 @@ class _AdminItemGroupCreateScreenState
       _addOptimisticParentGroup(group);
       _refreshParentGroups();
     });
+  }
+
+  void _selectItemGroupForItems(String group) {
+    setState(() => selectedItemGroup = group);
   }
 
   void _toggleParentMenu(bool open) {
@@ -162,14 +168,17 @@ class _AdminItemGroupCreateScreenState
       bottom: const AdminDock(activeTab: AdminDockTab.settings),
       contentPadding: EdgeInsets.zero,
       child: DefaultTabController(
-        length: 3,
+        length: 4,
         child: Column(
           children: [
             const TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
               tabs: [
                 Tab(text: 'Group yaratish'),
                 Tab(text: 'Parent ko‘chirish'),
                 Tab(text: 'Tree'),
+                Tab(text: 'Items'),
               ],
             ),
             Expanded(
@@ -196,7 +205,12 @@ class _AdminItemGroupCreateScreenState
                   ),
                   AdminItemGroupTreeTab(
                     itemGroupTreeFuture: itemGroupTreeFuture,
-                    itemGroupItemsFuture: itemGroupItemsFuture,
+                    onShowItems: _selectItemGroupForItems,
+                  ),
+                  AdminItemGroupItemsTab(
+                    itemsFuture: itemGroupItemsFuture,
+                    selectedGroup: selectedItemGroup,
+                    onSelectGroup: _selectItemGroupForItems,
                   ),
                 ],
               ),
