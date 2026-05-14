@@ -15,6 +15,7 @@ class SystemNavigationMode {
 
   /// `true` → Android tomonda gesture navigatsiyasiga yaqin deb hisoblangan.
   static Future<bool> isGestureNavigation() async {
+    if (kIsWeb) return false;
     if (!Platform.isAndroid) return false;
     try {
       final Object? v =
@@ -28,6 +29,7 @@ class SystemNavigationMode {
 
   /// Debug: raw `navigation_mode`, `use_gesture_version_three`, `isGestureNavigation`.
   static Future<Map<String, Object?>?> debugSnapshot() async {
+    if (kIsWeb) return null;
     if (!Platform.isAndroid) return null;
     try {
       final Object? v = await _channel.invokeMethod<Object?>('debugSnapshot');
