@@ -28,24 +28,10 @@ class AdminItemGroupTreePanel extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 14),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
-          ),
-          child: Column(
-            children: [
-              for (int index = 0; index < nodes.length; index++)
-                _TreeNodeTile(
-                  node: nodes[index],
-                  isLast: index == nodes.length - 1,
-                ),
-            ],
-          ),
-        ),
+        for (int index = 0; index < nodes.length; index++) ...[
+          _TreeNodeCard(node: nodes[index], depth: 0),
+          if (index != nodes.length - 1) const SizedBox(height: 10),
+        ],
       ],
     );
   }
@@ -78,104 +64,150 @@ List<_TreeNode> _buildNodes(List<AdminItemGroupTreeEntry> entries) {
       parentNode.children.add(node);
     }
   }
-  return _flatten(roots, 0);
+  return roots;
 }
 
-List<_TreeNode> _flatten(List<_TreeNode> nodes, int depth) {
-  final result = <_TreeNode>[];
-  for (final node in nodes) {
-    result.add(_DepthNode(node.entry, depth, node.children));
-    result.addAll(_flatten(node.children, depth + 1));
-  }
-  return result;
-}
-
-class _DepthNode extends _TreeNode {
-  _DepthNode(super.entry, this.depth, List<_TreeNode> children) {
-    this.children.addAll(children);
-  }
-
-  final int depth;
-}
-
-class _TreeNodeTile extends StatelessWidget {
-  const _TreeNodeTile({
+class _TreeNodeCard extends StatelessWidget {
+  const _TreeNodeCard({
     required this.node,
-    required this.isLast,
+    required this.depth,
   });
 
   final _TreeNode node;
-  final bool isLast;
+  final int depth;
 
   @override
   Widget build(BuildContext context) {
-    final depth = node is _DepthNode ? (node as _DepthNode).depth : 0;
     final colorScheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
+    final hasChildren = node.children.isNotEmpty;
+    final title = node.entry.itemGroupName.isEmpty
+        ? node.entry.name
+        : node.entry.itemGroupName;
+
+    return Container(
       decoration: BoxDecoration(
-        border: isLast
-            ? null
-            : Border(
-                bottom: BorderSide(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.45),
-                ),
-              ),
+        color: depth == 0
+            ? colorScheme.surfaceContainerLow
+            : colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: depth == 0
+              ? colorScheme.outlineVariant
+              : colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
       ),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(12 + depth * 18, 12, 12, 12),
-        child: Row(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(
-              node.entry.isGroup
-                  ? Icons.account_tree_rounded
-                  : Icons.label_outline_rounded,
-              size: 20,
-              color: colorScheme.primary,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    node.entry.itemGroupName.isEmpty
-                        ? node.entry.name
-                        : node.entry.itemGroupName,
+            Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: hasChildren
+                        ? colorScheme.primaryContainer
+                        : colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    hasChildren
+                        ? Icons.account_tree_rounded
+                        : Icons.label_outline_rounded,
+                    size: 20,
+                    color: hasChildren
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                   ),
-                  if (node.entry.parentItemGroup.trim().isNotEmpty)
-                    Text(
-                      'parent: ${node.entry.parentItemGroup}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                ),
+                _TreeBadge(
+                  label: hasChildren ? '${node.children.length} child' : 'leaf',
+                  filled: hasChildren,
+                ),
+              ],
+            ),
+            if (hasChildren) ...[
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 2,
+                    height: (node.children.length * 58).toDouble(),
+                    constraints: const BoxConstraints(minHeight: 34),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(999),
                     ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        for (int index = 0;
+                            index < node.children.length;
+                            index++) ...[
+                          _TreeNodeCard(
+                            node: node.children[index],
+                            depth: depth + 1,
+                          ),
+                          if (index != node.children.length - 1)
+                            const SizedBox(height: 8),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            if (node.children.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '${node.children.length}',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TreeBadge extends StatelessWidget {
+  const _TreeBadge({
+    required this.label,
+    required this.filled,
+  });
+
+  final String label;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: filled
+            ? colorScheme.primaryContainer
+            : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: filled
+                  ? colorScheme.onPrimaryContainer
+                  : colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
