@@ -13,7 +13,8 @@ RUN_DEVICE ?= linux
 RUN_DART_DEFINES ?=
 endif
 
-CHROME_WEB_BROWSER_FLAGS := --web-browser-flag=--disable-web-security --web-browser-flag=--disable-site-isolation-trials --web-browser-flag=--user-data-dir=$(CURDIR)/.chrome-dev-profile
+CHROME_PROFILE_DIR := $(shell mktemp -d /tmp/accord-mobile-chrome.XXXXXX)
+CHROME_WEB_BROWSER_FLAGS := --web-browser-flag=--disable-web-security --web-browser-flag=--disable-site-isolation-trials --web-browser-flag=--user-data-dir=$(CHROME_PROFILE_DIR)
 ifeq ($(RUN_DEVICE),chrome)
 RUN_BROWSER_FLAGS := $(CHROME_WEB_BROWSER_FLAGS)
 else
