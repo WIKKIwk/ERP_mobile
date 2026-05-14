@@ -88,14 +88,14 @@ class WerkaArchivePeriodScreen extends StatelessWidget {
                   title: l10n.archiveDailyTitle,
                   onTap: () => _openList(context, WerkaArchivePeriod.daily),
                 ),
-                const SizedBox(height: 0),
+                const SizedBox(height: 6),
                 _WerkaArchivePeriodSegmentTile(
                   index: 1,
                   itemCount: _entryCount,
                   title: l10n.archiveMonthlyTitle,
                   onTap: () => _openList(context, WerkaArchivePeriod.monthly),
                 ),
-                const SizedBox(height: 0),
+                const SizedBox(height: 6),
                 _WerkaArchivePeriodSegmentTile(
                   index: 2,
                   itemCount: _entryCount,
