@@ -25,6 +25,7 @@ class _AdminItemGroupCreateScreenState
   final TextEditingController parent = TextEditingController();
   late Future<List<String>> itemGroupsFuture;
   late Future<List<AdminItemGroupTreeEntry>> itemGroupTreeFuture;
+  late Future<List<SupplierItem>> itemGroupItemsFuture;
   final List<String> optimisticParentGroups = [];
   bool saving = false;
   bool isGroup = true;
@@ -35,6 +36,7 @@ class _AdminItemGroupCreateScreenState
     super.initState();
     itemGroupsFuture = _loadParentGroups();
     itemGroupTreeFuture = _loadItemGroupTree();
+    itemGroupItemsFuture = _loadItemGroupItems();
   }
 
   @override
@@ -53,6 +55,10 @@ class _AdminItemGroupCreateScreenState
     return MobileApi.instance.adminItemGroupTree();
   }
 
+  Future<List<SupplierItem>> _loadItemGroupItems() {
+    return MobileApi.instance.adminItems();
+  }
+
   List<String> _mergeParentGroups(List<String> groups) {
     final seen = <String>{};
     final merged = <String>[];
@@ -69,6 +75,7 @@ class _AdminItemGroupCreateScreenState
   void _refreshParentGroups() {
     itemGroupsFuture = _loadParentGroups();
     itemGroupTreeFuture = _loadItemGroupTree();
+    itemGroupItemsFuture = _loadItemGroupItems();
   }
 
   void _addOptimisticParentGroup(AdminItemGroup group) {
@@ -189,6 +196,7 @@ class _AdminItemGroupCreateScreenState
                   ),
                   AdminItemGroupTreeTab(
                     itemGroupTreeFuture: itemGroupTreeFuture,
+                    itemGroupItemsFuture: itemGroupItemsFuture,
                   ),
                 ],
               ),
