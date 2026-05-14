@@ -820,10 +820,10 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
     final visible = _refreshing || _pullExtent > 0.0;
     final indicatorScale = _refreshing ? 1.0 : (0.64 + (0.36 * progress));
     final indicatorOpacity = _refreshing ? 1.0 : progress.clamp(0.0, 1.0);
+    final refreshHeadroom = widget.displacement + 28.0;
     final contentTranslateY = _refreshing
-        ? 0.0
-        : _pullExtent.clamp(0.0, widget.displacement + 12.0).toDouble();
-    final indicatorTranslateY = _refreshing ? 0.0 : contentTranslateY;
+        ? refreshHeadroom
+        : _pullExtent.clamp(0.0, refreshHeadroom).toDouble();
     final motionDuration = _userPulling
         ? Duration.zero
         : _refreshing
@@ -848,7 +848,7 @@ class _AppRefreshIndicatorState extends State<AppRefreshIndicator> {
             ),
             if (visible)
               Positioned(
-                top: widget.edgeOffset + indicatorTranslateY,
+                top: widget.edgeOffset,
                 left: 0,
                 right: 0,
                 child: IgnorePointer(
