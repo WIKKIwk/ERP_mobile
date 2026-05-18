@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api/mobile_api.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/localization/locale_controller.dart';
+import '../../core/session/session.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/widgets/navigation/native_back_button.dart';
@@ -96,6 +97,23 @@ class GScaleMobileApp extends StatefulWidget {
 
 class _GScaleMobileAppState extends State<GScaleMobileApp> {
   DiscoveredServer? _selectedServer;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadRuntimeState());
+  }
+
+  Future<void> _loadRuntimeState() async {
+    await Future.wait([
+      AppSession.instance.load(),
+      LocaleController.instance.load(),
+      ThemeController.instance.load(),
+    ]);
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   Future<void> _openServer(DiscoveredServer server) async {
     await saveLastUsedServer(server.endpoint);
@@ -969,6 +987,18 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
   }
 
   Future<void> _openItemPicker() async {
+    if (!AppSession.instance.isLoggedIn) {
+      await AppSession.instance.load();
+    }
+    if (!mounted) {
+      return;
+    }
+    if (!AppSession.instance.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Accord session topilmadi.')),
+      );
+      return;
+    }
     final option = await showModalBottomSheet<CustomerItemOption>(
       context: context,
       isDismissible: true,
