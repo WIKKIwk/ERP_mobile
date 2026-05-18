@@ -87,6 +87,18 @@ void main() {
       expect(merged.servers, isEmpty);
     },
   );
+
+  test('driverUrlForRs uses 5070 Tailscale address for RS print requests', () {
+    final server = _server('192.168.1.114', '5070');
+
+    expect(driverUrlForRs(server), 'http://100.117.62.18:39117');
+  });
+
+  test('driverUrlForRs keeps non-5070 endpoint unchanged', () {
+    final server = _server('192.168.1.114', 'lab-scale');
+
+    expect(driverUrlForRs(server), 'http://192.168.1.114:39117');
+  });
 }
 
 DiscoveredServer _server(String host, String serverRef, {int latencyMs = 1}) {

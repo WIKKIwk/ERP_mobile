@@ -1166,10 +1166,11 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
         ? 'label'
         : (_batchPrintMode == 'label' ? 'label' : 'rfid');
     final api = MobileApi.instance;
+    final driverUrl = driverUrlForRs(widget.server);
     final started = await api
         .gscaleRpsBatchStart(
           buildGScaleRpsBatchStartRequest(
-            driverUrl: widget.server.endpoint.baseUrl,
+            driverUrl: driverUrl,
             item: item,
             warehouse: warehouse,
             printer: printer,
@@ -1192,7 +1193,7 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
         .gscaleRpsBatchPrint(
           buildGScaleRpsBatchPrintRequest(
             grossQtyKg: grossQtyKg,
-            driverUrl: widget.server.endpoint.baseUrl,
+            driverUrl: driverUrl,
           ),
         )
         .timeout(const Duration(seconds: 15));
@@ -3954,6 +3955,15 @@ class DiscoveredServer {
     }
     return endpoint.label.toLowerCase();
   }
+}
+
+String driverUrlForRs(DiscoveredServer server) {
+  final ref = server.handshake.serverRef.trim().toLowerCase();
+  final name = server.handshake.serverName.trim().toLowerCase();
+  if (ref == '5070' || name == 'rp-scale-5070') {
+    return 'http://100.117.62.18:39117';
+  }
+  return server.endpoint.baseUrl;
 }
 
 class ServerEndpoint {
