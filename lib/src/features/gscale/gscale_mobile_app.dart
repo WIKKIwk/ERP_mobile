@@ -13,6 +13,8 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/widgets/navigation/native_back_button.dart';
 import '../../core/widgets/navigation/app_navigation_bar.dart';
+import '../shared/models/app_models.dart';
+import '../werka/presentation/widgets/m3_picker_sheet.dart';
 import 'gscale_catalog.dart';
 import 'network_candidates_stub.dart'
     if (dart.library.io) 'network_candidates_io.dart' as network_candidates;
@@ -35,7 +37,7 @@ const _bonjourDiscoveryTimeout = Duration(milliseconds: 900);
 const _emptyDiscoveryScansBeforeClear = 3;
 const _bonjourDiscoveryChannel = MethodChannel('gscale/bonjour');
 const _minManualPrintKg = 0.100;
-const _catalogPickerLimit = 80;
+const _catalogPickerPageSize = 200;
 const _configuredApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
   defaultValue: _defaultWifiServerAddress,
@@ -804,21 +806,6 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
     ).replace(queryParameters: filtered.isEmpty ? null : filtered);
   }
 
-  Future<List<MobileItem>> _fetchItems({String query = ''}) async {
-    final items = await fetchGScaleCatalogItems(
-      query: query,
-      limit: _catalogPickerLimit,
-    ).timeout(const Duration(seconds: 3));
-    return items
-        .map(
-          (item) => MobileItem(
-            itemCode: item.itemCode,
-            itemName: item.itemName,
-          ),
-        )
-        .toList(growable: false);
-  }
-
   Future<List<MobileWarehouse>> _fetchWarehouses({
     required String itemCode,
     String query = '',
@@ -967,23 +954,43 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
   }
 
   Future<void> _openItemPicker() async {
-    final item = await showModalBottomSheet<MobileItem>(
+    final option = await showModalBottomSheet<CustomerItemOption>(
       context: context,
+      isDismissible: true,
+      enableDrag: true,
       isScrollControlled: true,
       useSafeArea: true,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      builder: (context) => _ItemPickerSheet(
-        initialItem: _selectedItem,
-        fetchItems: ({required String query}) => _fetchItems(query: query),
-      ),
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.32),
+      sheetAnimationStyle: kM3PickerSheetAnimation,
+      builder: (context) {
+        return M3AsyncPickerSheet<CustomerItemOption>(
+          title: 'Mahsulot tanlang',
+          hintText: 'Mahsulot qidiring',
+          showScanIcon: true,
+          pageSize: _catalogPickerPageSize,
+          loadPage: (query, offset, limit) => MobileApi.instance
+              .werkaCustomerItemOptions(
+                query: query,
+                offset: offset,
+                limit: limit,
+              )
+              .timeout(const Duration(seconds: 3)),
+          itemTitle: (item) => item.itemName,
+          itemSubtitle: (item) => '${item.customerName} • ${item.itemCode}',
+          onSelected: (item) => Navigator.of(context).pop(item),
+        );
+      },
     );
-    if (item == null) {
+    if (option == null) {
       return;
     }
-    _selectItem(item);
+    _selectItem(MobileItem(
+      itemCode: option.itemCode,
+      itemName: option.itemName.trim().isEmpty
+          ? option.itemCode
+          : option.itemName.trim(),
+    ));
   }
 
   Future<void> _openWarehousePicker() async {
@@ -2460,58 +2467,6 @@ class _MiniIconRow extends StatelessWidget {
   }
 }
 
-class _ItemOptionTile extends StatelessWidget {
-  const _ItemOptionTile({
-    required this.item,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final MobileItem item;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.itemCode,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: selected ? scheme.primary : scheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.itemName,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            if (selected) Icon(Icons.check_rounded, color: scheme.primary),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _WarehouseOptionTile extends StatelessWidget {
   const _WarehouseOptionTile({
     required this.warehouse,
@@ -2560,214 +2515,6 @@ class _WarehouseOptionTile extends StatelessWidget {
             const SizedBox(width: 12),
             if (selected) Icon(Icons.check_rounded, color: scheme.primary),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ItemPickerSheet extends StatefulWidget {
-  const _ItemPickerSheet({required this.fetchItems, this.initialItem});
-
-  final Future<List<MobileItem>> Function({required String query}) fetchItems;
-  final MobileItem? initialItem;
-
-  @override
-  State<_ItemPickerSheet> createState() => _ItemPickerSheetState();
-}
-
-class _ItemPickerSheetState extends State<_ItemPickerSheet> {
-  late final TextEditingController _controller;
-  Timer? _debounce;
-  bool _loading = false;
-  String _error = '';
-  List<MobileItem> _items = const [];
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      unawaited(_loadItems(query: ''));
-    });
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _scheduleSearch() {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 220), () {
-      unawaited(_loadItems());
-    });
-  }
-
-  Future<void> _loadItems({String? query}) async {
-    final search = (query ?? _controller.text).trim();
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _loading = true;
-      _error = '';
-    });
-    try {
-      final items = await widget.fetchItems(query: search);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _items = items;
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _items = const [];
-        _loading = false;
-        _error = error.toString();
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: FractionallySizedBox(
-        heightFactor: 0.82,
-        child: Material(
-          color: theme.scaffoldBackgroundColor,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Mahsulot tanlang',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close_rounded),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _controller,
-                    autofocus: true,
-                    onChanged: (_) => _scheduleSearch(),
-                    decoration: InputDecoration(
-                      hintText: 'Mahsulot qidiring',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: scheme.outlineVariant,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: scheme.primary,
-                          width: 1.4,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: Container(
-                        color: scheme.surfaceContainerLow,
-                        child: _loading
-                            ? const Center(child: CircularProgressIndicator())
-                            : _error.isNotEmpty
-                                ? Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(24),
-                                      child: Text(
-                                        _error,
-                                        textAlign: TextAlign.center,
-                                        style: theme.textTheme.bodyMedium
-                                            ?.copyWith(
-                                          color: scheme.error,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : _items.isEmpty
-                                    ? Center(
-                                        child: Text(
-                                          'Mahsulot topilmadi.',
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                            color: scheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      )
-                                    : ListView.separated(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 18,
-                                          vertical: 12,
-                                        ),
-                                        itemCount: _items.length,
-                                        separatorBuilder: (context, index) =>
-                                            Divider(
-                                          height: 1,
-                                          color:
-                                              scheme.outlineVariant.withValues(
-                                            alpha: 0.7,
-                                          ),
-                                        ),
-                                        itemBuilder: (context, index) {
-                                          final item = _items[index];
-                                          final selected =
-                                              widget.initialItem?.itemCode ==
-                                                  item.itemCode;
-                                          return _ItemOptionTile(
-                                            item: item,
-                                            selected: selected,
-                                            onTap: () {
-                                              Navigator.of(context).pop(item);
-                                            },
-                                          );
-                                        },
-                                      ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

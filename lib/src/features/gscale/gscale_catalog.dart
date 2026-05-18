@@ -3,8 +3,7 @@ import '../../core/search/search_normalizer.dart';
 import '../../core/session/session.dart';
 import '../shared/models/app_models.dart';
 
-const _gscaleCatalogDefaultLimit = 80;
-const _gscaleCatalogFetchLimit = 240;
+const _gscaleCatalogPageSize = 200;
 
 class GScaleCatalogItem {
   const GScaleCatalogItem({
@@ -30,7 +29,8 @@ class GScaleCatalogWarehouse {
 
 Future<List<GScaleCatalogItem>> fetchGScaleCatalogItems({
   String query = '',
-  int limit = _gscaleCatalogDefaultLimit,
+  int limit = _gscaleCatalogPageSize,
+  int offset = 0,
   MobileApi? api,
   UserRole? role,
 }) async {
@@ -40,7 +40,8 @@ Future<List<GScaleCatalogItem>> fetchGScaleCatalogItems({
   if (activeRole == UserRole.admin) {
     final items = await client.adminItemsPage(
       query: query,
-      limit: _expandedCatalogFetchLimit(requestedLimit),
+      limit: requestedLimit,
+      offset: offset,
     );
     return gscaleCatalogItemsFromSupplierItems(
       items,
@@ -50,7 +51,8 @@ Future<List<GScaleCatalogItem>> fetchGScaleCatalogItems({
   if (activeRole == UserRole.werka) {
     final options = await client.werkaCustomerItemOptions(
       query: query,
-      limit: _expandedCatalogFetchLimit(requestedLimit),
+      limit: requestedLimit,
+      offset: offset,
     );
     return gscaleCatalogItemsFromCustomerOptions(
       options,
@@ -230,16 +232,9 @@ List<GScaleCatalogWarehouse> _uniqueWarehouses(
 
 int _normalizeCatalogLimit(int limit) {
   if (limit <= 0) {
-    return _gscaleCatalogDefaultLimit;
+    return _gscaleCatalogPageSize;
   }
   return limit;
-}
-
-int _expandedCatalogFetchLimit(int limit) {
-  if (limit >= _gscaleCatalogFetchLimit) {
-    return limit;
-  }
-  return _gscaleCatalogFetchLimit;
 }
 
 List<GScaleCatalogItem> _sortCatalogItems(
