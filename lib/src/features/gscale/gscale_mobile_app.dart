@@ -1101,19 +1101,29 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
     final printMode = printer == 'godex'
         ? 'label'
         : (_batchPrintMode == 'label' ? 'label' : 'rfid');
-    return MobileApi.instance
-        .gscaleMaterialReceiptPrint(
-          GScaleMaterialReceiptPrintRequest(
+    final api = MobileApi.instance;
+    await api
+        .gscaleRpsBatchStart(
+          buildGScaleRpsBatchStartRequest(
             driverUrl: widget.server.endpoint.baseUrl,
-            itemCode: item.itemCode,
-            itemName: item.itemName,
+            item: item,
             warehouse: warehouse,
             printer: printer,
             printMode: printMode,
-            grossQty: grossQtyKg,
-            unit: 'kg',
+            quantitySource: normalizeQuantitySource(_quantitySource),
+            manualQtyKg: normalizeQuantitySource(_quantitySource) == 'manual'
+                ? grossQtyKg
+                : 0,
             tareEnabled: _babinaEnabled,
             tareKg: tareKg ?? 0,
+          ),
+        )
+        .timeout(const Duration(seconds: 15));
+    return api
+        .gscaleRpsBatchPrint(
+          buildGScaleRpsBatchPrintRequest(
+            grossQtyKg: grossQtyKg,
+            driverUrl: widget.server.endpoint.baseUrl,
           ),
         )
         .timeout(const Duration(seconds: 15));
@@ -3434,6 +3444,46 @@ bool canTriggerManualPrint({
     grossKg: manualQtyKg,
     babinaEnabled: babinaEnabled,
     babinaText: babinaText,
+  );
+}
+
+GScaleRpsBatchStartRequest buildGScaleRpsBatchStartRequest({
+  required String driverUrl,
+  required MobileItem item,
+  required String warehouse,
+  required String printer,
+  required String printMode,
+  required String quantitySource,
+  required double manualQtyKg,
+  required bool tareEnabled,
+  required double tareKg,
+}) {
+  final normalizedPrinter = normalizePrinterChoice(printer);
+  return GScaleRpsBatchStartRequest(
+    clientBatchId: '',
+    driverUrl: driverUrl,
+    itemCode: item.itemCode,
+    itemName: item.itemName,
+    warehouse: warehouse,
+    printer: normalizedPrinter,
+    printMode: normalizedPrinter == 'godex'
+        ? 'label'
+        : (printMode.trim().toLowerCase() == 'label' ? 'label' : 'rfid'),
+    quantitySource: normalizeQuantitySource(quantitySource),
+    manualQtyKg: manualQtyKg.isFinite && manualQtyKg > 0 ? manualQtyKg : 0,
+    tareEnabled: tareEnabled || tareKg > 0,
+    tareKg: tareKg.isFinite && tareKg > 0 ? tareKg : 0,
+  );
+}
+
+GScaleRpsBatchPrintRequest buildGScaleRpsBatchPrintRequest({
+  required double grossQtyKg,
+  required String driverUrl,
+}) {
+  return GScaleRpsBatchPrintRequest(
+    grossQty: grossQtyKg,
+    driverUrl: driverUrl,
+    unit: 'kg',
   );
 }
 
