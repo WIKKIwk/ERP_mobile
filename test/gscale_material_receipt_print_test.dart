@@ -162,6 +162,46 @@ void main() {
     expect(snapshot.batchTareEnabled, isTrue);
   });
 
+  test('monitor snapshot reads connected GoDEX printer state', () {
+    final snapshot = MonitorSnapshot.fromJson({
+      'ok': true,
+      'state': {
+        'scale': {
+          'source': 'serial',
+          'port': '/dev/pts/0',
+          'weight': 2.5,
+          'unit': 'kg',
+          'stable': true,
+          'error': '',
+        },
+        'zebra': {'verify': 'idle', 'action': 'printer state'},
+        'printer': {
+          'ok': true,
+          'connected': true,
+          'kind': 'godex',
+          'label': 'ulangan',
+          'device_paths': ['/dev/usb/lp2'],
+          'error': '',
+        },
+        'batch': {
+          'active': false,
+          'printer': 'godex',
+          'print_mode': 'label',
+          'quantity_source': 'scale',
+        },
+        'print_request': {'status': 'idle'},
+      },
+    });
+
+    expect(snapshot.scaleValue, '2.5 kg');
+    expect(snapshot.scaleConnectionLabel, 'Scale: ulangan');
+    expect(snapshot.printerLabel, 'ulangan');
+    expect(snapshot.printerKind, 'godex');
+    expect(snapshot.livePrinterChoice, 'godex');
+    expect(snapshot.batchPrinter, 'godex');
+    expect(snapshot.batchPrintMode, 'label');
+  });
+
   test('rps batch start helper carries current print controls', () {
     final request = buildGScaleRpsBatchStartRequest(
       driverUrl: 'http://127.0.0.1:39117',
