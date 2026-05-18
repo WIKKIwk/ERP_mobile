@@ -439,6 +439,7 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
   Timer? _printerStatusTimer;
   Timer? _controlPrefsDebounce;
   String _printerStatusOverride = '';
+  String _lastAutoBatchPrintKey = '';
   bool _suspendControlPrefsSave = false;
 
   @override
@@ -818,6 +819,7 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
       setState(() {
         _applyRsBatchSession(response.batch);
         _batchActionLoading = false;
+        _lastAutoBatchPrintKey = '';
       });
     } catch (error) {
       if (!mounted) {
@@ -885,10 +887,15 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
         }
       }
     }
+    _maybeAutoPrintStableBatch();
   }
 
   void _applyRsBatchSession(GScaleRpsBatchSession batch) {
     _snapshot = _snapshot.copyWithBatch(MobileBatchState.fromRpsBatch(batch));
+    if (!batch.active) {
+      _lastAutoBatchPrintKey = '';
+    }
+    _maybeAutoPrintStableBatch();
   }
 
   Uri _apiUri(String path, [Map<String, String?> query = const {}]) {
@@ -1144,6 +1151,13 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
   Future<GScaleMaterialReceiptPrintResponse> _submitMaterialReceiptPrint({
     required double grossQtyKg,
   }) async {
+    await _startRsBatchFromSelection(grossQtyKg: grossQtyKg);
+    return _printActiveRsBatch(grossQtyKg: grossQtyKg);
+  }
+
+  Future<GScaleRpsBatchResponse> _startRsBatchFromSelection({
+    required double grossQtyKg,
+  }) async {
     final item = _selectedItem;
     if (item == null) {
       throw Exception('Mahsulot tanlang');
@@ -1156,10 +1170,6 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
         _babinaEnabled ? parsePositiveKg(_babinaWeightController.text) : 0.0;
     if (_babinaEnabled && tareKg == null) {
       throw Exception("Babina og'irligini kg da to'g'ri kiriting");
-    }
-    final netQty = grossQtyKg - (tareKg ?? 0);
-    if (grossQtyKg <= 0 || netQty < _minManualPrintKg) {
-      throw Exception('Netto kg juda kichik');
     }
     final printer = normalizePrinterChoice(_batchPrinter);
     final printMode = printer == 'godex'
@@ -1187,8 +1197,26 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
     if (mounted) {
       setState(() {
         _applyRsBatchSession(started.batch);
+        _lastAutoBatchPrintKey = '';
       });
     }
+    return started;
+  }
+
+  Future<GScaleMaterialReceiptPrintResponse> _printActiveRsBatch({
+    required double grossQtyKg,
+  }) async {
+    final tareKg =
+        _babinaEnabled ? parsePositiveKg(_babinaWeightController.text) : 0.0;
+    if (_babinaEnabled && tareKg == null) {
+      throw Exception("Babina og'irligini kg da to'g'ri kiriting");
+    }
+    final netQty = grossQtyKg - (tareKg ?? 0);
+    if (grossQtyKg <= 0 || netQty < _minManualPrintKg) {
+      throw Exception('Netto kg juda kichik');
+    }
+    final api = MobileApi.instance;
+    final driverUrl = driverUrlForRs(widget.server);
     final response = await api
         .gscaleRpsBatchPrint(
           buildGScaleRpsBatchPrintRequest(
@@ -1199,6 +1227,97 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
         .timeout(const Duration(seconds: 15));
     unawaited(_refreshRsBatchState());
     return response;
+  }
+
+  Future<void> _startScaleBatch() async {
+    if (_manualPrintLoading || _batchActionLoading || _requestInFlight) {
+      return;
+    }
+    setState(() {
+      _batchActionLoading = true;
+      _errorText = '';
+      _warehousesError = '';
+    });
+    try {
+      await _startRsBatchFromSelection(grossQtyKg: 0);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _batchActionLoading = false;
+      });
+      _scheduleSaveControlPrefs();
+      _maybeAutoPrintStableBatch();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _batchActionLoading = false;
+        _errorText = error.toString();
+      });
+    }
+  }
+
+  void _maybeAutoPrintStableBatch() {
+    final key = autoBatchPrintKey(
+      grossKg: parseScaleDisplayKg(_snapshot.scaleValue),
+      scaleStable: _snapshot.scaleStable,
+      babinaEnabled: _babinaEnabled,
+      babinaText: _babinaWeightController.text,
+    );
+    if (key.isEmpty) {
+      if (!_batchActionLoading) {
+        _lastAutoBatchPrintKey = '';
+      }
+      return;
+    }
+    if (!shouldTriggerAutoBatchPrint(
+      batchActive: _snapshot.batchActive,
+      loading: _manualPrintLoading || _batchActionLoading || _requestInFlight,
+      stablePrintKey: key,
+      lastPrintedKey: _lastAutoBatchPrintKey,
+    )) {
+      return;
+    }
+    final grossQtyKg = parseScaleDisplayKg(_snapshot.scaleValue);
+    if (grossQtyKg == null) {
+      return;
+    }
+    _lastAutoBatchPrintKey = key;
+    unawaited(Future<void>.microtask(
+      () => _autoPrintStableBatchReading(grossQtyKg),
+    ));
+  }
+
+  Future<void> _autoPrintStableBatchReading(double grossQtyKg) async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _batchActionLoading = true;
+      _errorText = '';
+      _warehousesError = '';
+    });
+    try {
+      final response = await _printActiveRsBatch(grossQtyKg: grossQtyKg);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _batchActionLoading = false;
+      });
+      _showPrintSuccess(response);
+      unawaited(_refresh());
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _batchActionLoading = false;
+        _errorText = error.toString();
+      });
+    }
   }
 
   void _showPrintSuccess(GScaleMaterialReceiptPrintResponse response) {
@@ -1251,50 +1370,6 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
       setState(() {
         _manualPrintLoading = false;
         _errorText = error.toString();
-      });
-    }
-  }
-
-  Future<void> _printScaleReading() async {
-    if (_manualPrintLoading || _batchActionLoading || _requestInFlight) {
-      return;
-    }
-    final grossQtyKg = parseScaleDisplayKg(_snapshot.scaleValue);
-    if (!canTriggerGrossPrint(
-      grossKg: grossQtyKg,
-      babinaEnabled: _babinaEnabled,
-      babinaText: _babinaWeightController.text,
-    )) {
-      setState(() {
-        _errorText = "Scale kg ni to'g'ri kuting";
-      });
-      return;
-    }
-
-    setState(() {
-      _batchActionLoading = true;
-      _errorText = '';
-    });
-    try {
-      final response = await _submitMaterialReceiptPrint(
-        grossQtyKg: grossQtyKg ?? 0,
-      );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _batchActionLoading = false;
-      });
-      _showPrintSuccess(response);
-      _scheduleSaveControlPrefs();
-      unawaited(_refresh());
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _batchActionLoading = false;
-        _warehousesError = error.toString();
       });
     }
   }
@@ -2281,10 +2356,10 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
               ),
             ),
             onPressed: hasPrintSelection &&
-                    scalePrintReady &&
+                    !_snapshot.batchActive &&
                     !_manualPrintLoading &&
                     !_batchActionLoading
-                ? _printScaleReading
+                ? _startScaleBatch
                 : null,
             icon: _batchActionLoading
                 ? const SizedBox(
@@ -2292,14 +2367,28 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
                     width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.print_rounded),
+                : Icon(_snapshot.batchActive
+                    ? Icons.sensors_rounded
+                    : Icons.play_arrow_rounded),
             label: Text(
               _batchActionLoading
                   ? 'Chop etish yuborilmoqda...'
-                  : 'Joriy kg bilan chop etish',
+                  : (_snapshot.batchActive
+                      ? 'Batch ishlayapti'
+                      : 'Batch start'),
             ),
           ),
-          if (scaleQtyKg == null) ...[
+          if (_snapshot.batchActive) ...[
+            const SizedBox(height: 6),
+            Text(
+              scalePrintReady
+                  ? 'Stable kg avtomatik chop etiladi.'
+                  : 'Stable kg kutilmoqda.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ] else if (scaleQtyKg == null) ...[
             const SizedBox(height: 6),
             Text(
               'Scale ulangan va kg kelganda tugma aktiv bo‘ladi.',
@@ -3210,6 +3299,7 @@ class MonitorSnapshot {
   const MonitorSnapshot({
     required this.scaleValue,
     required this.scaleCaption,
+    required this.scaleStable,
     required this.scaleConnectionLabel,
     required this.zebraValue,
     required this.zebraCaption,
@@ -3241,6 +3331,7 @@ class MonitorSnapshot {
     return const MonitorSnapshot(
       scaleValue: '--',
       scaleCaption: 'Live qty',
+      scaleStable: false,
       scaleConnectionLabel: 'Scale: ulanmagan',
       zebraValue: 'Idle',
       zebraCaption: 'Printer state',
@@ -3279,7 +3370,8 @@ class MonitorSnapshot {
 
     final scaleWeight = scale['weight'];
     final scaleUnit = _text(scale['unit'], fallback: 'kg');
-    final scaleStable = scale['stable'] == true ? 'stable' : 'live';
+    final scaleStable = scale['stable'] == true;
+    final scaleCaption = scaleStable ? 'stable' : 'live';
     final scaleConnectionLabel = buildScaleConnectionLabel(
       source: _text(scale['source']),
       port: _text(scale['port']),
@@ -3316,7 +3408,8 @@ class MonitorSnapshot {
 
     return MonitorSnapshot(
       scaleValue: scaleWeight == null ? '--' : '$scaleWeight $scaleUnit',
-      scaleCaption: scaleStable,
+      scaleCaption: scaleCaption,
+      scaleStable: scaleStable,
       scaleConnectionLabel: scaleConnectionLabel,
       zebraValue: zebraVerify.toUpperCase(),
       zebraCaption: zebraAction,
@@ -3368,6 +3461,7 @@ class MonitorSnapshot {
     return MonitorSnapshot(
       scaleValue: scaleValue,
       scaleCaption: scaleCaption,
+      scaleStable: scaleStable,
       scaleConnectionLabel: scaleConnectionLabel,
       zebraValue: zebraValue,
       zebraCaption: zebraCaption,
@@ -3404,6 +3498,7 @@ class MonitorSnapshot {
 
   final String scaleValue;
   final String scaleCaption;
+  final bool scaleStable;
   final String scaleConnectionLabel;
   final String zebraValue;
   final String zebraCaption;
@@ -3434,6 +3529,7 @@ class MonitorSnapshot {
     return MonitorSnapshot(
       scaleValue: scaleValue,
       scaleCaption: scaleCaption,
+      scaleStable: scaleStable,
       scaleConnectionLabel: scaleConnectionLabel,
       zebraValue: zebraValue,
       zebraCaption: zebraCaption,
@@ -3534,6 +3630,35 @@ bool canTriggerGrossPrint({
   }
   final netQty = grossKg - (babinaKg ?? 0);
   return grossKg > (babinaKg ?? 0) && netQty >= _minManualPrintKg;
+}
+
+String autoBatchPrintKey({
+  required double? grossKg,
+  required bool scaleStable,
+  required bool babinaEnabled,
+  required String babinaText,
+}) {
+  if (!scaleStable ||
+      !canTriggerGrossPrint(
+        grossKg: grossKg,
+        babinaEnabled: babinaEnabled,
+        babinaText: babinaText,
+      )) {
+    return '';
+  }
+  return grossKg!.toStringAsFixed(3);
+}
+
+bool shouldTriggerAutoBatchPrint({
+  required bool batchActive,
+  required bool loading,
+  required String stablePrintKey,
+  required String lastPrintedKey,
+}) {
+  return batchActive &&
+      !loading &&
+      stablePrintKey.isNotEmpty &&
+      stablePrintKey != lastPrintedKey;
 }
 
 bool canTriggerManualPrint({

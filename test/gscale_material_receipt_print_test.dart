@@ -194,6 +194,7 @@ void main() {
     });
 
     expect(snapshot.scaleValue, '2.5 kg');
+    expect(snapshot.scaleStable, isTrue);
     expect(snapshot.scaleConnectionLabel, 'Scale: ulangan');
     expect(snapshot.printerLabel, 'ulangan');
     expect(snapshot.printerKind, 'godex');
@@ -241,6 +242,53 @@ void main() {
       'unit': 'kg',
       'driver_url': 'http://127.0.0.1:39117',
     });
+  });
+
+  test('auto batch print triggers once per stable scale reading', () {
+    final key = autoBatchPrintKey(
+      grossKg: 2.75,
+      scaleStable: true,
+      babinaEnabled: false,
+      babinaText: '',
+    );
+
+    expect(key, '2.750');
+    expect(
+      shouldTriggerAutoBatchPrint(
+        batchActive: true,
+        loading: false,
+        stablePrintKey: key,
+        lastPrintedKey: '',
+      ),
+      isTrue,
+    );
+    expect(
+      shouldTriggerAutoBatchPrint(
+        batchActive: true,
+        loading: false,
+        stablePrintKey: key,
+        lastPrintedKey: key,
+      ),
+      isFalse,
+    );
+    expect(
+      autoBatchPrintKey(
+        grossKg: 2.75,
+        scaleStable: false,
+        babinaEnabled: false,
+        babinaText: '',
+      ),
+      '',
+    );
+    expect(
+      autoBatchPrintKey(
+        grossKg: 0.05,
+        scaleStable: true,
+        babinaEnabled: false,
+        babinaText: '',
+      ),
+      '',
+    );
   });
 
   test('scale display kg parser accepts monitor label', () {
