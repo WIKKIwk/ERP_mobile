@@ -12,6 +12,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/widgets/navigation/native_back_button.dart';
 import '../../core/widgets/navigation/app_navigation_bar.dart';
+import 'gscale_catalog.dart';
 import 'network_candidates_stub.dart'
     if (dart.library.io) 'network_candidates_io.dart' as network_candidates;
 
@@ -889,52 +890,52 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
   }
 
   Future<List<MobileItem>> _fetchItems({String query = ''}) async {
-    final response = await _client
-        .get(_apiUri('/v1/mobile/items', {'query': query, 'limit': '12'}))
+    final items = await fetchGScaleCatalogItems(query: query, limit: 12)
         .timeout(const Duration(seconds: 3));
-    if (response.statusCode < 200 || response.statusCode > 299) {
-      throw Exception('items ${response.statusCode}');
-    }
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final rawItems =
-        (payload['items'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
-    return rawItems.map(MobileItem.fromJson).toList(growable: false);
+    return items
+        .map(
+          (item) => MobileItem(
+            itemCode: item.itemCode,
+            itemName: item.itemName,
+          ),
+        )
+        .toList(growable: false);
   }
 
   Future<List<MobileWarehouse>> _fetchWarehouses({
     required String itemCode,
     String query = '',
   }) async {
-    final response = await _client
-        .get(
-          _apiUri(
-            '/v1/mobile/items/${Uri.encodeComponent(itemCode)}/warehouses',
-            {'query': query, 'limit': '12'},
+    final warehouses = await fetchGScaleItemWarehouses(
+      itemCode: itemCode,
+      query: query,
+      limit: 12,
+    ).timeout(const Duration(seconds: 3));
+    return warehouses
+        .map(
+          (warehouse) => MobileWarehouse(
+            warehouse: warehouse.warehouse,
+            actualQty: warehouse.actualQty,
+            company: warehouse.company,
           ),
         )
-        .timeout(const Duration(seconds: 3));
-    if (response.statusCode < 200 || response.statusCode > 299) {
-      throw Exception('warehouses ${response.statusCode}');
-    }
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final rawWarehouses =
-        (payload['warehouses'] as List?)?.cast<Map<String, dynamic>>() ??
-            const [];
-    return rawWarehouses.map(MobileWarehouse.fromJson).toList(growable: false);
+        .toList(growable: false);
   }
 
   Future<List<MobileWarehouse>> _fetchAllWarehouses({String query = ''}) async {
-    final response = await _client
-        .get(_apiUri('/v1/mobile/warehouses', {'query': query, 'limit': '30'}))
-        .timeout(const Duration(seconds: 3));
-    if (response.statusCode < 200 || response.statusCode > 299) {
-      throw Exception('warehouses ${response.statusCode}');
-    }
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
-    final rawWarehouses =
-        (payload['warehouses'] as List?)?.cast<Map<String, dynamic>>() ??
-            const [];
-    return rawWarehouses.map(MobileWarehouse.fromJson).toList(growable: false);
+    final warehouses = await fetchGScaleDefaultWarehouses(
+      query: query,
+      limit: 30,
+    ).timeout(const Duration(seconds: 3));
+    return warehouses
+        .map(
+          (warehouse) => MobileWarehouse(
+            warehouse: warehouse.warehouse,
+            actualQty: warehouse.actualQty,
+            company: warehouse.company,
+          ),
+        )
+        .toList(growable: false);
   }
 
   Future<void> _validateSelectedWarehouse({required String itemCode}) async {
