@@ -5,10 +5,13 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/api/mobile_api.dart';
+import '../../core/localization/app_localizations.dart';
+import '../../core/localization/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/widgets/navigation/native_back_button.dart';
@@ -108,12 +111,24 @@ class _GScaleMobileAppState extends State<GScaleMobileApp> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: ThemeController.instance,
+      animation: Listenable.merge([
+        ThemeController.instance,
+        LocaleController.instance,
+      ]),
       builder: (context, _) {
         return MaterialApp(
           title: 'GScale Mobile',
           debugShowCheckedModeBanner: false,
-          locale: previewEnabled ? DevicePreview.locale(context) : null,
+          locale: previewEnabled
+              ? DevicePreview.locale(context)
+              : LocaleController.instance.locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
           builder: previewEnabled ? DevicePreview.appBuilder : null,
           themeMode: ThemeController.instance.themeMode,
           theme: AppTheme.light(ThemeController.instance.variant),
