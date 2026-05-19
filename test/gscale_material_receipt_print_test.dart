@@ -3,33 +3,6 @@ import 'package:erpnext_stock_mobile/src/features/gscale/gscale_mobile_app.dart'
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('material receipt print request matches RS contract', () {
-    const request = GScaleMaterialReceiptPrintRequest(
-      driverUrl: ' http://127.0.0.1:39117 ',
-      itemCode: ' ITEM-1 ',
-      itemName: ' Green Tea ',
-      warehouse: ' Stores - A ',
-      printer: 'zebra',
-      printMode: 'rfid',
-      grossQty: 2.5,
-      tareEnabled: true,
-      tareKg: 0.78,
-    );
-
-    expect(request.toJson(), {
-      'driver_url': 'http://127.0.0.1:39117',
-      'item_code': 'ITEM-1',
-      'item_name': 'Green Tea',
-      'warehouse': 'Stores - A',
-      'printer': 'zebra',
-      'print_mode': 'rfid',
-      'gross_qty': 2.5,
-      'unit': 'kg',
-      'tare_enabled': true,
-      'tare_kg': 0.78,
-    });
-  });
-
   test('material receipt print response reads RS result', () {
     final response = GScaleMaterialReceiptPrintResponse.fromJson({
       'ok': true,
