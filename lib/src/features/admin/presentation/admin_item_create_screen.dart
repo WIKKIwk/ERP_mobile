@@ -1,6 +1,7 @@
 import '../../../core/api/mobile_api.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/shell/app_shell.dart';
+import '../../werka/presentation/widgets/m3_picker_sheet.dart';
 import 'widgets/admin_dock.dart';
 import 'widgets/admin_top_notice.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,6 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
   final Future<List<String>> itemGroupsFuture =
       MobileApi.instance.adminItemGroups();
   bool saving = false;
-  bool groupMenuOpen = false;
 
   @override
   void initState() {
@@ -35,24 +35,6 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
     itemGroup.dispose();
     uom.dispose();
     super.dispose();
-  }
-
-  void _toggleGroupMenu(bool open) {
-    if (groupMenuOpen == open) {
-      return;
-    }
-    setState(() => groupMenuOpen = open);
-  }
-
-  void _selectGroup(String group) {
-    if (itemGroup.text.trim() == group) {
-      _toggleGroupMenu(false);
-      return;
-    }
-    setState(() {
-      itemGroup.text = group;
-      groupMenuOpen = false;
-    });
   }
 
   Future<void> _hydrateDefaultUom() async {
@@ -139,6 +121,44 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
     });
   }
 
+  Future<void> _openItemGroupPicker(List<String> groups) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.32),
+      sheetAnimationStyle: kM3PickerSheetAnimation,
+      builder: (context) {
+        return M3AsyncPickerSheet<String>(
+          title: 'Item group tanlang',
+          hintText: 'Item group qidiring',
+          pageSize: 50,
+          loadPage: (query, offset, limit) async {
+            final normalizedQuery = query.trim().toLowerCase();
+            final filtered = normalizedQuery.isEmpty
+                ? groups
+                : groups.where((group) {
+                    return group.toLowerCase().contains(normalizedQuery);
+                  }).toList(growable: false);
+            return filtered.skip(offset).take(limit).toList(growable: false);
+          },
+          itemTitle: (group) => group,
+          itemSubtitle: (_) => '',
+          onSelected: (group) => Navigator.of(context).pop(group),
+        );
+      },
+    );
+    if (picked == null || !mounted) {
+      return;
+    }
+    setState(() {
+      itemGroup.text = picked;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppShell(
@@ -185,7 +205,7 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
                     onTap: snapshot.connectionState == ConnectionState.done &&
                             !snapshot.hasError &&
                             !saving
-                        ? () => _toggleGroupMenu(!groupMenuOpen)
+                        ? () => _openItemGroupPicker(groups)
                         : null,
                     borderRadius: 14,
                     child: Container(
@@ -232,110 +252,6 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
                         ],
                       ),
                     ),
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: groupMenuOpen
-                        ? Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainer,
-                              borderRadius: BorderRadius.zero,
-                              border: Border(
-                                left: BorderSide(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outlineVariant,
-                                ),
-                                right: BorderSide(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outlineVariant,
-                                ),
-                                top: BorderSide(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outlineVariant,
-                                ),
-                                bottom: BorderSide(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outlineVariant,
-                                ),
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                for (int index = 0;
-                                    index < groups.length;
-                                    index++) ...[
-                                  if (index > 0)
-                                    Divider(
-                                      height: 1,
-                                      thickness: 1,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .outlineVariant
-                                          .withValues(alpha: 0.6),
-                                    ),
-                                  Material(
-                                    color: groups[index] == selectedGroup
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .primaryContainer
-                                            .withValues(alpha: 0.55)
-                                        : Colors.transparent,
-                                    child: InkWell(
-                                      onTap: saving
-                                          ? null
-                                          : () => _selectGroup(groups[index]),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 13,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                groups[index],
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface,
-                                                    ),
-                                              ),
-                                            ),
-                                            if (groups[index] == selectedGroup)
-                                              Icon(
-                                                Icons.check_rounded,
-                                                size: 18,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface,
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          )
-                        : const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 12),
                 ],

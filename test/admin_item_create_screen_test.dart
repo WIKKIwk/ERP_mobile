@@ -75,6 +75,42 @@ void main() {
       expect(tester.takeException(), isNull);
     }, createHttpClient: (_) => client);
   });
+
+  testWidgets('item group picker opens as bottom sheet', (tester) async {
+    final seenRequests = <String>[];
+    final client = _AdminItemCreateHttpClient(seenRequests);
+
+    await HttpOverrides.runZoned(() async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: true),
+          locale: const Locale('uz'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AdminItemCreateScreen(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('All Item Groups').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Item group tanlang'), findsOneWidget);
+      expect(find.text('Item group qidiring'), findsOneWidget);
+
+      await tester.tap(find.text('Group B'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Item group tanlang'), findsNothing);
+      expect(find.text('Group B'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }, createHttpClient: (_) => client);
+  });
 }
 
 class _AdminItemCreateHttpClient implements HttpClient {
@@ -92,7 +128,11 @@ class _AdminItemCreateHttpClient implements HttpClient {
       'GET /v1/mobile/admin/settings' => {
           'default_uom': 'Kg',
         },
-      'GET /v1/mobile/admin/item-groups' => const ['All Item Groups'],
+      'GET /v1/mobile/admin/item-groups' => const [
+          'All Item Groups',
+          'Group A',
+          'Group B',
+        ],
       'GET /v1/mobile/admin/items?q=test&limit=5' => const [
           {
             'code': 'test',
