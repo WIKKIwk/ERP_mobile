@@ -106,7 +106,6 @@ extension MobileApiGScale on MobileApi {
     }
     return GScaleMaterialReceiptPrintResponse.fromJson(payload);
   }
-
 }
 
 class GScaleRpsBatchStartRequest {
@@ -205,6 +204,8 @@ class GScaleRpsBatchSession {
     required this.manualQtyKg,
     required this.tareEnabled,
     required this.tareKg,
+    this.lastError = '',
+    this.lastErrorAt = '',
   });
 
   factory GScaleRpsBatchSession.fromJson(Map<String, dynamic> json) {
@@ -221,6 +222,8 @@ class GScaleRpsBatchSession {
       manualQtyKg: _gscaleNumber(json['manual_qty_kg']),
       tareEnabled: json['tare_enabled'] == true || json['tare'] == true,
       tareKg: _gscaleNumber(json['tare_kg']),
+      lastError: _gscaleText(json['last_error']),
+      lastErrorAt: _gscaleText(json['last_error_at']),
     );
   }
 
@@ -236,6 +239,8 @@ class GScaleRpsBatchSession {
   final double manualQtyKg;
   final bool tareEnabled;
   final double tareKg;
+  final String lastError;
+  final String lastErrorAt;
 
   String get displayItemName => itemName.isEmpty ? itemCode : itemName;
 }

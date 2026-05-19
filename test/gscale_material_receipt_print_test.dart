@@ -100,6 +100,8 @@ void main() {
         'manual_qty_kg': 2.5,
         'tare_enabled': true,
         'tare_kg': 0.78,
+        'last_error': 'submit failed',
+        'last_error_at': '2026-05-19T05:00:00Z',
       },
     });
 
@@ -110,6 +112,8 @@ void main() {
     expect(response.batch.driverUrl, 'http://127.0.0.1:39117');
     expect(response.batch.quantitySource, 'manual');
     expect(response.batch.tareEnabled, isTrue);
+    expect(response.batch.lastError, 'submit failed');
+    expect(response.batch.lastErrorAt, '2026-05-19T05:00:00Z');
   });
 
   test('mobile batch state accepts RS batch session shape', () {
@@ -146,6 +150,8 @@ void main() {
       manualQtyKg: 0,
       tareEnabled: true,
       tareKg: 0.78,
+      lastError: 'submit failed',
+      lastErrorAt: '2026-05-19T05:00:00Z',
     );
 
     final snapshot = MonitorSnapshot.empty().copyWithBatch(
@@ -157,6 +163,45 @@ void main() {
     expect(snapshot.batchItemName, 'Green Tea');
     expect(snapshot.batchWarehouse, 'Stores - A');
     expect(snapshot.batchTareEnabled, isTrue);
+    expect(snapshot.batchLastError, 'submit failed');
+  });
+
+  test('late ERP batch error message and auto-stop decision are clear', () {
+    const batch = GScaleRpsBatchSession(
+      id: 'batch-1',
+      active: true,
+      driverUrl: 'http://127.0.0.1:39117',
+      itemCode: 'ITEM-1',
+      itemName: 'Green Tea',
+      warehouse: 'Stores - A',
+      printer: 'godex',
+      printMode: 'label',
+      quantitySource: 'scale',
+      manualQtyKg: 0,
+      tareEnabled: false,
+      tareKg: 0,
+      lastError: 'submit failed: NegativeStockError',
+      lastErrorAt: '2026-05-19T05:00:00Z',
+    );
+
+    expect(
+      buildRsBatchErpErrorMessage(batch.lastError),
+      'ERPNext tasdiqlashda xatolik yuz berdi: submit failed: NegativeStockError',
+    );
+    expect(
+      shouldStopRsBatchAfterLateError(
+        batch: batch,
+        seenErrorKey: '',
+      ),
+      isTrue,
+    );
+    expect(
+      shouldStopRsBatchAfterLateError(
+        batch: batch,
+        seenErrorKey: rsBatchLateErrorKey(batch),
+      ),
+      isFalse,
+    );
   });
 
   test('monitor snapshot reads connected GoDEX printer state', () {

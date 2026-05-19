@@ -440,6 +440,7 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
   Timer? _controlPrefsDebounce;
   String _printerStatusOverride = '';
   String _lastAutoBatchPrintKey = '';
+  String _lastRsBatchErrorKey = '';
   bool _suspendControlPrefsSave = false;
 
   @override
@@ -788,7 +789,7 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
       }
       setState(() {
         _applyRsBatchSession(response.batch);
-        if (reportError) {
+        if (reportError && response.batch.lastError.trim().isEmpty) {
           _errorText = '';
         }
       });
@@ -828,6 +829,35 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
       setState(() {
         _batchActionLoading = false;
         _errorText = error.toString();
+      });
+    }
+  }
+
+  Future<void> _stopRsBatchAfterLateErpError(String message) async {
+    setState(() {
+      _batchActionLoading = true;
+      _errorText = message;
+    });
+    try {
+      final response = await MobileApi.instance
+          .gscaleRpsBatchStop()
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _applyRsBatchSession(response.batch);
+        _batchActionLoading = false;
+        _lastAutoBatchPrintKey = '';
+        _errorText = message;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _batchActionLoading = false;
+        _errorText = message;
       });
     }
   }
@@ -895,6 +925,29 @@ class _OperatorDashboardPageState extends State<OperatorDashboardPage> {
     _snapshot = _snapshot.copyWithBatch(MobileBatchState.fromRpsBatch(batch));
     if (!batch.active) {
       _lastAutoBatchPrintKey = '';
+    }
+    final errorKey = rsBatchLateErrorKey(batch);
+    final shouldStop = shouldStopRsBatchAfterLateError(
+      batch: batch,
+      seenErrorKey: _lastRsBatchErrorKey,
+    );
+    if (errorKey.isNotEmpty && errorKey != _lastRsBatchErrorKey) {
+      _lastRsBatchErrorKey = errorKey;
+      final message = buildRsBatchErpErrorMessage(batch.lastError);
+      _errorText = message;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.maybeOf(context)
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(message)));
+      });
+      if (shouldStop) {
+        unawaited(Future<void>.microtask(
+          () => _stopRsBatchAfterLateErpError(message),
+        ));
+      }
     }
     _maybeAutoPrintStableBatch();
   }
@@ -3327,6 +3380,8 @@ class MonitorSnapshot {
     required this.batchManualQtyKg,
     required this.batchTareEnabled,
     required this.batchTareKg,
+    this.batchLastError = '',
+    this.batchLastErrorAt = '',
     required this.latencyMs,
   });
 
@@ -3359,6 +3414,8 @@ class MonitorSnapshot {
       batchManualQtyKg: 0,
       batchTareEnabled: false,
       batchTareKg: 0,
+      batchLastError: '',
+      batchLastErrorAt: '',
       latencyMs: 0,
     );
   }
@@ -3455,6 +3512,8 @@ class MonitorSnapshot {
       batchManualQtyKg: batchManualQtyKg,
       batchTareEnabled: batchTareEnabled,
       batchTareKg: batchTareKg,
+      batchLastError: '',
+      batchLastErrorAt: '',
       latencyMs: 0,
     );
   }
@@ -3495,6 +3554,8 @@ class MonitorSnapshot {
       batchManualQtyKg: batch.active ? batch.manualQtyKg : batchManualQtyKg,
       batchTareEnabled: batch.active ? batch.tareEnabled : batchTareEnabled,
       batchTareKg: batch.active ? batch.tareKg : batchTareKg,
+      batchLastError: batch.lastError,
+      batchLastErrorAt: batch.lastErrorAt,
       latencyMs: latencyMs,
     );
   }
@@ -3526,6 +3587,8 @@ class MonitorSnapshot {
   final double batchManualQtyKg;
   final bool batchTareEnabled;
   final double batchTareKg;
+  final String batchLastError;
+  final String batchLastErrorAt;
   final int latencyMs;
 
   MonitorSnapshot copyWithLatency(int latencyMs) {
@@ -3557,6 +3620,8 @@ class MonitorSnapshot {
       batchManualQtyKg: batchManualQtyKg,
       batchTareEnabled: batchTareEnabled,
       batchTareKg: batchTareKg,
+      batchLastError: batchLastError,
+      batchLastErrorAt: batchLastErrorAt,
       latencyMs: latencyMs,
     );
   }
@@ -3784,6 +3849,30 @@ String buildPrintSuccessMessage(GScaleMaterialReceiptPrintResponse response) {
   return '$draft submit qilindi • netto $qty ${response.unit}';
 }
 
+String buildRsBatchErpErrorMessage(String detail) {
+  final clean = detail.trim();
+  if (clean.isEmpty) {
+    return 'ERPNext tasdiqlashda xatolik yuz berdi';
+  }
+  return 'ERPNext tasdiqlashda xatolik yuz berdi: $clean';
+}
+
+String rsBatchLateErrorKey(GScaleRpsBatchSession batch) {
+  final detail = batch.lastError.trim();
+  if (detail.isEmpty) {
+    return '';
+  }
+  return '${batch.id}|${batch.lastErrorAt}|$detail';
+}
+
+bool shouldStopRsBatchAfterLateError({
+  required GScaleRpsBatchSession batch,
+  required String seenErrorKey,
+}) {
+  final key = rsBatchLateErrorKey(batch);
+  return batch.active && key.isNotEmpty && key != seenErrorKey;
+}
+
 String buildScaleConnectionLabel({
   required String source,
   required String port,
@@ -3931,6 +4020,8 @@ class MobileBatchState {
     required this.manualQtyKg,
     required this.tareEnabled,
     required this.tareKg,
+    this.lastError = '',
+    this.lastErrorAt = '',
   });
 
   factory MobileBatchState.fromJson(Map<String, dynamic> json) {
@@ -3945,6 +4036,8 @@ class MobileBatchState {
       manualQtyKg: (json['manual_qty_kg'] as num?)?.toDouble() ?? 0,
       tareEnabled: json['tare_enabled'] == true || json['tare'] == true,
       tareKg: (json['tare_kg'] as num?)?.toDouble() ?? 0,
+      lastError: _text(json['last_error']),
+      lastErrorAt: _text(json['last_error_at']),
     );
   }
 
@@ -3960,6 +4053,8 @@ class MobileBatchState {
       manualQtyKg: batch.manualQtyKg,
       tareEnabled: batch.tareEnabled,
       tareKg: batch.tareKg,
+      lastError: batch.lastError,
+      lastErrorAt: batch.lastErrorAt,
     );
   }
 
@@ -3973,6 +4068,8 @@ class MobileBatchState {
   final double manualQtyKg;
   final bool tareEnabled;
   final double tareKg;
+  final String lastError;
+  final String lastErrorAt;
 
   String get displayItemName => itemName.isEmpty ? itemCode : itemName;
   String get displayPrintMode => printMode.isEmpty ? 'rfid' : printMode;
