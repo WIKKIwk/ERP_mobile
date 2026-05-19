@@ -1,9 +1,8 @@
 import '../../../core/api/mobile_api.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/shell/app_shell.dart';
-import '../../../core/widgets/display/common_widgets.dart';
-import '../../shared/models/app_models.dart';
 import 'widgets/admin_dock.dart';
+import 'widgets/admin_top_notice.dart';
 import 'package:flutter/material.dart';
 
 class AdminItemCreateScreen extends StatefulWidget {
@@ -22,7 +21,6 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
       MobileApi.instance.adminItemGroups();
   bool saving = false;
   bool groupMenuOpen = false;
-  SupplierItem? createdItem;
 
   @override
   void initState() {
@@ -87,6 +85,12 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
   Future<void> _save() async {
     setState(() => saving = true);
     try {
+      if (await _itemAlreadyExists()) {
+        if (mounted) {
+          showAdminTopNotice(context, 'Item allaqachon yaratilgan');
+        }
+        return;
+      }
       final item = await MobileApi.instance.adminCreateItem(
         code: code.text.trim(),
         name: name.text.trim(),
@@ -96,28 +100,43 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
       if (!mounted) {
         return;
       }
-      setState(() {
-        createdItem = item;
-      });
       code.clear();
       name.clear();
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Item yaratildi: ${item.code}')),
-      );
+      showAdminTopNotice(context, 'Item yaratildi: ${item.code}');
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Item yaratilmadi: $error')),
-        );
+        showAdminTopNotice(context, 'Item yaratilmadi');
       }
     } finally {
       if (mounted) {
         setState(() => saving = false);
       }
     }
+  }
+
+  Future<bool> _itemAlreadyExists() async {
+    final itemCode = code.text.trim();
+    final itemName = name.text.trim();
+    final query = itemCode.isNotEmpty ? itemCode : itemName;
+    if (query.isEmpty) {
+      return false;
+    }
+    final items = await MobileApi.instance.adminItemsPage(
+      query: query,
+      limit: 5,
+    );
+    final normalizedCode = itemCode.toLowerCase();
+    final normalizedName = itemName.toLowerCase();
+    return items.any((item) {
+      final codeMatches = normalizedCode.isNotEmpty &&
+          item.code.trim().toLowerCase() == normalizedCode;
+      final nameMatches = normalizedName.isNotEmpty &&
+          item.name.trim().toLowerCase() == normalizedName;
+      return codeMatches || nameMatches;
+    });
   }
 
   @override
@@ -131,25 +150,6 @@ class _AdminItemCreateScreenState extends State<AdminItemCreateScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
         children: [
-          if (createdItem != null) ...[
-            SoftCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Yaratildi',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${createdItem!.name} • ${createdItem!.code}',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
           TextField(
             controller: code,
             decoration: const InputDecoration(labelText: 'Item code'),
