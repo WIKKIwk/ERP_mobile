@@ -374,13 +374,19 @@ class AdminItemsListTab extends StatefulWidget {
 
   final AdminItemsPageLoader loadItemsPage;
 
+  static void clearMemoryCache() {
+    _AdminItemsListTabState._memoryCache = null;
+  }
+
   @override
   State<AdminItemsListTab> createState() => _AdminItemsListTabState();
 }
 
-class _AdminItemsListTabState extends State<AdminItemsListTab> {
+class _AdminItemsListTabState extends State<AdminItemsListTab>
+    with AutomaticKeepAliveClientMixin<AdminItemsListTab> {
   static const int _pageSize = 80;
   static const double _loadMoreExtent = 420;
+  static _AdminItemsMemoryCache? _memoryCache;
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
@@ -393,10 +399,15 @@ class _AdminItemsListTabState extends State<AdminItemsListTab> {
   Object? _error;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
-    _loadFirstPage();
+    if (!_restoreMemoryCache()) {
+      _loadFirstPage(forceRefresh: true);
+    }
   }
 
   @override
@@ -412,7 +423,7 @@ class _AdminItemsListTabState extends State<AdminItemsListTab> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 220), () {
       _query = value.trim();
-      _loadFirstPage();
+      _loadFirstPage(forceRefresh: true);
     });
   }
 
@@ -428,7 +439,34 @@ class _AdminItemsListTabState extends State<AdminItemsListTab> {
     }
   }
 
-  Future<void> _loadFirstPage() async {
+  bool _restoreMemoryCache() {
+    final cache = _memoryCache;
+    if (cache == null) {
+      return false;
+    }
+    _query = cache.query;
+    _searchController.text = cache.query;
+    _items = cache.items;
+    _initialLoading = false;
+    _loadingMore = false;
+    _hasMore = cache.hasMore;
+    _error = null;
+    return true;
+  }
+
+  void _saveMemoryCache() {
+    _memoryCache = _AdminItemsMemoryCache(
+      query: _query,
+      items: List<SupplierItem>.unmodifiable(_items),
+      hasMore: _hasMore,
+    );
+  }
+
+  Future<void> _loadFirstPage({bool forceRefresh = false}) async {
+    if (!forceRefresh && _restoreMemoryCache()) {
+      setState(() {});
+      return;
+    }
     setState(() {
       _items = const <SupplierItem>[];
       _initialLoading = true;
@@ -468,6 +506,7 @@ class _AdminItemsListTabState extends State<AdminItemsListTab> {
         _hasMore = page.length == _pageSize;
         _error = null;
       });
+      _saveMemoryCache();
     } catch (error) {
       if (!mounted || query != _query) {
         return;
@@ -483,9 +522,10 @@ class _AdminItemsListTabState extends State<AdminItemsListTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final bottomPadding = MediaQuery.paddingOf(context).bottom + 240;
     return RefreshIndicator(
-      onRefresh: _loadFirstPage,
+      onRefresh: () => _loadFirstPage(forceRefresh: true),
       child: ListView(
         controller: _scrollController,
         padding: EdgeInsets.fromLTRB(12, 12, 12, bottomPadding),
@@ -513,12 +553,24 @@ class _AdminItemsListTabState extends State<AdminItemsListTab> {
             loadingMore: _loadingMore,
             hasMore: _hasMore,
             error: _error,
-            onRetry: _loadFirstPage,
+            onRetry: () => _loadFirstPage(forceRefresh: true),
           ),
         ],
       ),
     );
   }
+}
+
+class _AdminItemsMemoryCache {
+  const _AdminItemsMemoryCache({
+    required this.query,
+    required this.items,
+    required this.hasMore,
+  });
+
+  final String query;
+  final List<SupplierItem> items;
+  final bool hasMore;
 }
 
 class _AdminItemsListBody extends StatelessWidget {

@@ -16,6 +16,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
+    AdminItemsListTab.clearMemoryCache();
     AppSession.instance.token = 'token';
     AppSession.instance.profile = const SessionProfile(
       role: UserRole.admin,
@@ -169,6 +170,75 @@ void main() {
         contains('GET /v1/mobile/admin/items?limit=80&offset=80'),
       );
       expect(find.text('Item 085'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }, createHttpClient: (_) => client);
+  });
+
+  testWidgets('item list reuses memory cache until user refreshes',
+      (tester) async {
+    final seenRequests = <String>[];
+    final client = _AdminItemCreateHttpClient(seenRequests);
+
+    Future<void> pumpScreen() async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: true),
+          locale: const Locale('uz'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AdminItemCreateScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Itemlar'));
+      await tester.pumpAndSettle();
+    }
+
+    await HttpOverrides.runZoned(() async {
+      await pumpScreen();
+      expect(
+        seenRequests
+            .where(
+                (request) => request == 'GET /v1/mobile/admin/items?limit=80')
+            .length,
+        1,
+      );
+      expect(find.text('Item 001'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await pumpScreen();
+
+      expect(
+        seenRequests
+            .where(
+                (request) => request == 'GET /v1/mobile/admin/items?limit=80')
+            .length,
+        1,
+      );
+      expect(find.text('Item 001'), findsOneWidget);
+
+      final itemListScroll = find.descendant(
+        of: find.byType(AdminItemsListTab),
+        matching: find.byType(Scrollable),
+      );
+      await tester.fling(itemListScroll.last, const Offset(0, 360), 1200);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(
+        seenRequests
+            .where(
+                (request) => request == 'GET /v1/mobile/admin/items?limit=80')
+            .length,
+        2,
+      );
       expect(tester.takeException(), isNull);
     }, createHttpClient: (_) => client);
   });
