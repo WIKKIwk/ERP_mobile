@@ -55,7 +55,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).at(0), 'test');
       await tester.enterText(find.byType(TextField).at(1), 'test');
-      await tester.tap(find.text('Item yaratish'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Item yaratish'));
       await tester.pumpAndSettle();
 
       expect(
@@ -114,6 +114,57 @@ void main() {
 
       expect(find.text('Item group tanlang'), findsNothing);
       expect(find.text('Group B'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }, createHttpClient: (_) => client);
+  });
+
+  testWidgets('item screen has create and paged item list modules',
+      (tester) async {
+    final seenRequests = <String>[];
+    final client = _AdminItemCreateHttpClient(seenRequests);
+
+    await HttpOverrides.runZoned(() async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: true),
+          locale: const Locale('uz'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AdminItemCreateScreen(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Item yaratish'), findsNWidgets(2));
+      expect(find.text('Itemlar'), findsOneWidget);
+
+      await tester.tap(find.text('Itemlar'));
+      await tester.pumpAndSettle();
+
+      expect(
+        seenRequests,
+        contains('GET /v1/mobile/admin/items?limit=80'),
+      );
+      expect(find.text('Item 001'), findsOneWidget);
+
+      final itemListScroll = find.descendant(
+        of: find.byType(AdminItemsListTab),
+        matching: find.byType(Scrollable),
+      );
+      await tester.drag(itemListScroll.last, const Offset(0, -6000));
+      await tester.pumpAndSettle();
+
+      expect(
+        seenRequests,
+        contains('GET /v1/mobile/admin/items?limit=80&offset=80'),
+      );
+      expect(find.text('Item 085'), findsOneWidget);
       expect(tester.takeException(), isNull);
     }, createHttpClient: (_) => client);
   });
@@ -217,6 +268,23 @@ class _AdminItemCreateHttpClient implements HttpClient {
         '$method ${url.path}${url.query.isEmpty ? '' : '?${url.query}'}';
     seenRequests.add(key);
 
+    if (key == 'GET /v1/mobile/admin/items?limit=80') {
+      return _FakeHttpClientRequest(
+        response: _FakeHttpClientResponse(
+          body: jsonEncode(_itemsPage(1, 80)),
+          statusCode: HttpStatus.ok,
+        ),
+      );
+    }
+    if (key == 'GET /v1/mobile/admin/items?limit=80&offset=80') {
+      return _FakeHttpClientRequest(
+        response: _FakeHttpClientResponse(
+          body: jsonEncode(_itemsPage(81, 5)),
+          statusCode: HttpStatus.ok,
+        ),
+      );
+    }
+
     final Object body = switch (key) {
       'GET /v1/mobile/admin/settings' => {
           'default_uom': 'Kg',
@@ -294,6 +362,20 @@ class _AdminItemCreateHttpClient implements HttpClient {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+List<Map<String, String>> _itemsPage(int start, int count) {
+  return List<Map<String, String>>.generate(count, (index) {
+    final number = start + index;
+    final padded = number.toString().padLeft(3, '0');
+    return {
+      'code': 'ITEM-$padded',
+      'name': 'Item $padded',
+      'uom': 'Kg',
+      'warehouse': 'Stores - A',
+      'item_group': number.isEven ? 'Tayyor Mahsulot' : 'Homashyo',
+    };
+  });
 }
 
 class _FakeHttpClientRequest implements HttpClientRequest {
