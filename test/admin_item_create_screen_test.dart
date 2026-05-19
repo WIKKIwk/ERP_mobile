@@ -148,10 +148,8 @@ void main() {
 
       final allTop = tester.getTopLeft(find.text('All Item Groups').last).dy;
       final homashyoTop = tester.getTopLeft(find.text('Homashyo')).dy;
-      final metalTop = tester.getTopLeft(find.text('Metal')).dy;
 
       expect(allTop, lessThan(homashyoTop));
-      expect(homashyoTop, lessThan(metalTop));
       expect(
         seenRequests,
         contains('GET /v1/mobile/admin/item-groups/tree'),
@@ -160,7 +158,8 @@ void main() {
     }, createHttpClient: (_) => client);
   });
 
-  test('item group tree puts group parents before leaf children', () {
+  test('item group tree keeps direct root children above deeper descendants',
+      () {
     final ordered = orderAdminItemGroupsByParent(const [
       AdminItemGroupTreeEntry(
         name: 'Metal',
@@ -169,8 +168,8 @@ void main() {
         isGroup: false,
       ),
       AdminItemGroupTreeEntry(
-        name: 'Group B',
-        itemGroupName: 'Group B',
+        name: 'Tayyor Mahsulot',
+        itemGroupName: 'Tayyor Mahsulot',
         parentItemGroup: 'All Item Groups',
         isGroup: false,
       ),
@@ -198,10 +197,10 @@ void main() {
       ordered,
       const [
         'All Item Groups',
+        'Tayyor Mahsulot',
         'Homashyo',
         'Metal',
         'Plastic',
-        'Group B',
       ],
     );
   });

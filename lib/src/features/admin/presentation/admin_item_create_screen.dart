@@ -293,7 +293,6 @@ List<String> orderAdminItemGroupsByParent(
 ) {
   final names = <String>{};
   final parentByName = <String, String>{};
-  final isGroupByName = <String, bool>{};
   final indexByName = <String, int>{};
   final childrenByParent = <String, List<String>>{};
 
@@ -307,7 +306,6 @@ List<String> orderAdminItemGroupsByParent(
       continue;
     }
     indexByName[name] = index;
-    isGroupByName[name] = entry.isGroup;
     final parent = entry.parentItemGroup.trim();
     parentByName[name] = parent;
     if (parent.isNotEmpty && parent != name) {
@@ -316,64 +314,55 @@ List<String> orderAdminItemGroupsByParent(
   }
 
   for (final children in childrenByParent.values) {
-    children.sort((left, right) => _compareItemGroupTreeOrder(
-          left,
-          right,
-          isGroupByName,
-          indexByName,
-        ));
+    children.sort((left, right) {
+      return (indexByName[left] ?? 1 << 20)
+          .compareTo(indexByName[right] ?? 1 << 20);
+    });
   }
 
   final ordered = <String>[];
   final visited = <String>{};
+  final queue = <String>[];
 
-  void visit(String name) {
+  void enqueue(String name) {
     if (!names.contains(name) || !visited.add(name)) {
       return;
     }
-    ordered.add(name);
-    for (final child in childrenByParent[name] ?? const <String>[]) {
-      visit(child);
-    }
+    queue.add(name);
   }
 
   if (names.contains('All Item Groups')) {
-    visit('All Item Groups');
+    enqueue('All Item Groups');
   }
 
   final roots = names.where((name) {
     final parent = parentByName[name] ?? '';
     return parent.isEmpty || parent == name || !names.contains(parent);
   }).toList()
-    ..sort((left, right) => _compareItemGroupTreeOrder(
-          left,
-          right,
-          isGroupByName,
-          indexByName,
-        ));
+    ..sort((left, right) {
+      return (indexByName[left] ?? 1 << 20)
+          .compareTo(indexByName[right] ?? 1 << 20);
+    });
 
   for (final root in roots) {
-    visit(root);
+    enqueue(root);
   }
+
+  for (var index = 0; index < queue.length; index++) {
+    final name = queue[index];
+    ordered.add(name);
+    for (final child in childrenByParent[name] ?? const <String>[]) {
+      enqueue(child);
+    }
+  }
+
   for (final name in names) {
-    visit(name);
+    enqueue(name);
+  }
+  for (var index = ordered.length; index < queue.length; index++) {
+    ordered.add(queue[index]);
   }
   return ordered;
-}
-
-int _compareItemGroupTreeOrder(
-  String left,
-  String right,
-  Map<String, bool> isGroupByName,
-  Map<String, int> indexByName,
-) {
-  final leftIsGroup = isGroupByName[left] ?? false;
-  final rightIsGroup = isGroupByName[right] ?? false;
-  if (leftIsGroup != rightIsGroup) {
-    return leftIsGroup ? -1 : 1;
-  }
-  return (indexByName[left] ?? 1 << 20)
-      .compareTo(indexByName[right] ?? 1 << 20);
 }
 
 class _TapBox extends StatelessWidget {
