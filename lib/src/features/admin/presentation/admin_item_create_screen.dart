@@ -1,11 +1,12 @@
 import '../../../core/api/mobile_api.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/lists/m3_segmented_list.dart';
 import '../../../core/widgets/shell/app_shell.dart';
 import '../models/admin_item_group_tree_entry.dart';
 import '../../shared/models/app_models.dart';
 import '../../werka/presentation/widgets/m3_picker_sheet.dart';
 import 'widgets/admin_dock.dart';
-import 'widgets/admin_item_group_selected_items.dart';
+import 'widgets/admin_summary_card.dart';
 import 'widgets/admin_top_notice.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -493,7 +494,16 @@ class _AdminItemsListTabState extends State<AdminItemsListTab> {
           SearchBar(
             controller: _searchController,
             hintText: 'Mahsulot qidirish',
-            leading: const Icon(Icons.search_rounded),
+            constraints: const BoxConstraints(minHeight: 58),
+            padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+              EdgeInsets.symmetric(horizontal: 18),
+            ),
+            leading: Icon(
+              Icons.search_rounded,
+              size: 26,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            elevation: const WidgetStatePropertyAll<double>(0),
             onChanged: _handleSearchChanged,
           ),
           const SizedBox(height: 12),
@@ -545,13 +555,132 @@ class _AdminItemsListBody extends StatelessWidget {
         onAction: onRetry,
       );
     }
-    return AdminItemGroupSelectedItems(
-      group: 'Hamma itemlar',
+    return _AdminItemsList(
       items: items,
       loadingMore: loadingMore,
       hasMore: hasMore,
       pageError: error,
       onRetry: onRetry,
+    );
+  }
+}
+
+class _AdminItemsList extends StatelessWidget {
+  const _AdminItemsList({
+    required this.items,
+    required this.loadingMore,
+    required this.hasMore,
+    required this.pageError,
+    required this.onRetry,
+  });
+
+  final List<SupplierItem> items;
+  final bool loadingMore;
+  final bool hasMore;
+  final Object? pageError;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const _ItemListNotice(text: 'Item topilmadi');
+    }
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        M3SegmentSpacedColumn(
+          padding: EdgeInsets.zero,
+          children: [
+            for (var index = 0; index < items.length; index++)
+              _AdminItemRow(
+                slot: M3SegmentedListGeometry.standaloneListSlotForIndex(
+                  index,
+                  items.length,
+                ),
+                item: items[index],
+              ),
+          ],
+        ),
+        if (loadingMore)
+          const Padding(
+            padding: EdgeInsets.all(14),
+            child: CircularProgressIndicator(),
+          )
+        else if (pageError != null)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Yana yuklash'),
+            ),
+          )
+        else if (hasMore)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              'Pastga scroll qiling, qolganlari yuklanadi',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _AdminItemRow extends StatelessWidget {
+  const _AdminItemRow({
+    required this.slot,
+    required this.item,
+  });
+
+  final M3SegmentVerticalSlot slot;
+  final SupplierItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final title = item.name.trim().isEmpty ? item.code : item.name;
+    final subtitle = <String>[
+      if (item.code.trim().isNotEmpty) item.code.trim(),
+      if (item.uom.trim().isNotEmpty) item.uom.trim(),
+      if (item.itemGroup.trim().isNotEmpty) item.itemGroup.trim(),
+    ].join(' • ');
+
+    return AdminSummaryCard(
+      slot: slot,
+      cornerRadius: M3SegmentedListGeometry.cornerRadiusForSlot(slot),
+      fixedHeight: 61,
+      padding: const EdgeInsets.fromLTRB(14, 8, 10, 8),
+      value: '',
+      showChevron: false,
+      leading: SizedBox.square(
+        dimension: 30,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: scheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.inventory_2_rounded,
+            size: 16,
+            color: scheme.onSecondaryContainer,
+          ),
+        ),
+      ),
+      title: title,
+      subtitle: subtitle,
+      titleMaxLines: 1,
+      subtitleMaxLines: 1,
+      titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+      subtitleStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+            height: 1.05,
+          ),
     );
   }
 }

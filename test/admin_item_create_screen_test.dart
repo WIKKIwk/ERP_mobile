@@ -6,6 +6,7 @@ import 'package:erpnext_stock_mobile/src/core/localization/app_localizations.dar
 import 'package:erpnext_stock_mobile/src/core/session/session.dart';
 import 'package:erpnext_stock_mobile/src/features/admin/models/admin_item_group_tree_entry.dart';
 import 'package:erpnext_stock_mobile/src/features/admin/presentation/admin_item_create_screen.dart';
+import 'package:erpnext_stock_mobile/src/features/admin/presentation/widgets/admin_summary_card.dart';
 import 'package:erpnext_stock_mobile/src/features/shared/models/app_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -152,6 +153,9 @@ void main() {
         contains('GET /v1/mobile/admin/items?limit=80'),
       );
       expect(find.text('Item 001'), findsOneWidget);
+      expect(find.text('Hamma itemlar'), findsNothing);
+      expect(find.text('80 item'), findsNothing);
+      expect(find.byType(AdminSummaryCard), findsWidgets);
 
       final itemListScroll = find.descendant(
         of: find.byType(AdminItemsListTab),
